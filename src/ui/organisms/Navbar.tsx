@@ -15,6 +15,7 @@ import { Link } from "@tanstack/react-router";
 import { Input } from "../shadcn/input";
 import { Button } from "../shadcn/button";
 import { Sheet, SheetContent, SheetTrigger } from "../shadcn/sheet";
+import Logo from "../atoms/Logo";
 
 export default function Navbar() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -24,10 +25,7 @@ export default function Navbar() {
       <div className='container mx-auto flex h-16 items-center justify-between px-4'>
         {/* Logo */}
         <Link to='/' className='flex items-center gap-2'>
-          <ShoppingBag className='h-6 w-6 text-primary' />
-          <span className='text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent'>
-            LuxuryBags
-          </span>
+          <Logo />
         </Link>
 
         {/* Search Bar - Always visible on desktop */}
