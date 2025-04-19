@@ -3,7 +3,7 @@ import Navbar from "../organisms/Navbar";
 
 const LandingPageLayout = ({ children }: { children: any }) => {
   return (
-    <div>
+    <div className='pl-3'>
       <Navbar />
       {children}
       <Footer />
