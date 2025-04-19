@@ -4,11 +4,9 @@ import { useState } from "react";
 import { Search, ShoppingBag, User, Heart, Menu, X } from "lucide-react";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/ui/shadcn/navigation-menu";
 
 import { Link } from "@tanstack/react-router";
@@ -43,7 +41,7 @@ export default function Navbar() {
           <NavigationMenuList>
             <NavigationMenuItem>
               <Link to='/'>
-                <NavigationMenuLink className='group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50'>
+                <NavigationMenuLink className='group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50'>
                   Home
                 </NavigationMenuLink>
               </Link>
@@ -79,6 +77,7 @@ export default function Navbar() {
             ) : (
               <Search className='h-5 w-5' />
             )}
+            S
           </Button>
 
           {/* User Account */}
