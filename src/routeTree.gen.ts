@@ -13,6 +13,8 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
+import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
+import { Route as AdminDashboardBagsImport } from './routes/admin-dashboard/bags'
 
 // Create/Update Routes
 
@@ -25,6 +27,18 @@ const AboutRoute = AboutImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminDashboardIndexRoute = AdminDashboardIndexImport.update({
+  id: '/admin-dashboard/',
+  path: '/admin-dashboard/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminDashboardBagsRoute = AdminDashboardBagsImport.update({
+  id: '/admin-dashboard/bags',
+  path: '/admin-dashboard/bags',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -46,6 +60,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
+    '/admin-dashboard/bags': {
+      id: '/admin-dashboard/bags'
+      path: '/admin-dashboard/bags'
+      fullPath: '/admin-dashboard/bags'
+      preLoaderRoute: typeof AdminDashboardBagsImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin-dashboard/': {
+      id: '/admin-dashboard/'
+      path: '/admin-dashboard'
+      fullPath: '/admin-dashboard'
+      preLoaderRoute: typeof AdminDashboardIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -54,36 +82,51 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin-dashboard/bags': typeof AdminDashboardBagsRoute
+  '/admin-dashboard': typeof AdminDashboardIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin-dashboard/bags': typeof AdminDashboardBagsRoute
+  '/admin-dashboard': typeof AdminDashboardIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin-dashboard/bags': typeof AdminDashboardBagsRoute
+  '/admin-dashboard/': typeof AdminDashboardIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths: '/' | '/about' | '/admin-dashboard/bags' | '/admin-dashboard'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to: '/' | '/about' | '/admin-dashboard/bags' | '/admin-dashboard'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/admin-dashboard/bags'
+    | '/admin-dashboard/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminDashboardBagsRoute: typeof AdminDashboardBagsRoute
+  AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminDashboardBagsRoute: AdminDashboardBagsRoute,
+  AdminDashboardIndexRoute: AdminDashboardIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -97,7 +140,9 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about"
+        "/about",
+        "/admin-dashboard/bags",
+        "/admin-dashboard/"
       ]
     },
     "/": {
@@ -105,6 +150,12 @@ export const routeTree = rootRoute
     },
     "/about": {
       "filePath": "about.tsx"
+    },
+    "/admin-dashboard/bags": {
+      "filePath": "admin-dashboard/bags.tsx"
+    },
+    "/admin-dashboard/": {
+      "filePath": "admin-dashboard/index.tsx"
     }
   }
 }

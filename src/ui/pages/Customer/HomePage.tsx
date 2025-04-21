@@ -1,5 +1,5 @@
-import LandingPageLayout from "../layouts/LandingPageLayout";
-import { OnsaleBags } from "../organisms/products/OnSaleBags";
+import LandingPageLayout from "@/ui/layouts/LandingPageLayout";
+import { OnsaleBags } from "@/ui/organisms/products/OnSaleBags";
 
 const HomePage = () => {
   return (

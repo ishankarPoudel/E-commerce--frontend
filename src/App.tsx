@@ -1,5 +1,6 @@
 import { AppSidebar } from "./components/App-sidebar";
-import HomePage from "./ui/pages/HomePage";
+import HomePage from "./ui/pages/Customer/HomePage";
+
 import { SidebarProvider, SidebarTrigger } from "./ui/shadcn/sidebar";
 
 function App({ children }: { children: React.ReactNode }) {
