@@ -1,7 +1,8 @@
 import type React from "react";
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { Trash2, Upload, ImagePlus, Check } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
@@ -20,26 +21,13 @@ import { AddBagValidator } from "@/validators/addbag.validators";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Progress } from "@/ui/shadcn/progress";
 import { Badge } from "@/ui/shadcn/badge";
-import { useMutation } from "@tanstack/react-query";
-import { addBagMutation } from "@/api/@tanstack/react-query.gen";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  addBagMutation,
+  getCategoriesOptions,
+} from "@/api/@tanstack/react-query.gen";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
-
-const categoryOptions = [
-  { value: "8a362ee8-3b74-4379-95de-f8aadda50d7b", label: "Backpack" },
-  { value: "7a8b9c10-1d2e-3f4a-5b6c-7d8e9f0a1b2c", label: "Tote" },
-  { value: "crossbody", label: "Crossbody" },
-  { value: "clutch", label: "Clutch" },
-  { value: "shoulder", label: "Shoulder Bag" },
-  { value: "weekender", label: "Weekender" },
-  { value: "messenger", label: "Messenger Bag" },
-  { value: "satchel", label: "Satchel" },
-];
-
-// For showing labels in badges
-const categoryLabelMap = Object.fromEntries(
-  categoryOptions.map((c) => [c.value, c.label])
-);
 
 // Mock function for image upload
 const uploadImage = async (
@@ -78,10 +66,23 @@ export function AddBagForm() {
     },
   });
 
+  //api to add the bags
   const { mutate, isPending: isBagAdding } = useMutation({
     ...addBagMutation(),
   });
 
+  //api to fetch the bag categories from the server
+  const { data: categories, isLoading: isCategoriesLoading } = useQuery({
+    ...getCategoriesOptions(),
+  });
+
+  const categoryLabelMap = useMemo(() => {
+    if (!categories?.data) return {};
+    return Object.fromEntries(
+      categories.data.map((c) => [c.id, c.categoryName])
+    );
+  }, [categories]);
+  console.log(categories?.data[0].categoryName, "categories");
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newImages = Array.from(e.target.files).map((file) => ({
@@ -135,23 +136,20 @@ export function AddBagForm() {
       mutate(
         { body: { ...productData } },
         {
-          onSuccess: () => {
-            console.log("Product added successfully!");
+          onSuccess: (response) => {
+            toast.success(response?.message || "Bag  added successfully!!!!!!");
+            form.reset();
+            setImages([]);
           },
           onError: (error) => {
-            console.error("Error adding product:", error);
+            toast.error(error.message || "Failed to add bag");
           },
         }
       );
 
       // Reset form after successful submission
-      form.reset();
-      setImages([]);
-      alert("Product added successfully!");
     } catch (error) {
       console.error("Error submitting form:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -259,30 +257,31 @@ export function AddBagForm() {
                   </PopoverTrigger>
                   <PopoverContent className='w-72 p-2'>
                     <div className='flex flex-col gap-2'>
-                      {categoryOptions.map((option) => (
+                      {categories?.data.map((option) => (
                         <label
-                          key={option.value}
+                          key={option.id}
                           className='flex items-center gap-2 cursor-pointer'>
                           <Checkbox
                             checked={
                               Array.isArray(field.value) &&
-                              field.value.includes(option.value)
+                              field.value.includes(option.id)
                             }
                             onCheckedChange={(checked) => {
                               let newValue = Array.isArray(field.value)
                                 ? [...field.value]
                                 : [];
                               if (checked) {
-                                newValue.push(option.value);
+                                newValue.push(option.id); // ✅ push id
                               } else {
                                 newValue = newValue.filter(
-                                  (v) => v !== option.value
+                                  (v) => v !== option.id
                                 );
                               }
                               field.onChange(newValue);
                             }}
                           />
-                          <span>{option.label}</span>
+                          <span>{option.categoryName}</span>{" "}
+                          {/* ✅ Show name, store id */}
                         </label>
                       ))}
                     </div>
@@ -432,9 +431,9 @@ export function AddBagForm() {
             </Button>
             <Button
               type='submit'
-              disabled={isSubmitting}
+              disabled={isBagAdding}
               className='px-6 transition-all'>
-              {isSubmitting ? "Adding Product..." : "Add Product"}
+              {isBagAdding ? "Adding Product..." : "Add Product"}
             </Button>
           </div>
         </form>

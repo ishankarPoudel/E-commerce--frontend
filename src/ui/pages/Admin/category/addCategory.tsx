@@ -17,6 +17,7 @@ import {
 import { Input } from "@/ui/shadcn/input";
 import { useMutation } from "@tanstack/react-query";
 import { addCategoryMutation } from "@/api/@tanstack/react-query.gen";
+import { toast } from "sonner";
 
 export function BagCategoryForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -38,11 +39,13 @@ export function BagCategoryForm() {
     mutate(
       { body: { ...data } },
       {
-        onSuccess: () => {
-          console.log("category added successfully!");
+        onSuccess: (response) => {
+          toast.success(response.message || "Category added successfully!");
+          form.reset();
         },
         onError: (error) => {
-          console.error("Error adding category", error);
+          toast.error(error.message || "Failed to add category.");
+          setImagePreview(null);
         },
       }
     );
@@ -142,8 +145,8 @@ export function BagCategoryForm() {
               />
 
               <div className='flex gap-4'>
-                <Button type='submit' disabled={isSubmitting}>
-                  {isSubmitting ? (
+                <Button type='submit' disabled={isCategoryAdding}>
+                  {isCategoryAdding ? (
                     <>
                       <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                       Creating...
@@ -162,7 +165,7 @@ export function BagCategoryForm() {
                     form.reset();
                     setImagePreview(null);
                   }}
-                  disabled={isSubmitting}>
+                  disabled={isCategoryAdding}>
                   Cancel
                 </Button>
               </div>

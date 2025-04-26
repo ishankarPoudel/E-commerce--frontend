@@ -51,6 +51,26 @@ export type AddCategoryResponses = {
 
 export type AddCategoryResponse = AddCategoryResponses[keyof AddCategoryResponses];
 
+export type GetCategoriesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/category/get-categories';
+};
+
+export type GetCategoriesResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: Array<Category>;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetCategoriesResponse = GetCategoriesResponses[keyof GetCategoriesResponses];
+
 export type AddBagData = {
     body: AddBagValidator;
     path?: never;
