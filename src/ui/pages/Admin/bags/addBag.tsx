@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { useState } from "react";
@@ -18,18 +16,30 @@ import {
 } from "@/ui/shadcn/form";
 import { Input } from "@/ui/shadcn/input";
 import { AddBagValidator } from "@/validators/addbag.validators";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/ui/shadcn/select";
+
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Progress } from "@/ui/shadcn/progress";
 import { Badge } from "@/ui/shadcn/badge";
 import { useMutation } from "@tanstack/react-query";
 import { addBagMutation } from "@/api/@tanstack/react-query.gen";
+import { Checkbox } from "@/ui/shadcn/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
+
+const categoryOptions = [
+  { value: "8a362ee8-3b74-4379-95de-f8aadda50d7b", label: "Backpack" },
+  { value: "7a8b9c10-1d2e-3f4a-5b6c-7d8e9f0a1b2c", label: "Tote" },
+  { value: "crossbody", label: "Crossbody" },
+  { value: "clutch", label: "Clutch" },
+  { value: "shoulder", label: "Shoulder Bag" },
+  { value: "weekender", label: "Weekender" },
+  { value: "messenger", label: "Messenger Bag" },
+  { value: "satchel", label: "Satchel" },
+];
+
+// For showing labels in badges
+const categoryLabelMap = Object.fromEntries(
+  categoryOptions.map((c) => [c.value, c.label])
+);
 
 // Mock function for image upload
 const uploadImage = async (
@@ -51,6 +61,7 @@ const uploadImage = async (
 };
 
 export function AddBagForm() {
+  const [open, setOpen] = useState(false);
   const [images, setImages] = useState<
     { file: File; preview: string; progress: number }[]
   >([]);
@@ -59,11 +70,11 @@ export function AddBagForm() {
   const form = useForm<AddBagValidator>({
     resolver: classValidatorResolver(AddBagValidator),
     defaultValues: {
-      bagName: "",
-      bagPrice: 0,
-      bagCategory: [],
-      bagDescription: "",
-      bagImages: [],
+      name: "",
+      price: 0,
+      categories: [],
+      description: "",
+      // images: [],
     },
   });
 
@@ -119,10 +130,9 @@ export function AddBagForm() {
       // Combine form data with uploaded image URLs
       const productData = {
         ...data,
-        imageUrls: uploadedImageUrls,
+        // imageUrls: uploadedImageUrls,
       };
       mutate(
-        //@ts-expect-error
         { body: { ...productData } },
         {
           onSuccess: () => {
@@ -161,7 +171,7 @@ export function AddBagForm() {
           <div className='grid gap-6 md:grid-cols-2'>
             <FormField
               control={form.control}
-              name='bagName'
+              name='name'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className='text-sm font-medium'>
@@ -184,7 +194,7 @@ export function AddBagForm() {
 
             <FormField
               control={form.control}
-              name='bagPrice'
+              name='price'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className='text-sm font-medium'>
@@ -215,61 +225,71 @@ export function AddBagForm() {
 
           <FormField
             control={form.control}
-            name='bagCategory'
+            name='categories'
             render={({ field }) => (
               <FormItem>
-                <FormLabel className='text-sm font-medium'>Category</FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger className='w-full focus-visible:ring-2 focus-visible:ring-offset-1 transition-all'>
-                      <SelectValue placeholder='Select a category' />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value='backpack'>
-                      <div className='flex items-center'>
-                        <span>Backpack</span>
+                <FormLabel className='text-sm font-medium'>
+                  Categories
+                </FormLabel>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      className='w-full justify-start'
+                      onClick={() => setOpen((prev) => !prev)}>
+                      <div className='flex flex-wrap gap-1'>
+                        {Array.isArray(field.value) &&
+                        field.value.length > 0 ? (
+                          field.value.map((cat) => (
+                            <Badge
+                              key={cat}
+                              variant='secondary'
+                              className='text-xs px-2 py-1 rounded bg-primary/10 text-primary'>
+                              {categoryLabelMap[cat] || cat}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className='text-muted-foreground'>
+                            Select categories
+                          </span>
+                        )}
                       </div>
-                    </SelectItem>
-                    <SelectItem value='tote'>
-                      <div className='flex items-center'>
-                        <span>Tote</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value='crossbody'>
-                      <div className='flex items-center'>
-                        <span>Crossbody</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value='clutch'>
-                      <div className='flex items-center'>
-                        <span>Clutch</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value='shoulder'>
-                      <div className='flex items-center'>
-                        <span>Shoulder Bag</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value='weekender'>
-                      <div className='flex items-center'>
-                        <span>Weekender</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value='messenger'>
-                      <div className='flex items-center'>
-                        <span>Messenger Bag</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value='satchel'>
-                      <div className='flex items-center'>
-                        <span>Satchel</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className='w-72 p-2'>
+                    <div className='flex flex-col gap-2'>
+                      {categoryOptions.map((option) => (
+                        <label
+                          key={option.value}
+                          className='flex items-center gap-2 cursor-pointer'>
+                          <Checkbox
+                            checked={
+                              Array.isArray(field.value) &&
+                              field.value.includes(option.value)
+                            }
+                            onCheckedChange={(checked) => {
+                              let newValue = Array.isArray(field.value)
+                                ? [...field.value]
+                                : [];
+                              if (checked) {
+                                newValue.push(option.value);
+                              } else {
+                                newValue = newValue.filter(
+                                  (v) => v !== option.value
+                                );
+                              }
+                              field.onChange(newValue);
+                            }}
+                          />
+                          <span>{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <FormDescription className='text-xs'>
-                  Select the category that best describes this bag.
+                  Select one or more categories for this bag.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -278,7 +298,7 @@ export function AddBagForm() {
 
           <FormField
             control={form.control}
-            name='bagDescription'
+            name='description'
             render={({ field }) => (
               <FormItem>
                 <FormLabel className='text-sm font-medium'>
@@ -302,7 +322,7 @@ export function AddBagForm() {
 
           <FormField
             control={form.control}
-            name='bagImages'
+            name='images'
             render={({ field: { value, ...fieldProps } }) => (
               <FormItem>
                 <FormLabel className='text-sm font-medium'>

@@ -23,7 +23,7 @@ export const adminNavLinks = [
   },
   {
     title: "Categories",
-    url: "/admin-dashboard/categories",
+    url: "/admin-dashboard/category",
     icon: Tags,
   },
   {
