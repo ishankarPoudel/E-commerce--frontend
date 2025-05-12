@@ -1,10 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Trash2, ImagePlus, Check } from "lucide-react";
+import { X, Upload } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
-import { Card, CardContent } from "@/ui/shadcn/card";
 import {
   FormField,
   FormItem,
@@ -14,7 +13,6 @@ import {
 } from "@/ui/shadcn/form";
 import { Input } from "@/ui/shadcn/input";
 import { Textarea } from "@/ui/shadcn/textarea";
-
 import { Badge } from "@/ui/shadcn/badge";
 import { Popover, PopoverTrigger, PopoverContent } from "@/ui/shadcn/popover";
 import { Checkbox } from "@/ui/shadcn/checkbox";
@@ -28,7 +26,9 @@ import { AddBagValidator } from "@/validators/addbag.validators";
 
 export function AddBagForm() {
   const [open, setOpen] = useState(false);
-  const [image, setImage] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<AddBagValidator>({
     resolver: classValidatorResolver(AddBagValidator),
@@ -42,9 +42,19 @@ export function AddBagForm() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    if (e.target.files && e.target.files.length > 0) {
-      setImage(e.target.files[0]);
-    }
+    const files = e.target.files;
+    if (!files?.length) return;
+
+    const fileArray = Array.from(files);
+    const newPreviewUrls = fileArray.map((file) => URL.createObjectURL(file));
+    setPreviewImages((prev) => [...prev, ...newPreviewUrls]);
+    setImages((prev) => [...prev, ...fileArray]);
+  };
+
+  const removeImage = (index: number) => {
+    URL.revokeObjectURL(previewImages[index]);
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const { data: categoriesData } = useQuery(getCategoriesOptions());
@@ -64,10 +74,9 @@ export function AddBagForm() {
     return map;
   }, [categoriesData]);
 
+  // ...existing code...
   const onSubmit = async (data: AddBagValidator) => {
-    const { images: formImages, ...bagData } = data;
-    const formData = new FormData();
-    formData.append("image", image as Blob);
+    const { images: validatedFormImages, ...bagData } = data;
 
     await addBag(
       { body: bagData },
@@ -75,18 +84,48 @@ export function AddBagForm() {
         onSuccess: async (resp) => {
           const bagId = resp.data.id;
           toast.success(resp.message || "Bag created!");
-        },
 
-        onError: (err: any) =>
-          toast.error(err.message || "Failed to create bag"),
+          // Now upload images one by one
+          if (images.length > 0) {
+            toast.info(`Uploading ${images.length} image(s)...`);
+            let allUploadsSuccessful = true;
+            for (const singleFile of images) {
+              try {
+                await uploadMedia({
+                  body: {
+                    bagId: bagId,
+                    file: singleFile,
+                  },
+                });
+              } catch (uploadError: any) {
+                allUploadsSuccessful = false;
+                console.error("Failed to upload an image:", uploadError);
+                toast.error(
+                  `Failed to upload image ${singleFile.name}: ${
+                    uploadError.message || "Unknown error"
+                  }`
+                );
+              }
+            }
+            if (allUploadsSuccessful) {
+              toast.success("All images uploaded successfully!");
+            } else {
+              toast.warning("Some images failed to upload. Please check logs.");
+            }
+          }
+          // Reset form and image states after everything
+          form.reset();
+          setImages([]);
+          setPreviewImages([]);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Clear the file input
+          }
+        },
+        onError: (err: any) => {
+          toast.error(err.message || "Failed to create bag");
+        },
       }
     );
-    uploadMedia({
-      body: {
-        bagId: "3727e6c3-6d59-46ad-bc79-b0e6c0c75c1e",
-        file: image as Blob,
-      },
-    });
   };
 
   return (
@@ -143,7 +182,6 @@ export function AddBagForm() {
                     <Button
                       variant='outline'
                       className='w-full justify-start text-left font-normal'>
-                      {/* This span is the single direct child of Button */}
                       <span className='truncate flex-1'>
                         {field.value && field.value.length > 0
                           ? field.value.map((id) => (
@@ -216,11 +254,59 @@ export function AddBagForm() {
             )}
           />
 
-          <input
-            type='file'
-            accept='image/*'
-            onChange={handleImageChange}></input>
+          {/* Image Upload Section */}
+          <div className='space-y-2'>
+            <FormLabel>Bag Images</FormLabel>
+            <div className='border-2 border-dashed rounded-lg p-6 bg-slate-50'>
+              {!previewImages.length ? (
+                <div className='flex flex-col items-center justify-center space-y-2 text-slate-400'>
+                  <Upload className='w-12 h-12 animate-pulse' />
+                  <p className='text-sm'>Click below to upload bag images</p>
+                </div>
+              ) : (
+                <div className='flex flex-wrap gap-4'>
+                  {previewImages.map((src, idx) => (
+                    <div
+                      key={idx}
+                      className='relative w-48 h-48 rounded-lg overflow-hidden border'>
+                      <img
+                        src={src}
+                        alt={`Preview ${idx}`}
+                        className='object-cover w-full h-full'
+                      />
+                      <Button
+                        type='button'
+                        variant='destructive'
+                        size='icon'
+                        className='absolute top-2 right-2'
+                        onClick={() => removeImage(idx)}>
+                        <X className='h-4 w-4' />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={() => fileInputRef.current?.click()}
+                className='mt-4 justify-center w-full'>
+                {previewImages.length ? "Add More Images" : "Upload Images"}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type='file'
+                accept='image/*'
+                multiple
+                onChange={handleImageChange}
+                className='hidden'
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
           <Button
             type='submit'
             className='w-full'
