@@ -16,6 +16,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
 import { Route as AdminDashboardCategoryIndexImport } from './routes/admin-dashboard/category/index'
 import { Route as AdminDashboardBagsIndexImport } from './routes/admin-dashboard/bags/index'
+import { Route as AdminDashboardBagsViewBagsImport } from './routes/admin-dashboard/bags/viewBags'
 
 // Create/Update Routes
 
@@ -50,6 +51,14 @@ const AdminDashboardBagsIndexRoute = AdminDashboardBagsIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AdminDashboardBagsViewBagsRoute = AdminDashboardBagsViewBagsImport.update(
+  {
+    id: '/admin-dashboard/bags/viewBags',
+    path: '/admin-dashboard/bags/viewBags',
+    getParentRoute: () => rootRoute,
+  } as any,
+)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -75,6 +84,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardIndexImport
       parentRoute: typeof rootRoute
     }
+    '/admin-dashboard/bags/viewBags': {
+      id: '/admin-dashboard/bags/viewBags'
+      path: '/admin-dashboard/bags/viewBags'
+      fullPath: '/admin-dashboard/bags/viewBags'
+      preLoaderRoute: typeof AdminDashboardBagsViewBagsImport
+      parentRoute: typeof rootRoute
+    }
     '/admin-dashboard/bags/': {
       id: '/admin-dashboard/bags/'
       path: '/admin-dashboard/bags'
@@ -98,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
+  '/admin-dashboard/bags/viewBags': typeof AdminDashboardBagsViewBagsRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
 }
@@ -106,6 +123,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
+  '/admin-dashboard/bags/viewBags': typeof AdminDashboardBagsViewBagsRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
 }
@@ -115,6 +133,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
+  '/admin-dashboard/bags/viewBags': typeof AdminDashboardBagsViewBagsRoute
   '/admin-dashboard/bags/': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category/': typeof AdminDashboardCategoryIndexRoute
 }
@@ -125,6 +144,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin-dashboard'
+    | '/admin-dashboard/bags/viewBags'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
   fileRoutesByTo: FileRoutesByTo
@@ -132,6 +152,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin-dashboard'
+    | '/admin-dashboard/bags/viewBags'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
   id:
@@ -139,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin-dashboard/'
+    | '/admin-dashboard/bags/viewBags'
     | '/admin-dashboard/bags/'
     | '/admin-dashboard/category/'
   fileRoutesById: FileRoutesById
@@ -148,6 +170,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
+  AdminDashboardBagsViewBagsRoute: typeof AdminDashboardBagsViewBagsRoute
   AdminDashboardBagsIndexRoute: typeof AdminDashboardBagsIndexRoute
   AdminDashboardCategoryIndexRoute: typeof AdminDashboardCategoryIndexRoute
 }
@@ -156,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
+  AdminDashboardBagsViewBagsRoute: AdminDashboardBagsViewBagsRoute,
   AdminDashboardBagsIndexRoute: AdminDashboardBagsIndexRoute,
   AdminDashboardCategoryIndexRoute: AdminDashboardCategoryIndexRoute,
 }
@@ -173,6 +197,7 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/admin-dashboard/",
+        "/admin-dashboard/bags/viewBags",
         "/admin-dashboard/bags/",
         "/admin-dashboard/category/"
       ]
@@ -185,6 +210,9 @@ export const routeTree = rootRoute
     },
     "/admin-dashboard/": {
       "filePath": "admin-dashboard/index.tsx"
+    },
+    "/admin-dashboard/bags/viewBags": {
+      "filePath": "admin-dashboard/bags/viewBags.tsx"
     },
     "/admin-dashboard/bags/": {
       "filePath": "admin-dashboard/bags/index.tsx"

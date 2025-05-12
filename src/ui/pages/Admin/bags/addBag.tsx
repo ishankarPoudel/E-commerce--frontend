@@ -74,7 +74,6 @@ export function AddBagForm() {
     return map;
   }, [categoriesData]);
 
-  // ...existing code...
   const onSubmit = async (data: AddBagValidator) => {
     const { images: validatedFormImages, ...bagData } = data;
 
@@ -83,9 +82,9 @@ export function AddBagForm() {
       {
         onSuccess: async (resp) => {
           const bagId = resp.data.id;
-          toast.success(resp.message || "Bag created!");
+          toast.success(resp.message || "Bag added!");
 
-          // Now upload images one by one
+          // uploading images one by one
           if (images.length > 0) {
             toast.info(`Uploading ${images.length} image(s)...`);
             let allUploadsSuccessful = true;
