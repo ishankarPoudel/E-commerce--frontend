@@ -1,0 +1,300 @@
+import { getAllBagsOptions } from "@/api/@tanstack/react-query.gen";
+import { Badge } from "@/ui/shadcn/badge";
+import { Button } from "@/ui/shadcn/button";
+import { Card, CardContent, CardFooter } from "@/ui/shadcn/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/ui/shadcn/dialog";
+import { Input } from "@/ui/shadcn/input";
+import { getImageUrl } from "@/utils/urlHelpers";
+
+import { useQuery } from "@tanstack/react-query";
+import { ChevronRight, Edit, Search, Trash2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+
+interface BagImage {
+  id: string;
+  image: string;
+}
+
+interface Category {
+  id: string;
+  categoryName: string;
+}
+
+interface Bag {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  bagImages: BagImage[];
+  categories: Category[];
+  createdAt: string;
+  updatedAt: string;
+  // ... other bag properties
+}
+
+const BagList = () => {
+  const { data: bagListResponse, isPending } = useQuery({
+    ...getAllBagsOptions(),
+  });
+
+  // State to hold the array of bags
+  const [bags, setBags] = useState<Bag[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedBag, setSelectedBag] = useState<Bag | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // Update local 'bags' state when data is fetched or changes
+  useEffect(() => {
+    if (bagListResponse?.data) {
+      setBags(bagListResponse.data);
+    }
+  }, [bagListResponse?.data]);
+
+  // Filter bags based on search query using useMemo for performance
+  const filteredBags = useMemo(() => {
+    if (!bags) return [];
+    return bags.filter(
+      (bag) =>
+        bag.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (bag.description &&
+          bag.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }, [bags, searchQuery]);
+
+  const handleDelete = (id: string) => {
+    // In a real app, this would be a mutation to the backend
+    if (window.confirm("Are you sure you want to delete this bag?")) {
+      setBags((prevBags) => prevBags.filter((bag) => bag.id !== id));
+      // If detail view is open for the deleted bag, close it
+      if (selectedBag?.id === id) {
+        setIsDetailOpen(false);
+        setSelectedBag(null);
+      }
+    }
+  };
+
+  const handleEdit = (bag: Bag) => {
+    // In a real application, this would navigate to an edit page or open an edit modal
+    console.log("Edit bag:", bag);
+    // Example: navigate(`/admin/bags/edit/${bag.id}`);
+  };
+
+  const openBagDetail = (bag: Bag) => {
+    setSelectedBag(bag);
+    setIsDetailOpen(true);
+  };
+
+  if (isPending) {
+    return (
+      <div className='container mx-auto py-8 px-4 text-center'>
+        Loading bags...
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className='container mx-auto py-8 px-4'>
+        <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4'>
+          <div>
+            <h1 className='text-3xl font-bold tracking-tight'>
+              Bags Collection
+            </h1>
+            <p className='text-muted-foreground mt-1'>
+              Manage your premium bag inventory ({filteredBags.length} bags)
+            </p>
+          </div>
+          <div className='flex w-full md:w-auto gap-2'>
+            <div className='relative w-full md:w-64'>
+              <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
+              <Input
+                placeholder='Search bags...'
+                className='pl-8'
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            {/* TODO: Link this to your Add Bag form/page */}
+            <Button>Add New Bag</Button>
+          </div>
+        </div>
+
+        {filteredBags.length === 0 && !isPending ? (
+          <div className='text-center py-12'>
+            <p className='text-muted-foreground'>
+              {searchQuery
+                ? "No bags found matching your search criteria."
+                : "No bags available."}
+            </p>
+          </div>
+        ) : (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+            {filteredBags.map((bag) => (
+              <Card
+                key={bag.id}
+                className='overflow-hidden group hover:shadow-lg transition-shadow duration-300 flex flex-col'>
+                <div className='relative aspect-square overflow-hidden bg-muted'>
+                  <img
+                    // Use getImageUrl and access the 'image' property from bagImages
+                    src={
+                      getImageUrl(bag.bagImages?.[0]?.image) ||
+                      "/placeholder.svg?height=400&width=300" // Fallback placeholder
+                    }
+                    alt={bag.name} // Use bag.name for alt text
+                    className='object-cover w-full h-full transition-transform duration-300 group-hover:scale-105'
+                  />
+                  <div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                  <div className='absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                    <Button
+                      size='icon'
+                      variant='secondary'
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent card click if any
+                        handleEdit(bag);
+                      }}>
+                      <Edit className='h-4 w-4' />
+                    </Button>
+                    <Button
+                      size='icon'
+                      variant='destructive'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(bag.id);
+                      }}>
+                      <Trash2 className='h-4 w-4' />
+                    </Button>
+                  </div>
+                </div>
+                <CardContent className='p-4 flex-grow'>
+                  <div className='flex justify-between items-start mb-2'>
+                    <h3 className='font-semibold text-lg line-clamp-1'>
+                      {bag.name} {/* Use bag.name */}
+                    </h3>
+                    <p className='font-bold text-lg whitespace-nowrap'>
+                      ${bag.price.toFixed(2)} {/* Use bag.price */}
+                    </p>
+                  </div>
+                  <p className='text-muted-foreground text-sm line-clamp-2 mb-3'>
+                    {bag.description || "No description available."}{" "}
+                    {/* Use bag.description */}
+                  </p>
+                  <div className='flex flex-wrap gap-1'>
+                    {/* Map through bag.categories */}
+                    {bag.categories?.map((category) => (
+                      <Badge
+                        key={category.id}
+                        variant='outline'
+                        className='text-xs'>
+                        {category.categoryName}{" "}
+                        {/* Use category.categoryName */}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+                <CardFooter className='p-4 pt-0 border-t mt-auto'>
+                  <Button
+                    variant='ghost'
+                    className='w-full justify-between text-primary hover:text-primary'
+                    onClick={() => openBagDetail(bag)}>
+                    View Details
+                    <ChevronRight className='h-4 w-4' />
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Bag Detail Dialog */}
+        {selectedBag && (
+          <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+            <DialogContent className='max-w-full sm:max-w-4xl'>
+              <DialogHeader>
+                <DialogTitle className='text-2xl'>
+                  {selectedBag.name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 max-h-[70vh] overflow-y-auto p-1'>
+                <div className='aspect-square relative bg-muted rounded-md overflow-hidden'>
+                  <img
+                    src={
+                      getImageUrl(selectedBag.bagImages?.[0]?.image) ||
+                      "/placeholder.svg?height=400&width=300"
+                    }
+                    alt={selectedBag.name}
+                    className='object-cover w-full h-full'
+                  />
+                </div>
+                <div>
+                  <div className='flex justify-between items-center mb-4'>
+                    <p className='text-2xl font-bold'>
+                      ${selectedBag.price.toFixed(2)}
+                    </p>
+                    <div className='flex gap-2'>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={() => handleEdit(selectedBag)}>
+                        <Edit className='h-4 w-4 mr-2' />
+                        Edit
+                      </Button>
+                      <Button
+                        size='sm'
+                        variant='destructive'
+                        onClick={() => {
+                          handleDelete(selectedBag.id);
+                          // setIsDetailOpen(false); // Already handled by handleDelete if selectedBag matches
+                        }}>
+                        <Trash2 className='h-4 w-4 mr-2' />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                  <h3 className='text-lg font-medium mb-1'>Description</h3>
+                  <p className='text-muted-foreground mb-4 text-sm'>
+                    {selectedBag.description || "No description provided."}
+                  </p>
+                  <h3 className='text-lg font-medium mb-1'>Categories</h3>
+                  <div className='flex flex-wrap gap-2 mb-4'>
+                    {selectedBag.categories?.map((category) => (
+                      <Badge key={category.id} variant='secondary'>
+                        {category.categoryName}
+                      </Badge>
+                    ))}
+                  </div>
+                  <h3 className='text-lg font-medium mb-1'>Gallery</h3>
+                  {selectedBag.bagImages && selectedBag.bagImages.length > 0 ? (
+                    <div className='grid grid-cols-3 sm:grid-cols-4 gap-2'>
+                      {selectedBag.bagImages.map((image) => (
+                        <div
+                          key={image.id}
+                          className='aspect-square relative bg-muted rounded-md overflow-hidden border'>
+                          <img
+                            src={getImageUrl(image.image) || "/placeholder.svg"}
+                            alt={`${selectedBag.name} - gallery image`}
+                            className='object-cover w-full h-full'
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className='text-muted-foreground text-sm'>
+                      No additional images.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default BagList;

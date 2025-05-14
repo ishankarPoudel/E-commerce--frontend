@@ -26,7 +26,7 @@ export type MediaEntity = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-    url: string;
+    image: string;
     altText?: string;
     bag: BagEntity;
 };
@@ -128,6 +128,26 @@ export type AddBagResponses = {
 };
 
 export type AddBagResponse = AddBagResponses[keyof AddBagResponses];
+
+export type GetAllBagsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/bag/get-all-bags';
+};
+
+export type GetAllBagsResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: Array<BagEntity>;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetAllBagsResponse = GetAllBagsResponses[keyof GetAllBagsResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
