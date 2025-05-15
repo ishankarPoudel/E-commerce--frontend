@@ -1,4 +1,9 @@
-import { getAllBagsOptions } from "@/api/@tanstack/react-query.gen";
+import {
+  deleteBagByIdMutation,
+  getAllBagsOptions,
+  getAllBagsQueryKey,
+} from "@/api/@tanstack/react-query.gen";
+import DeleteDialog from "@/ui/molecules/dialogs/DeleteDialog";
 import { Badge } from "@/ui/shadcn/badge";
 import { Button } from "@/ui/shadcn/button";
 import { Card, CardContent, CardFooter } from "@/ui/shadcn/card";
@@ -10,10 +15,10 @@ import {
 } from "@/ui/shadcn/dialog";
 import { Input } from "@/ui/shadcn/input";
 import { getImageUrl } from "@/utils/urlHelpers";
-
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Edit, Search, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 
 interface BagImage {
   id: string;
@@ -34,7 +39,6 @@ interface Bag {
   categories: Category[];
   createdAt: string;
   updatedAt: string;
-  // ... other bag properties
 }
 
 const BagList = () => {
@@ -42,13 +46,40 @@ const BagList = () => {
     ...getAllBagsOptions(),
   });
 
-  // State to hold the array of bags
+  const queryClient = useQueryClient();
+
   const [bags, setBags] = useState<Bag[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBag, setSelectedBag] = useState<Bag | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [_, setIsDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bagIdToDelete, setBagIdToDelete] = useState<string | null>(null);
 
-  // Update local 'bags' state when data is fetched or changes
+  const { mutate, isPending: isDeleting } = useMutation({
+    ...deleteBagByIdMutation(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: getAllBagsQueryKey() });
+      setIsDetailOpen(false);
+      setIsDialogOpen(false);
+      setDeleteDialogOpen(false);
+      toast.success(response?.message || "Bag deleted successfully");
+    },
+    onError: (error) => {
+      toast.error(error?.message || "Failed to delete bag");
+      setIsDetailOpen(false);
+      setIsDialogOpen(false);
+    },
+  });
+
+  const handleDeleteBag = (id: string) => {
+    mutate({
+      path: {
+        id: id,
+      },
+    });
+  };
+
   useEffect(() => {
     if (bagListResponse?.data) {
       setBags(bagListResponse.data);
@@ -67,15 +98,8 @@ const BagList = () => {
   }, [bags, searchQuery]);
 
   const handleDelete = (id: string) => {
-    // In a real app, this would be a mutation to the backend
-    if (window.confirm("Are you sure you want to delete this bag?")) {
-      setBags((prevBags) => prevBags.filter((bag) => bag.id !== id));
-      // If detail view is open for the deleted bag, close it
-      if (selectedBag?.id === id) {
-        setIsDetailOpen(false);
-        setSelectedBag(null);
-      }
-    }
+    setBagIdToDelete(id);
+    setDeleteDialogOpen(true);
   };
 
   const handleEdit = (bag: Bag) => {
@@ -154,7 +178,7 @@ const BagList = () => {
                       size='icon'
                       variant='secondary'
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent card click if any
+                        e.stopPropagation();
                         handleEdit(bag);
                       }}>
                       <Edit className='h-4 w-4' />
@@ -163,6 +187,7 @@ const BagList = () => {
                       size='icon'
                       variant='destructive'
                       onClick={(e) => {
+                        setIsDialogOpen(true);
                         e.stopPropagation();
                         handleDelete(bag.id);
                       }}>
@@ -173,15 +198,14 @@ const BagList = () => {
                 <CardContent className='p-4 flex-grow'>
                   <div className='flex justify-between items-start mb-2'>
                     <h3 className='font-semibold text-lg line-clamp-1'>
-                      {bag.name} {/* Use bag.name */}
+                      {bag.name}
                     </h3>
                     <p className='font-bold text-lg whitespace-nowrap'>
-                      ${bag.price.toFixed(2)} {/* Use bag.price */}
+                      ${bag.price.toFixed(2)}
                     </p>
                   </div>
                   <p className='text-muted-foreground text-sm line-clamp-2 mb-3'>
                     {bag.description || "No description available."}{" "}
-                    {/* Use bag.description */}
                   </p>
                   <div className='flex flex-wrap gap-1'>
                     {/* Map through bag.categories */}
@@ -246,9 +270,10 @@ const BagList = () => {
                       <Button
                         size='sm'
                         variant='destructive'
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsDialogOpen(true);
                           handleDelete(selectedBag.id);
-                          // setIsDetailOpen(false); // Already handled by handleDelete if selectedBag matches
                         }}>
                         <Trash2 className='h-4 w-4 mr-2' />
                         Delete
@@ -292,6 +317,18 @@ const BagList = () => {
             </DialogContent>
           </Dialog>
         )}
+        <DeleteDialog
+          open={deleteDialogOpen}
+          setOpen={setDeleteDialogOpen}
+          deleteTitle='Delete Bag'
+          deleteDescription='Are you sure you want to delete this bag? This action cannot be undone.'
+          handleDeleteClick={() => {
+            if (bagIdToDelete) {
+              handleDeleteBag(bagIdToDelete);
+            }
+          }}
+          isDeleting={isDeleting}
+        />
       </div>
     </div>
   );

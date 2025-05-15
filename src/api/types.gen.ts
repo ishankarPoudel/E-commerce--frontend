@@ -149,6 +149,46 @@ export type GetAllBagsResponses = {
 
 export type GetAllBagsResponse = GetAllBagsResponses[keyof GetAllBagsResponses];
 
+export type GetbagByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/bag/get-bag/{id}';
+};
+
+export type GetbagByIdResponses = {
+    /**
+     * No content
+     */
+    204: void;
+};
+
+export type GetbagByIdResponse = GetbagByIdResponses[keyof GetbagByIdResponses];
+
+export type DeleteBagByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/bag/delete-bag/{id}';
+};
+
+export type DeleteBagByIdResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: BagEntity;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type DeleteBagByIdResponse = DeleteBagByIdResponses[keyof DeleteBagByIdResponses];
+
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
