@@ -1,5 +1,5 @@
 import AdminDashboardLayout from "@/ui/layouts/AdminDashboardLayout";
-import { AddBagForm } from "@/ui/pages/Admin/bags/addBag";
+import BagList from "@/ui/pages/Admin/bags/BagList";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin-dashboard/bags/")({
@@ -10,7 +10,7 @@ function RouteComponent() {
   return (
     <div>
       <AdminDashboardLayout>
-        <AddBagForm />
+        <BagList />
       </AdminDashboardLayout>
     </div>
   );

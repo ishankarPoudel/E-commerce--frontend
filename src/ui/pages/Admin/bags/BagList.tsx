@@ -43,8 +43,18 @@ interface Bag {
 }
 
 const BagList = () => {
-  const { data: bagListResponse, isPending } = useQuery({
-    ...getAllBagsOptions(),
+  const [currentPage, setCurrentPage] = useState(1);
+  const {
+    data: bagListResponse,
+    isPending,
+    refetch,
+  } = useQuery({
+    ...getAllBagsOptions({
+      query: {
+        page: currentPage || 1,
+        limit: 10,
+      },
+    }),
   });
 
   const queryClient = useQueryClient();
@@ -56,6 +66,10 @@ const BagList = () => {
   const [_, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bagIdToDelete, setBagIdToDelete] = useState<string | null>(null);
+
+  //for pagination
+  console.log("bagListResponse", bagListResponse?.data.page);
+  const { page, total, totalPages } = bagListResponse?.data || {};
 
   const { mutate, isPending: isDeleting } = useMutation({
     ...deleteBagByIdMutation(),
@@ -144,7 +158,7 @@ const BagList = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Link to='/admin-dashboard/bags'>
+            <Link to='/admin-dashboard/bags/addBag'>
               <Button>Add New Bag</Button>
             </Link>
           </div>
@@ -331,6 +345,33 @@ const BagList = () => {
           }}
           isDeleting={isDeleting}
         />
+      </div>
+
+      <div className='flex justify-center items-center gap-6 mt-6 mb-6'>
+        <Button
+          variant='ghost'
+          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+          disabled={page === 1}
+          className='flex items-center gap-2 text-sm font-medium px-4 py-2 border border-input rounded-full shadow-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed'>
+          ← Prev
+        </Button>
+
+        <div className='text-sm text-muted-foreground select-none'>
+          <span className='px-4 py-2 border border-border rounded-full bg-muted'>
+            Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+          </span>
+        </div>
+
+        <Button
+          variant='ghost'
+          onClick={() => {
+            setCurrentPage((prev) => prev + 1);
+            refetch();
+          }}
+          disabled={page === totalPages}
+          className='flex items-center gap-2 text-sm font-medium px-4 py-2 border border-input rounded-full shadow-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed'>
+          Next →
+        </Button>
       </div>
     </div>
   );

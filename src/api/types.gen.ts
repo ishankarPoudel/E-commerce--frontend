@@ -132,7 +132,10 @@ export type AddBagResponse = AddBagResponses[keyof AddBagResponses];
 export type GetAllBagsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        page?: number;
+        limit?: number;
+    };
     url: '/bag/get-all-bags';
 };
 
