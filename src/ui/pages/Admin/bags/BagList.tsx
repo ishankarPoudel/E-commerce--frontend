@@ -16,6 +16,7 @@ import {
 import { Input } from "@/ui/shadcn/input";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { ChevronRight, Edit, Search, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
@@ -82,7 +83,7 @@ const BagList = () => {
 
   useEffect(() => {
     if (bagListResponse?.data) {
-      setBags(bagListResponse.data);
+      setBags(bagListResponse.data.data);
     }
   }, [bagListResponse?.data]);
 
@@ -143,8 +144,9 @@ const BagList = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            {/* TODO: Link this to your Add Bag form/page */}
-            <Button>Add New Bag</Button>
+            <Link to='/admin-dashboard/bags'>
+              <Button>Add New Bag</Button>
+            </Link>
           </div>
         </div>
 

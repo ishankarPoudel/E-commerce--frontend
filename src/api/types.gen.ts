@@ -141,7 +141,12 @@ export type GetAllBagsResponses = {
      * Ok
      */
     200: {
-        data: Array<BagEntity>;
+        data: {
+            totalPages: number;
+            page: number;
+            total: number;
+            data: Array<BagEntity>;
+        };
         message: string;
         success: boolean;
     };
