@@ -68,8 +68,7 @@ const BagList = () => {
   const [bagIdToDelete, setBagIdToDelete] = useState<string | null>(null);
 
   //for pagination
-  console.log("bagListResponse", bagListResponse?.data.page);
-  const { page, total, totalPages } = bagListResponse?.data || {};
+  const { page, totalPages } = bagListResponse?.data || {};
 
   const { mutate, isPending: isDeleting } = useMutation({
     ...deleteBagByIdMutation(),

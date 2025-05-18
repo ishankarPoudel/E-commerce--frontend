@@ -42,6 +42,14 @@ export type AddBagValidator = {
     categories: Array<string>;
 };
 
+export type UpdateBagValidator = {
+    name?: string;
+    price?: number;
+    description?: string;
+    categories?: Array<string>;
+    bagImages?: Array<string>;
+};
+
 export type UploadMediaData = {
     body: {
         bagId: string;
@@ -157,23 +165,27 @@ export type GetAllBagsResponses = {
 
 export type GetAllBagsResponse = GetAllBagsResponses[keyof GetAllBagsResponses];
 
-export type GetbagByIdData = {
-    body?: never;
+export type UpdateBagData = {
+    body: UpdateBagValidator;
     path: {
         id: string;
     };
     query?: never;
-    url: '/bag/get-bag/{id}';
+    url: '/bag/update-bag/{id}';
 };
 
-export type GetbagByIdResponses = {
+export type UpdateBagResponses = {
     /**
-     * No content
+     * Ok
      */
-    204: void;
+    200: {
+        data: BagEntity;
+        message: string;
+        success: boolean;
+    };
 };
 
-export type GetbagByIdResponse = GetbagByIdResponses[keyof GetbagByIdResponses];
+export type UpdateBagResponse = UpdateBagResponses[keyof UpdateBagResponses];
 
 export type DeleteBagByIdData = {
     body?: never;
