@@ -165,6 +165,28 @@ export type GetAllBagsResponses = {
 
 export type GetAllBagsResponse = GetAllBagsResponses[keyof GetAllBagsResponses];
 
+export type GetBagByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/bag/get-bag/{id}';
+};
+
+export type GetBagByIdResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: BagEntity;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetBagByIdResponse = GetBagByIdResponses[keyof GetBagByIdResponses];
+
 export type UpdateBagData = {
     body: UpdateBagValidator;
     path: {
