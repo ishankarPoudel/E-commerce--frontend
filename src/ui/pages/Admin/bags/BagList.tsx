@@ -16,7 +16,7 @@ import {
 import { Input } from "@/ui/shadcn/input";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, Edit, Search, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
@@ -66,6 +66,7 @@ const BagList = () => {
   const [_, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bagIdToDelete, setBagIdToDelete] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   //for pagination
   const { page, totalPages } = bagListResponse?.data || {};
@@ -117,9 +118,10 @@ const BagList = () => {
   };
 
   const handleEdit = (bag: Bag) => {
-    // In a real application, this would navigate to an edit page or open an edit modal
     console.log("Edit bag:", bag);
-    // Example: navigate(`/admin/bags/edit/${bag.id}`);
+    navigate({
+      to: `/admin-dashboard/bags/${bag?.id}`,
+    });
   };
 
   const openBagDetail = (bag: Bag) => {

@@ -58,6 +58,7 @@ export function AddBagForm() {
   };
 
   const { data: categoriesData } = useQuery(getCategoriesOptions());
+
   const { mutate: addBag, isPending: isBagAdding } =
     useMutation(addBagMutation());
   const { mutateAsync: uploadMedia, isPending: isImageUploading } = useMutation(
