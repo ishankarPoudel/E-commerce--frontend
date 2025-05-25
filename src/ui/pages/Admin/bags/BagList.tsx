@@ -2,6 +2,7 @@ import {
   deleteBagByIdMutation,
   getAllBagsOptions,
   getAllBagsQueryKey,
+  getCategoriesOptions,
 } from "@/api/@tanstack/react-query.gen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import DeleteDialog from "@/ui/molecules/dialogs/DeleteDialog";
@@ -53,7 +54,6 @@ interface Bag {
 
 const BagList = () => {
   const queryClient = useQueryClient();
-
   const [bags, setBags] = useState<Bag[]>([]);
 
   const [selectedBag, setSelectedBag] = useState<Bag | null>(null);
@@ -73,8 +73,8 @@ const BagList = () => {
   const debouncedSearch = useDebouncedValue(searchQuery, 500);
   const debouncedMinPriceSearch = useDebouncedValue(minPrice, 500);
   const debouncedMaxPriceSearch = useDebouncedValue(maxPrice, 500);
-
   const [currentPage, setCurrentPage] = useState(1);
+
   const {
     data: bagListResponse,
     isPending,
@@ -105,6 +105,10 @@ const BagList = () => {
     debouncedMinPriceSearch,
     debouncedMaxPriceSearch,
   ]);
+
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery(
+    getCategoriesOptions()
+  );
 
   //for pagination
   const { page, totalPages } = bagListResponse?.data || {};
@@ -178,12 +182,6 @@ const BagList = () => {
     setMaxPrice(e.target.value);
   };
 
-  const uniqueCategories = Array.from(
-    new Map(
-      bags?.flatMap((bag) => bag.categories || []).map((cat) => [cat.id, cat])
-    ).values()
-  );
-
   if (isPending) {
     return (
       <div className='container mx-auto py-8 px-4 text-center'>
@@ -233,20 +231,16 @@ const BagList = () => {
                     <SelectValue placeholder='Select category' />
                   </SelectTrigger>
                   <SelectContent>
-                    {(!uniqueCategories || uniqueCategories.length === 0) && (
+                    {isCategoriesLoading && (
                       <SelectItem value='__loading' disabled>
                         Loading...
                       </SelectItem>
                     )}
-                    {uniqueCategories &&
-                      uniqueCategories.length > 0 &&
-                      uniqueCategories
-                        .filter((cat) => !!cat.id)
-                        .map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.categoryName}
-                          </SelectItem>
-                        ))}
+                    {categoriesData?.data?.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.categoryName}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
 
