@@ -143,6 +143,10 @@ export type GetAllBagsData = {
     query?: {
         page?: number;
         limit?: number;
+        search?: string;
+        category?: string;
+        minPrice?: number;
+        maxPrice?: number;
     };
     url: '/bag/get-all-bags';
 };

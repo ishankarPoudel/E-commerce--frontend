@@ -72,7 +72,7 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
 
   const removeImage = (index: number) => {
     if (index < bag.bagImages.length) {
-      setExistingImageIds((prev) => prev.filter((id, i) => i !== index));
+      setExistingImageIds((prev) => prev.filter((_, i) => i !== index));
     } else {
       // It's a new upload, remove from images state
       setImages((prev) =>
@@ -336,7 +336,7 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
             type='submit'
             className='w-full'
             disabled={isBagUpdating || isImageUploading}>
-            {isBagUpdating || isImageUploading ? "Submitting..." : "Add Bag"}
+            {isBagUpdating || isImageUploading ? "Submitting..." : "Update Bag"}
           </Button>
         </form>
       </FormProvider>

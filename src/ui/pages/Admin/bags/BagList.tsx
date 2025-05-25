@@ -3,6 +3,7 @@ import {
   getAllBagsOptions,
   getAllBagsQueryKey,
 } from "@/api/@tanstack/react-query.gen";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import DeleteDialog from "@/ui/molecules/dialogs/DeleteDialog";
 import { Badge } from "@/ui/shadcn/badge";
 import { Button } from "@/ui/shadcn/button";
@@ -14,11 +15,19 @@ import {
   DialogTitle,
 } from "@/ui/shadcn/dialog";
 import { Input } from "@/ui/shadcn/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/shadcn/select";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronRight, Edit, Search, Trash2 } from "lucide-react";
+import { ChevronRight, Edit, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+
 import { toast } from "sonner";
 
 interface BagImage {
@@ -43,6 +52,28 @@ interface Bag {
 }
 
 const BagList = () => {
+  const queryClient = useQueryClient();
+
+  const [bags, setBags] = useState<Bag[]>([]);
+
+  const [selectedBag, setSelectedBag] = useState<Bag | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [_, setIsDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bagIdToDelete, setBagIdToDelete] = useState<string | null>(null);
+
+  //states for filtering process
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
+  const navigate = useNavigate();
+
+  const debouncedSearch = useDebouncedValue(searchQuery, 500);
+  const debouncedMinPriceSearch = useDebouncedValue(minPrice, 500);
+  const debouncedMaxPriceSearch = useDebouncedValue(maxPrice, 500);
+
   const [currentPage, setCurrentPage] = useState(1);
   const {
     data: bagListResponse,
@@ -53,20 +84,27 @@ const BagList = () => {
       query: {
         page: currentPage || 1,
         limit: 10,
+        search: debouncedSearch || "",
+        category: selectedCategory || "",
+        minPrice: debouncedMinPriceSearch
+          ? parseFloat(debouncedMinPriceSearch)
+          : undefined,
+        maxPrice: debouncedMaxPriceSearch
+          ? parseFloat(debouncedMaxPriceSearch)
+          : undefined,
       },
     }),
   });
 
-  const queryClient = useQueryClient();
-
-  const [bags, setBags] = useState<Bag[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedBag, setSelectedBag] = useState<Bag | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [_, setIsDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [bagIdToDelete, setBagIdToDelete] = useState<string | null>(null);
-  const navigate = useNavigate();
+  useEffect(() => {
+    refetch();
+  }, [
+    currentPage,
+    debouncedSearch,
+    selectedCategory,
+    debouncedMinPriceSearch,
+    debouncedMaxPriceSearch,
+  ]);
 
   //for pagination
   const { page, totalPages } = bagListResponse?.data || {};
@@ -129,6 +167,23 @@ const BagList = () => {
     setIsDetailOpen(true);
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMinPrice(e.target.value);
+  };
+  const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMaxPrice(e.target.value);
+  };
+
+  const uniqueCategories = Array.from(
+    new Map(
+      bags?.flatMap((bag) => bag.categories || []).map((cat) => [cat.id, cat])
+    ).values()
+  );
+
   if (isPending) {
     return (
       <div className='container mx-auto py-8 px-4 text-center'>
@@ -140,29 +195,83 @@ const BagList = () => {
   return (
     <div>
       <div className='container mx-auto py-8 px-4'>
-        <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4'>
-          <div>
-            <h1 className='text-3xl font-bold tracking-tight'>
-              Bags Collection
-            </h1>
-            <p className='text-muted-foreground mt-1'>
-              Manage your premium bag inventory ({filteredBags.length} bags)
-            </p>
-          </div>
-          <div className='flex w-full md:w-auto gap-2'>
-            <div className='relative w-full md:w-64'>
-              <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-              <Input
-                placeholder='Search bags...'
-                className='pl-8'
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        <div className='space-y-6'>
+          {/* Header Section */}
+          <div className='flex flex-col md:flex-row justify-between md:items-center gap-4'>
+            <div>
+              <h1 className='text-3xl font-bold tracking-tight text-primary'>
+                Bags Collection
+              </h1>
+              <p className='text-muted-foreground mt-1'>
+                Manage your premium bag inventory ({filteredBags.length} bags)
+              </p>
             </div>
             <Link to='/admin-dashboard/bags/addBag'>
-              <Button>Add New Bag</Button>
+              <Button className='rounded-xl px-6 shadow-md hover:shadow-lg transition'>
+                + Add New Bag
+              </Button>
             </Link>
           </div>
+
+          {/* Filter Section */}
+          <Card className='border border-muted shadow-sm'>
+            <CardContent className='p-6'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4'>
+                {/* Search */}
+                <Input
+                  placeholder='Search bags...'
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className='md:col-span-2'
+                />
+
+                {/* Category */}
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}>
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='Select category' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(!uniqueCategories || uniqueCategories.length === 0) && (
+                      <SelectItem value='__loading' disabled>
+                        Loading...
+                      </SelectItem>
+                    )}
+                    {uniqueCategories &&
+                      uniqueCategories.length > 0 &&
+                      uniqueCategories
+                        .filter((cat) => !!cat.id)
+                        .map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.categoryName}
+                          </SelectItem>
+                        ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Min Price */}
+                <Input
+                  type='number'
+                  placeholder='Min Price'
+                  value={minPrice}
+                  onChange={handleMinPriceChange}
+                  className='w-full'
+                  min={0}
+                />
+
+                {/* Max Price */}
+                <Input
+                  type='number'
+                  placeholder='Max Price'
+                  value={maxPrice}
+                  onChange={handleMaxPriceChange}
+                  className='w-full'
+                  min={0}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {filteredBags.length === 0 && !isPending ? (
