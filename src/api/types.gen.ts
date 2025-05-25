@@ -117,6 +117,34 @@ export type GetCategoriesResponses = {
 
 export type GetCategoriesResponse = GetCategoriesResponses[keyof GetCategoriesResponses];
 
+export type GetCategoriesWithBagsData = {
+    body?: never;
+    path?: never;
+    query: {
+        page: number;
+        limit: number;
+    };
+    url: '/category/get-categories-with-bags';
+};
+
+export type GetCategoriesWithBagsResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            totalPages: number;
+            page: number;
+            total: number;
+            data: Array<Category>;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetCategoriesWithBagsResponse = GetCategoriesWithBagsResponses[keyof GetCategoriesWithBagsResponses];
+
 export type AddBagData = {
     body: AddBagValidator;
     path?: never;
