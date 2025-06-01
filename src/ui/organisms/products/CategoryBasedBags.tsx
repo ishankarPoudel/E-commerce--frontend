@@ -65,7 +65,6 @@ export default function CategoryBasedBags() {
                         size='sm'
                         className='absolute top-2 right-2 h-8 px-3 text-xs font-medium bg-green-600 hover:bg-green-700'>
                         <Plus className='h-3 w-3 mr-1' />
-                        Add
                       </Button>
                     </div>
 
@@ -79,7 +78,7 @@ export default function CategoryBasedBags() {
                           Rs {bag.price.toFixed(2).split(".")[0]}
                         </span>
                         <span className='text-xs text-gray-500'>
-                          Rs {bag.price.toFixed(2).split(".")[1]}
+                          {bag.price.toFixed(2).split(".")[1]}
                         </span>
                       </div>
 

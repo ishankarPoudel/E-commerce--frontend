@@ -14,6 +14,8 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
+import { Route as AuthRegisterIndexImport } from './routes/auth/register/index'
+import { Route as AuthLoginIndexImport } from './routes/auth/login/index'
 import { Route as AdminDashboardCategoryIndexImport } from './routes/admin-dashboard/category/index'
 import { Route as AdminDashboardBagsIndexImport } from './routes/admin-dashboard/bags/index'
 import { Route as AdminDashboardBagsAddBagImport } from './routes/admin-dashboard/bags/addBag'
@@ -36,6 +38,18 @@ const IndexRoute = IndexImport.update({
 const AdminDashboardIndexRoute = AdminDashboardIndexImport.update({
   id: '/admin-dashboard/',
   path: '/admin-dashboard/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthRegisterIndexRoute = AuthRegisterIndexImport.update({
+  id: '/auth/register/',
+  path: '/auth/register/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthLoginIndexRoute = AuthLoginIndexImport.update({
+  id: '/auth/login/',
+  path: '/auth/login/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -117,6 +131,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardCategoryIndexImport
       parentRoute: typeof rootRoute
     }
+    '/auth/login/': {
+      id: '/auth/login/'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/register/': {
+      id: '/auth/register/'
+      path: '/auth/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -130,6 +158,8 @@ export interface FileRoutesByFullPath {
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
+  '/auth/login': typeof AuthLoginIndexRoute
+  '/auth/register': typeof AuthRegisterIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -140,6 +170,8 @@ export interface FileRoutesByTo {
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
+  '/auth/login': typeof AuthLoginIndexRoute
+  '/auth/register': typeof AuthRegisterIndexRoute
 }
 
 export interface FileRoutesById {
@@ -151,6 +183,8 @@ export interface FileRoutesById {
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/admin-dashboard/bags/': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category/': typeof AdminDashboardCategoryIndexRoute
+  '/auth/login/': typeof AuthLoginIndexRoute
+  '/auth/register/': typeof AuthRegisterIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -163,6 +197,8 @@ export interface FileRouteTypes {
     | '/admin-dashboard/bags/addBag'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
+    | '/auth/login'
+    | '/auth/register'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,6 +208,8 @@ export interface FileRouteTypes {
     | '/admin-dashboard/bags/addBag'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
+    | '/auth/login'
+    | '/auth/register'
   id:
     | '__root__'
     | '/'
@@ -181,6 +219,8 @@ export interface FileRouteTypes {
     | '/admin-dashboard/bags/addBag'
     | '/admin-dashboard/bags/'
     | '/admin-dashboard/category/'
+    | '/auth/login/'
+    | '/auth/register/'
   fileRoutesById: FileRoutesById
 }
 
@@ -192,6 +232,8 @@ export interface RootRouteChildren {
   AdminDashboardBagsAddBagRoute: typeof AdminDashboardBagsAddBagRoute
   AdminDashboardBagsIndexRoute: typeof AdminDashboardBagsIndexRoute
   AdminDashboardCategoryIndexRoute: typeof AdminDashboardCategoryIndexRoute
+  AuthLoginIndexRoute: typeof AuthLoginIndexRoute
+  AuthRegisterIndexRoute: typeof AuthRegisterIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -202,6 +244,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardBagsAddBagRoute: AdminDashboardBagsAddBagRoute,
   AdminDashboardBagsIndexRoute: AdminDashboardBagsIndexRoute,
   AdminDashboardCategoryIndexRoute: AdminDashboardCategoryIndexRoute,
+  AuthLoginIndexRoute: AuthLoginIndexRoute,
+  AuthRegisterIndexRoute: AuthRegisterIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -220,7 +264,9 @@ export const routeTree = rootRoute
         "/admin-dashboard/bags/$id",
         "/admin-dashboard/bags/addBag",
         "/admin-dashboard/bags/",
-        "/admin-dashboard/category/"
+        "/admin-dashboard/category/",
+        "/auth/login/",
+        "/auth/register/"
       ]
     },
     "/": {
@@ -243,6 +289,12 @@ export const routeTree = rootRoute
     },
     "/admin-dashboard/category/": {
       "filePath": "admin-dashboard/category/index.tsx"
+    },
+    "/auth/login/": {
+      "filePath": "auth/login/index.tsx"
+    },
+    "/auth/register/": {
+      "filePath": "auth/register/index.tsx"
     }
   }
 }
