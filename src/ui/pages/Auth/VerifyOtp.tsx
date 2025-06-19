@@ -9,8 +9,10 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { verifyOtpMutation } from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 
 const VerifyOtp = () => {
+  const navigate = useNavigate();
   const { control, handleSubmit, watch } = useForm({});
 
   const MAX_LENGTH = 6;
@@ -40,7 +42,9 @@ const VerifyOtp = () => {
       {
         onSuccess: (response) => {
           toast.success(response.message);
-          // now registering the user as soon as the email is verified , hitting regsite endpoint immediately
+          navigate({
+            to: "/",
+          });
         },
         onError: (error) => {
           toast.error(error.message || "Failed to verify OTP");
