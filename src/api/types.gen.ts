@@ -50,6 +50,27 @@ export type UpdateBagValidator = {
     bagImages?: Array<string>;
 };
 
+export type UserResponseData = {
+    email: string;
+    fullName: string;
+};
+
+export type RegisterResponse = {
+    success: boolean;
+    message: string;
+    accessToken?: string;
+    refreshToken?: string;
+    data: {
+        user: UserResponseData;
+    };
+};
+
+export type RegisterUserDto = {
+    fullName: string;
+    email: string;
+    password: string;
+};
+
 export type UploadMediaData = {
     body: {
         bagId: string;
@@ -262,6 +283,47 @@ export type DeleteBagByIdResponses = {
 };
 
 export type DeleteBagByIdResponse = DeleteBagByIdResponses[keyof DeleteBagByIdResponses];
+
+export type VerifyOtpData = {
+    body: {
+        otp: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/verify-otp';
+};
+
+export type VerifyOtpResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            fullName: string;
+            email: string;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type VerifyOtpResponse = VerifyOtpResponses[keyof VerifyOtpResponses];
+
+export type RegisterUserData = {
+    body: RegisterUserDto;
+    path?: never;
+    query?: never;
+    url: '/auth/register';
+};
+
+export type RegisterUserResponses = {
+    /**
+     * Ok
+     */
+    200: RegisterResponse;
+};
+
+export type RegisterUserResponse = RegisterUserResponses[keyof RegisterUserResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
