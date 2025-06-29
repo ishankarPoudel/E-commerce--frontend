@@ -325,6 +325,53 @@ export type RegisterUserResponses = {
 
 export type RegisterUserResponse = RegisterUserResponses[keyof RegisterUserResponses];
 
+export type LoginUserData = {
+    body: {
+        password: string;
+        email: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/login';
+};
+
+export type LoginUserResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            user: {
+                fullName: string;
+                email: string;
+            };
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type LoginUserResponse = LoginUserResponses[keyof LoginUserResponses];
+
+export type RefreshTokenData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/refresh-token';
+};
+
+export type RefreshTokenResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        message: string;
+        success: boolean;
+    };
+};
+
+export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
+
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
