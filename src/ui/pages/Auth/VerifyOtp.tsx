@@ -43,7 +43,7 @@ const VerifyOtp = () => {
         onSuccess: (response) => {
           toast.success(response.message);
           navigate({
-            to: "/",
+            to: "/auth/protected",
           });
         },
         onError: (error) => {

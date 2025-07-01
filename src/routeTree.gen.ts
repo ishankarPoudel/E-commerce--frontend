@@ -15,6 +15,7 @@ import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
 import { Route as AuthRegisterIndexImport } from './routes/auth/register/index'
+import { Route as AuthProtectedIndexImport } from './routes/auth/protected/index'
 import { Route as AuthLoginIndexImport } from './routes/auth/login/index'
 import { Route as AdminDashboardCategoryIndexImport } from './routes/admin-dashboard/category/index'
 import { Route as AdminDashboardBagsIndexImport } from './routes/admin-dashboard/bags/index'
@@ -45,6 +46,12 @@ const AdminDashboardIndexRoute = AdminDashboardIndexImport.update({
 const AuthRegisterIndexRoute = AuthRegisterIndexImport.update({
   id: '/auth/register/',
   path: '/auth/register/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthProtectedIndexRoute = AuthProtectedIndexImport.update({
+  id: '/auth/protected/',
+  path: '/auth/protected/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -152,6 +159,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexImport
       parentRoute: typeof rootRoute
     }
+    '/auth/protected/': {
+      id: '/auth/protected/'
+      path: '/auth/protected'
+      fullPath: '/auth/protected'
+      preLoaderRoute: typeof AuthProtectedIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/auth/register/': {
       id: '/auth/register/'
       path: '/auth/register'
@@ -174,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
+  '/auth/protected': typeof AuthProtectedIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
 }
 
@@ -187,6 +202,7 @@ export interface FileRoutesByTo {
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
+  '/auth/protected': typeof AuthProtectedIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
 }
 
@@ -201,6 +217,7 @@ export interface FileRoutesById {
   '/admin-dashboard/bags/': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category/': typeof AdminDashboardCategoryIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
+  '/auth/protected/': typeof AuthProtectedIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
 }
 
@@ -216,6 +233,7 @@ export interface FileRouteTypes {
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
     | '/auth/login'
+    | '/auth/protected'
     | '/auth/register'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -228,6 +246,7 @@ export interface FileRouteTypes {
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
     | '/auth/login'
+    | '/auth/protected'
     | '/auth/register'
   id:
     | '__root__'
@@ -240,6 +259,7 @@ export interface FileRouteTypes {
     | '/admin-dashboard/bags/'
     | '/admin-dashboard/category/'
     | '/auth/login/'
+    | '/auth/protected/'
     | '/auth/register/'
   fileRoutesById: FileRoutesById
 }
@@ -254,6 +274,7 @@ export interface RootRouteChildren {
   AdminDashboardBagsIndexRoute: typeof AdminDashboardBagsIndexRoute
   AdminDashboardCategoryIndexRoute: typeof AdminDashboardCategoryIndexRoute
   AuthLoginIndexRoute: typeof AuthLoginIndexRoute
+  AuthProtectedIndexRoute: typeof AuthProtectedIndexRoute
   AuthRegisterIndexRoute: typeof AuthRegisterIndexRoute
 }
 
@@ -267,6 +288,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardBagsIndexRoute: AdminDashboardBagsIndexRoute,
   AdminDashboardCategoryIndexRoute: AdminDashboardCategoryIndexRoute,
   AuthLoginIndexRoute: AuthLoginIndexRoute,
+  AuthProtectedIndexRoute: AuthProtectedIndexRoute,
   AuthRegisterIndexRoute: AuthRegisterIndexRoute,
 }
 
@@ -289,6 +311,7 @@ export const routeTree = rootRoute
         "/admin-dashboard/bags/",
         "/admin-dashboard/category/",
         "/auth/login/",
+        "/auth/protected/",
         "/auth/register/"
       ]
     },
@@ -318,6 +341,9 @@ export const routeTree = rootRoute
     },
     "/auth/login/": {
       "filePath": "auth/login/index.tsx"
+    },
+    "/auth/protected/": {
+      "filePath": "auth/protected/index.tsx"
     },
     "/auth/register/": {
       "filePath": "auth/register/index.tsx"

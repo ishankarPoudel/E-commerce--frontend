@@ -372,6 +372,30 @@ export type RefreshTokenResponses = {
 
 export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
 
+export type GetCurrentUserData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/me';
+};
+
+export type GetCurrentUserResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            id: string;
+            fullName: string;
+            email: string;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
+
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
