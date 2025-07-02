@@ -48,6 +48,7 @@ const Registration = () => {
       {
         onSuccess: (response) => {
           toast.success(response.message);
+          localStorage.setItem("email", data.email);
           // Redirect to OTP verification page
           navigate({
             to: "/auth/register/verify-otp",

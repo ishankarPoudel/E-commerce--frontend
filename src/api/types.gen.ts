@@ -286,6 +286,7 @@ export type DeleteBagByIdResponse = DeleteBagByIdResponses[keyof DeleteBagByIdRe
 
 export type VerifyOtpData = {
     body: {
+        email: string;
         otp: string;
     };
     path?: never;

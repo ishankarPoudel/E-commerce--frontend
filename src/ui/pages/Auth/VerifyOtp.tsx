@@ -33,14 +33,18 @@ const VerifyOtp = () => {
 
   const onSubmit = (data: any) => {
     console.log("Submitting OTP:", data.otp);
+    console.log("Submitting Email:", data.email);
+    const email = localStorage.getItem("email");
     mutate(
       {
         body: {
           otp: data.otp,
+          email: email as string,
         },
       },
       {
         onSuccess: (response) => {
+          localStorage.removeItem("email");
           toast.success(response.message);
           navigate({
             to: "/auth/protected",

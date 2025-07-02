@@ -8,18 +8,15 @@ import { Toaster } from "./ui/shadcn/sonner";
 import { client } from "./api/client.gen";
 import { refreshToken } from "./api/sdk.gen";
 
-// ✅ First, configure client BEFORE anything else
 client.setConfig({
   baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8000",
   credentials: "include",
 });
 
-// ⭐ CREATE A ROBUST FETCH WRAPPER THAT HEY-API WILL USE UNDER THE HOOD
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
   const response = await originalFetch(input, init);
 
-  // Only handle 401s on API calls to your backend
   if (
     response.status === 401 &&
     (input instanceof Request ? input.url : input.toString()).includes(
@@ -45,9 +42,7 @@ window.fetch = async (input, init) => {
         // Clone the original request and retry
         const retryInit = { ...init };
         const retryRequest =
-          input instanceof Request
-            ? new Request(input.url, { ...retryInit, method: input.method })
-            : input;
+          input instanceof Request ? new Request(input, init) : input;
 
         return await originalFetch(retryRequest, retryInit);
       } catch (e) {
