@@ -78,7 +78,7 @@ export function AddBagForm() {
   const onSubmit = async (data: AddBagValidator) => {
     const { images: validatedFormImages, ...bagData } = data;
 
-    await addBag(
+    addBag(
       { body: bagData },
       {
         onSuccess: async (resp) => {

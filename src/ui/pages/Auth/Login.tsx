@@ -5,7 +5,7 @@ import { Label } from "@/ui/shadcn/label";
 import { Separator } from "@/ui/shadcn/separator";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChromeIcon, Facebook, Lock, Mail } from "lucide-react";
+import { ChromeIcon, Lock, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -47,6 +47,11 @@ const Login = () => {
       }
     );
   };
+
+  // fn to handle oAuth login click
+  const handleOauthLoginClick = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  };
   return (
     <div>
       <div className='min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4'>
@@ -69,16 +74,11 @@ const Login = () => {
             {/* OAuth Buttons */}
             <div className='space-y-3 mb-6'>
               <Button
+                onClick={handleOauthLoginClick}
                 variant='outline'
                 className='w-full h-12 text-slate-700 border-slate-300 hover:bg-slate-50 transition-colors'>
                 <ChromeIcon className='w-5 h-5 mr-3' />
                 Continue with Google
-              </Button>
-              <Button
-                variant='outline'
-                className='w-full h-12 text-slate-700 border-slate-300 hover:bg-slate-50 transition-colors'>
-                <Facebook className='w-5 h-5 mr-3 text-blue-600' />
-                Continue with Facebook
               </Button>
             </div>
 

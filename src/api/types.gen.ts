@@ -373,6 +373,63 @@ export type RefreshTokenResponses = {
 
 export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
 
+export type GoogleAuthData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/google';
+};
+
+export type GoogleAuthResponses = {
+    /**
+     * No content
+     */
+    204: void;
+};
+
+export type GoogleAuthResponse = GoogleAuthResponses[keyof GoogleAuthResponses];
+
+export type GoogleCallBackData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/google/callback';
+};
+
+export type GoogleCallBackResponses = {
+    /**
+     * No content
+     */
+    204: void;
+};
+
+export type GoogleCallBackResponse = GoogleCallBackResponses[keyof GoogleCallBackResponses];
+
+export type GoogleOAuthLoginData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/OAuthLogin';
+};
+
+export type GoogleOAuthLoginResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            user: {
+                fullName: string;
+                email: string;
+            };
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GoogleOAuthLoginResponse = GoogleOAuthLoginResponses[keyof GoogleOAuthLoginResponses];
+
 export type GetCurrentUserData = {
     body?: never;
     path?: never;

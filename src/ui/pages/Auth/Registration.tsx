@@ -33,6 +33,15 @@ const Registration = () => {
     ...registerUserMutation(),
   });
 
+  //
+
+  //fn to trigger google oauth
+  const handleGoogleOAuthClick = () => {
+    const url = `${import.meta.env.VITE_API_URL}/auth/google`;
+    console.log("Redirecting to:", url);
+    window.location.href = url;
+  };
+
   //function to handle user registration
   const handleUserRegistration = (data: userRegistrationValidator) => {
     console.log("Form data:", data);
@@ -79,6 +88,7 @@ const Registration = () => {
           {/* OAuth Buttons */}
           <div className='space-y-3 mb-6'>
             <Button
+              onClick={handleGoogleOAuthClick}
               variant='outline'
               className='w-full h-12 text-slate-700 border-slate-300 hover:bg-slate-50 transition-colors'>
               <Chrome className='w-5 h-5 mr-3' />
