@@ -1,11 +1,12 @@
 import { loginUserMutation } from "@/api/@tanstack/react-query.gen";
+import GoogleIcon from "@/static/GoogleIcon";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Separator } from "@/ui/shadcn/separator";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChromeIcon, Lock, Mail } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -77,7 +78,7 @@ const Login = () => {
                 onClick={handleOauthLoginClick}
                 variant='outline'
                 className='w-full h-12 text-slate-700 border-slate-300 hover:bg-slate-50 transition-colors'>
-                <ChromeIcon className='w-5 h-5 mr-3' />
+                <GoogleIcon className='w-5 h-5 mr-3' />
                 Continue with Google
               </Button>
             </div>

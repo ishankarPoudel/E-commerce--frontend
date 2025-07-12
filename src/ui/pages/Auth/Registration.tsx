@@ -63,6 +63,9 @@ const Registration = () => {
             to: "/auth/register/verify-otp",
           });
         },
+        onError: (error: Error) => {
+          toast.error(error.message || "Registration failed");
+        },
       }
     );
   };
@@ -159,6 +162,7 @@ const Registration = () => {
                 {errors.email && (
                   <p className='text-red-500 text-xs mt-1'>
                     {errors.email.message}
+                    {}
                   </p>
                 )}
               </div>

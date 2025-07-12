@@ -11,7 +11,6 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
 import { Route as AuthRegisterIndexImport } from './routes/auth/register/index'
@@ -24,12 +23,6 @@ import { Route as AdminDashboardBagsAddBagImport } from './routes/admin-dashboar
 import { Route as AdminDashboardBagsIdImport } from './routes/admin-dashboard/bags/$id'
 
 // Create/Update Routes
-
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -103,13 +96,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
-      parentRoute: typeof rootRoute
-    }
     '/admin-dashboard/': {
       id: '/admin-dashboard/'
       path: '/admin-dashboard'
@@ -180,7 +166,6 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
@@ -194,7 +179,6 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
@@ -209,7 +193,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
@@ -225,7 +208,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
     | '/admin-dashboard'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
@@ -238,7 +220,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
     | '/admin-dashboard'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
@@ -251,7 +232,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/about'
     | '/admin-dashboard/'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
@@ -266,7 +246,6 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
   AdminDashboardBagsIdRoute: typeof AdminDashboardBagsIdRoute
   AdminDashboardBagsAddBagRoute: typeof AdminDashboardBagsAddBagRoute
@@ -280,7 +259,6 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
   AdminDashboardBagsIdRoute: AdminDashboardBagsIdRoute,
   AdminDashboardBagsAddBagRoute: AdminDashboardBagsAddBagRoute,
@@ -303,7 +281,6 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
         "/admin-dashboard/",
         "/admin-dashboard/bags/$id",
         "/admin-dashboard/bags/addBag",
@@ -317,9 +294,6 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/about": {
-      "filePath": "about.tsx"
     },
     "/admin-dashboard/": {
       "filePath": "admin-dashboard/index.tsx"
