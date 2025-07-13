@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { registerUserMutation } from "@/api/@tanstack/react-query.gen";
 
 const Registration = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: "/auth/register" });
   const {
     register,
     handleSubmit,
@@ -33,15 +33,6 @@ const Registration = () => {
     ...registerUserMutation(),
   });
 
-  //
-
-  //fn to trigger google oauth
-  const handleGoogleOAuthClick = () => {
-    const url = `${import.meta.env.VITE_API_URL}/auth/google`;
-    console.log("Redirecting to:", url);
-    window.location.href = url;
-  };
-
   //function to handle user registration
   const handleUserRegistration = (data: userRegistrationValidator) => {
     console.log("Form data:", data);
@@ -56,18 +47,26 @@ const Registration = () => {
       },
       {
         onSuccess: (response) => {
-          toast.success(response.message);
           localStorage.setItem("email", data.email);
-          // Redirect to OTP verification page
+          console.log("Registration successful!", response);
           navigate({
             to: "/auth/register/verify-otp",
+            replace: true,
           });
+          // toast.success(response.message);
         },
         onError: (error: Error) => {
           toast.error(error.message || "Registration failed");
         },
       }
     );
+  };
+
+  //fn to trigger google oauth
+  const handleGoogleOAuthClick = () => {
+    const url = `${import.meta.env.VITE_API_URL}/auth/google`;
+    console.log("Redirecting to:", url);
+    window.location.href = url;
   };
 
   return (
