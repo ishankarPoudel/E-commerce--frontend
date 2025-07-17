@@ -51,9 +51,8 @@ const Registration = () => {
           console.log("Registration successful!", response);
           navigate({
             to: "/auth/register/verify-otp",
-            replace: true,
           });
-          // toast.success(response.message);
+          toast.success(response.message);
         },
         onError: (error: Error) => {
           toast.error(error.message || "Registration failed");
