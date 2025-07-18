@@ -354,6 +354,55 @@ export type LoginUserResponses = {
 
 export type LoginUserResponse = LoginUserResponses[keyof LoginUserResponses];
 
+export type ResetPasswordData = {
+    body: {
+        email: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/reset-password';
+};
+
+export type ResetPasswordResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            email: string;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type ResetPasswordResponse = ResetPasswordResponses[keyof ResetPasswordResponses];
+
+export type RecoverPasswordData = {
+    body: {
+        resetToken: string;
+        newPassword: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/recover-password';
+};
+
+export type RecoverPasswordResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            email: string;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type RecoverPasswordResponse = RecoverPasswordResponses[keyof RecoverPasswordResponses];
+
 export type RefreshTokenData = {
     body?: never;
     path?: never;
@@ -404,31 +453,6 @@ export type GoogleCallBackResponses = {
 };
 
 export type GoogleCallBackResponse = GoogleCallBackResponses[keyof GoogleCallBackResponses];
-
-export type GoogleOAuthLoginData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/auth/OAuthLogin';
-};
-
-export type GoogleOAuthLoginResponses = {
-    /**
-     * Ok
-     */
-    200: {
-        data: {
-            user: {
-                fullName: string;
-                email: string;
-            };
-        };
-        message: string;
-        success: boolean;
-    };
-};
-
-export type GoogleOAuthLoginResponse = GoogleOAuthLoginResponses[keyof GoogleOAuthLoginResponses];
 
 export type GetCurrentUserData = {
     body?: never;

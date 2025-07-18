@@ -6,11 +6,12 @@ import { userRegistrationValidator } from "@/validators/userRegistration/userReg
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Chrome, Facebook, Loader, Lock, Mail, User } from "lucide-react";
+import { Loader, Lock, Mail, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { registerUserMutation } from "@/api/@tanstack/react-query.gen";
+import GoogleIcon from "@/static/GoogleIcon";
 
 const Registration = () => {
   const navigate = useNavigate({ from: "/auth/register" });
@@ -92,14 +93,8 @@ const Registration = () => {
               onClick={handleGoogleOAuthClick}
               variant='outline'
               className='w-full h-12 text-slate-700 border-slate-300 hover:bg-slate-50 transition-colors'>
-              <Chrome className='w-5 h-5 mr-3' />
+              <GoogleIcon className='w-5 h-5 mr-3' />
               Sign up with Google
-            </Button>
-            <Button
-              variant='outline'
-              className='w-full h-12 text-slate-700 border-slate-300 hover:bg-slate-50 transition-colors'>
-              <Facebook className='w-5 h-5 mr-3 text-blue-600' />
-              Sign up with Facebook
             </Button>
           </div>
 

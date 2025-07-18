@@ -149,11 +149,11 @@ const Login = () => {
                     Remember me
                   </Label>
                 </div>
-                <a
-                  href='#'
+                <Link
+                  to='/auth/reset-password'
                   className='text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors'>
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* Sign In Button */}

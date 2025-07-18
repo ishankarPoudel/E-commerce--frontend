@@ -13,12 +13,14 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
+import { Route as AuthResetPasswordIndexImport } from './routes/auth/reset-password/index'
 import { Route as AuthRegisterIndexImport } from './routes/auth/register/index'
 import { Route as AuthProtectedIndexImport } from './routes/auth/protected/index'
 import { Route as AuthLoginIndexImport } from './routes/auth/login/index'
 import { Route as AdminDashboardCategoryIndexImport } from './routes/admin-dashboard/category/index'
 import { Route as AdminDashboardBagsIndexImport } from './routes/admin-dashboard/bags/index'
 import { Route as AuthRegisterVerifyOtpImport } from './routes/auth/register/verify-otp'
+import { Route as AuthRecoverPasswordIdImport } from './routes/auth/recover-password/$id'
 import { Route as AdminDashboardBagsAddBagImport } from './routes/admin-dashboard/bags/addBag'
 import { Route as AdminDashboardBagsIdImport } from './routes/admin-dashboard/bags/$id'
 
@@ -33,6 +35,12 @@ const IndexRoute = IndexImport.update({
 const AdminDashboardIndexRoute = AdminDashboardIndexImport.update({
   id: '/admin-dashboard/',
   path: '/admin-dashboard/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthResetPasswordIndexRoute = AuthResetPasswordIndexImport.update({
+  id: '/auth/reset-password/',
+  path: '/auth/reset-password/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -70,6 +78,12 @@ const AdminDashboardBagsIndexRoute = AdminDashboardBagsIndexImport.update({
 const AuthRegisterVerifyOtpRoute = AuthRegisterVerifyOtpImport.update({
   id: '/auth/register/verify-otp',
   path: '/auth/register/verify-otp',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthRecoverPasswordIdRoute = AuthRecoverPasswordIdImport.update({
+  id: '/auth/recover-password/$id',
+  path: '/auth/recover-password/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -117,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardBagsAddBagImport
       parentRoute: typeof rootRoute
     }
+    '/auth/recover-password/$id': {
+      id: '/auth/recover-password/$id'
+      path: '/auth/recover-password/$id'
+      fullPath: '/auth/recover-password/$id'
+      preLoaderRoute: typeof AuthRecoverPasswordIdImport
+      parentRoute: typeof rootRoute
+    }
     '/auth/register/verify-otp': {
       id: '/auth/register/verify-otp'
       path: '/auth/register/verify-otp'
@@ -159,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRegisterIndexImport
       parentRoute: typeof rootRoute
     }
+    '/auth/reset-password/': {
+      id: '/auth/reset-password/'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -169,12 +197,14 @@ export interface FileRoutesByFullPath {
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
+  '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/protected': typeof AuthProtectedIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
+  '/auth/reset-password': typeof AuthResetPasswordIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -182,12 +212,14 @@ export interface FileRoutesByTo {
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
+  '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/protected': typeof AuthProtectedIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
+  '/auth/reset-password': typeof AuthResetPasswordIndexRoute
 }
 
 export interface FileRoutesById {
@@ -196,12 +228,14 @@ export interface FileRoutesById {
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
+  '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags/': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category/': typeof AdminDashboardCategoryIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/protected/': typeof AuthProtectedIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
+  '/auth/reset-password/': typeof AuthResetPasswordIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -211,36 +245,42 @@ export interface FileRouteTypes {
     | '/admin-dashboard'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
+    | '/auth/recover-password/$id'
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
     | '/auth/login'
     | '/auth/protected'
     | '/auth/register'
+    | '/auth/reset-password'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin-dashboard'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
+    | '/auth/recover-password/$id'
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
     | '/auth/login'
     | '/auth/protected'
     | '/auth/register'
+    | '/auth/reset-password'
   id:
     | '__root__'
     | '/'
     | '/admin-dashboard/'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
+    | '/auth/recover-password/$id'
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags/'
     | '/admin-dashboard/category/'
     | '/auth/login/'
     | '/auth/protected/'
     | '/auth/register/'
+    | '/auth/reset-password/'
   fileRoutesById: FileRoutesById
 }
 
@@ -249,12 +289,14 @@ export interface RootRouteChildren {
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
   AdminDashboardBagsIdRoute: typeof AdminDashboardBagsIdRoute
   AdminDashboardBagsAddBagRoute: typeof AdminDashboardBagsAddBagRoute
+  AuthRecoverPasswordIdRoute: typeof AuthRecoverPasswordIdRoute
   AuthRegisterVerifyOtpRoute: typeof AuthRegisterVerifyOtpRoute
   AdminDashboardBagsIndexRoute: typeof AdminDashboardBagsIndexRoute
   AdminDashboardCategoryIndexRoute: typeof AdminDashboardCategoryIndexRoute
   AuthLoginIndexRoute: typeof AuthLoginIndexRoute
   AuthProtectedIndexRoute: typeof AuthProtectedIndexRoute
   AuthRegisterIndexRoute: typeof AuthRegisterIndexRoute
+  AuthResetPasswordIndexRoute: typeof AuthResetPasswordIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -262,12 +304,14 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
   AdminDashboardBagsIdRoute: AdminDashboardBagsIdRoute,
   AdminDashboardBagsAddBagRoute: AdminDashboardBagsAddBagRoute,
+  AuthRecoverPasswordIdRoute: AuthRecoverPasswordIdRoute,
   AuthRegisterVerifyOtpRoute: AuthRegisterVerifyOtpRoute,
   AdminDashboardBagsIndexRoute: AdminDashboardBagsIndexRoute,
   AdminDashboardCategoryIndexRoute: AdminDashboardCategoryIndexRoute,
   AuthLoginIndexRoute: AuthLoginIndexRoute,
   AuthProtectedIndexRoute: AuthProtectedIndexRoute,
   AuthRegisterIndexRoute: AuthRegisterIndexRoute,
+  AuthResetPasswordIndexRoute: AuthResetPasswordIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -284,12 +328,14 @@ export const routeTree = rootRoute
         "/admin-dashboard/",
         "/admin-dashboard/bags/$id",
         "/admin-dashboard/bags/addBag",
+        "/auth/recover-password/$id",
         "/auth/register/verify-otp",
         "/admin-dashboard/bags/",
         "/admin-dashboard/category/",
         "/auth/login/",
         "/auth/protected/",
-        "/auth/register/"
+        "/auth/register/",
+        "/auth/reset-password/"
       ]
     },
     "/": {
@@ -303,6 +349,9 @@ export const routeTree = rootRoute
     },
     "/admin-dashboard/bags/addBag": {
       "filePath": "admin-dashboard/bags/addBag.tsx"
+    },
+    "/auth/recover-password/$id": {
+      "filePath": "auth/recover-password/$id.tsx"
     },
     "/auth/register/verify-otp": {
       "filePath": "auth/register/verify-otp.tsx"
@@ -321,6 +370,9 @@ export const routeTree = rootRoute
     },
     "/auth/register/": {
       "filePath": "auth/register/index.tsx"
+    },
+    "/auth/reset-password/": {
+      "filePath": "auth/reset-password/index.tsx"
     }
   }
 }
