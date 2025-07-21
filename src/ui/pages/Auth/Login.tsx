@@ -4,6 +4,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Separator } from "@/ui/shadcn/separator";
+import { getClientInfo } from "@/utils/getClientInfo";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Lock, Mail } from "lucide-react";
@@ -27,12 +28,24 @@ const Login = () => {
   });
 
   //function to handle user login
-  const handleUserLogin = (data: { email: string; password: string }) => {
+  const handleUserLogin = async (data: { email: string; password: string }) => {
+    const clientInfo = await getClientInfo();
+
     mutate(
       {
         body: {
           email: data.email,
           password: data.password,
+          os: clientInfo.os,
+          browser: clientInfo.browser,
+          device: clientInfo.device,
+          location: JSON.stringify({
+            country: clientInfo.location?.country,
+            city: clientInfo.location?.city,
+            region: clientInfo.location?.region,
+            ip: clientInfo.location?.ip,
+            org: clientInfo.location?.org,
+          }),
         },
       },
       {

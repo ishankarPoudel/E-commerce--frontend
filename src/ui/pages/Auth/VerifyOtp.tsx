@@ -40,7 +40,7 @@ const VerifyOtp = () => {
     }
   }, [otpValue]);
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     console.log("Submitting Email:", data.email);
     const email = localStorage.getItem("email");
     mutate(

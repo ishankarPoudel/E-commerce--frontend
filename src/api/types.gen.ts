@@ -71,6 +71,16 @@ export type RegisterUserDto = {
     password: string;
 };
 
+export type LoginValidator = {
+    email: string;
+    password: string;
+    rememberMe?: boolean;
+    os: string;
+    browser: string;
+    device: string;
+    location: string;
+};
+
 export type UploadMediaData = {
     body: {
         bagId: string;
@@ -351,10 +361,7 @@ export type RegisterUserResponses = {
 export type RegisterUserResponse = RegisterUserResponses[keyof RegisterUserResponses];
 
 export type LoginUserData = {
-    body: {
-        password: string;
-        email: string;
-    };
+    body: LoginValidator;
     path?: never;
     query?: never;
     url: '/auth/login';
