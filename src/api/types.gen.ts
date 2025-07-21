@@ -310,6 +310,30 @@ export type VerifyOtpResponses = {
 
 export type VerifyOtpResponse = VerifyOtpResponses[keyof VerifyOtpResponses];
 
+export type ResendOtpData = {
+    body: {
+        email: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/resend-otp';
+};
+
+export type ResendOtpResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            email: string;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type ResendOtpResponse = ResendOtpResponses[keyof ResendOtpResponses];
+
 export type RegisterUserData = {
     body: RegisterUserDto;
     path?: never;

@@ -7,9 +7,13 @@ import {
   InputOTPSeparator,
 } from "@/ui/shadcn/input-otp";
 import { useMutation } from "@tanstack/react-query";
-import { verifyOtpMutation } from "@/api/@tanstack/react-query.gen";
+import {
+  resendOtpMutation,
+  verifyOtpMutation,
+} from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { Button } from "@/ui/shadcn/button";
 
 const VerifyOtp = () => {
   const navigate = useNavigate();
@@ -24,6 +28,11 @@ const VerifyOtp = () => {
     ...verifyOtpMutation(),
   });
 
+  //mutataion to resend the otp
+  const { mutate: resendOtp } = useMutation({
+    ...resendOtpMutation(),
+  });
+
   useEffect(() => {
     if (otpValue?.length === MAX_LENGTH) {
       // Auto-submit when OTP is complete
@@ -32,7 +41,6 @@ const VerifyOtp = () => {
   }, [otpValue]);
 
   const onSubmit = (data: any) => {
-    console.log("Submitting OTP:", data.otp);
     console.log("Submitting Email:", data.email);
     const email = localStorage.getItem("email");
     mutate(
@@ -44,7 +52,7 @@ const VerifyOtp = () => {
       },
       {
         onSuccess: (response) => {
-          localStorage.removeItem("email");
+          // localStorage.removeItem("email");
           toast.success(response.message);
           navigate({
             to: "/auth/protected",
@@ -52,6 +60,24 @@ const VerifyOtp = () => {
         },
         onError: (error) => {
           toast.error(error.message || "Failed to verify OTP");
+        },
+      }
+    );
+  };
+  const handleOTPResendClick = () => {
+    const email = localStorage.getItem("email");
+    resendOtp(
+      {
+        body: {
+          email: email as string,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          toast.success(response.message || "OTP resent successfully");
+        },
+        onError: (error) => {
+          toast.error(error.message || "Failed to resend OTP");
         },
       }
     );
@@ -101,14 +127,16 @@ const VerifyOtp = () => {
             </InputOTP>
           )}
         />
-
-        <p className='text-gray-500 text-sm'>
-          Didn’t receive the code?{" "}
-          <a href='#' className='text-blue-500 hover:underline'>
-            Resend
-          </a>
-        </p>
       </form>
+      <p className='text-gray-500 text-sm'>
+        Didn’t receive the code?{" "}
+        <Button
+          onClick={handleOTPResendClick}
+          variant='link'
+          className='text-blue-500 hover:underline'>
+          Resend
+        </Button>
+      </p>
     </div>
   );
 };
