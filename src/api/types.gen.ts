@@ -81,6 +81,33 @@ export type LoginValidator = {
     location: string;
 };
 
+export type GetUserByIdData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/user/me';
+};
+
+export type GetUserByIdResponses = {
+    /**
+     * User retrieved successfully
+     */
+    200: {
+        data: {
+            provider: string;
+            isOauth: boolean;
+            isEmailVerified: boolean;
+            fullName: string;
+            email: string;
+            id: string;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetUserByIdResponse = GetUserByIdResponses[keyof GetUserByIdResponses];
+
 export type UploadMediaData = {
     body: {
         bagId: string;
@@ -484,30 +511,6 @@ export type GoogleCallBackResponses = {
 };
 
 export type GoogleCallBackResponse = GoogleCallBackResponses[keyof GoogleCallBackResponses];
-
-export type GetCurrentUserData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/auth/me';
-};
-
-export type GetCurrentUserResponses = {
-    /**
-     * Ok
-     */
-    200: {
-        data: {
-            id: string;
-            fullName: string;
-            email: string;
-        };
-        message: string;
-        success: boolean;
-    };
-};
-
-export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});

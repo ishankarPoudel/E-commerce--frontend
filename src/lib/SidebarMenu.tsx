@@ -15,8 +15,9 @@ import {
   SidebarRail,
 } from "@/ui/shadcn/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/shadcn/avatar";
-
 import { Button } from "@/ui/shadcn/button";
+import { useQuery } from "@tanstack/react-query";
+import { getUserByIdOptions } from "@/api/@tanstack/react-query.gen";
 
 interface MenuItem {
   title: string;
@@ -25,11 +26,14 @@ interface MenuItem {
 }
 
 export function SideBarMenu({ navLinks }: { navLinks: MenuItem[] }) {
-  const user = {
-    name: "Alex Johnson",
-    email: "alex@example.com",
+  //fn to fetch user data
+  const { data: loggedInUser, isPending: isUserLoading } = useQuery({
+    ...getUserByIdOptions(),
+  });
 
-    image: "https://i.pravatar.cc/150?img=3",
+  const user = {
+    name: loggedInUser?.data?.fullName || "Alex Johnsonn",
+    email: loggedInUser?.data?.email || "alex@example.com",
   };
 
   return (
@@ -40,9 +44,7 @@ export function SideBarMenu({ navLinks }: { navLinks: MenuItem[] }) {
             <ShoppingCart className='h-5 w-5 text-white' />
           </div>
           <div className='flex flex-col'>
-            <span className='text-lg font-semibold text-black'>
-              Avisekh Bags
-            </span>
+            <span className='text-lg font-semibold'>Avisekh Bags</span>
             <span className='text-xs text-muted-foreground'>
               Customer Portal
             </span>
@@ -75,13 +77,15 @@ export function SideBarMenu({ navLinks }: { navLinks: MenuItem[] }) {
         </SidebarGroup>
       </SidebarContent>
 
+      {isUserLoading ? (
+        <div className='flex items-center justify-center p-4'>
+          <span> Fetching user...</span>
+        </div>
+      ) : null}
+
       <SidebarFooter className='mt-auto border-t p-4'>
         <div className='flex items-center gap-3 px-2'>
           <Avatar>
-            <AvatarImage
-              src={user.image || "/placeholder.svg"}
-              alt={user.name}
-            />
             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className='flex flex-1 flex-col overflow-hidden'>

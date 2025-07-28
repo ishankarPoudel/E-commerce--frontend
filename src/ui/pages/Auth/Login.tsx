@@ -52,7 +52,7 @@ const Login = () => {
         onSuccess: (response) => {
           toast.success(response.message || "Login successful");
           navigate({
-            to: "/auth/protected",
+            to: "/",
           });
         },
         onError: (error: Error) => {

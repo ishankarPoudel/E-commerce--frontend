@@ -47,7 +47,6 @@ window.fetch = async (input, init) => {
         return await originalFetch(retryRequest, retryInit);
       } catch (e) {
         console.error("❌ Failed to refresh token:", e);
-        window.location.href = "/login";
       }
     }
   }
