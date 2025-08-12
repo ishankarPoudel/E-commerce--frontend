@@ -35,6 +35,59 @@ export type CreateCategoryValidator = {
     categoryName: string;
 };
 
+export type DeviceInfoEntity = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    os: string;
+    browser: string;
+    device: string;
+};
+
+export type CartEntity = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    user: UserEntity;
+    cartItems: Array<CartItemEntity>;
+};
+
+export type UserEntity = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    googleId: string;
+    email: string;
+    fullName: string;
+    password: string;
+    isOauth: boolean;
+    provider: string;
+    isEmailVerified: boolean;
+    emailVerificationToken: string;
+    emailVerificationTokenExpiresAt: string | null;
+    refreshToken: string;
+    deviceInfo: DeviceInfoEntity;
+    cart: CartEntity;
+};
+
+export type CartItemEntity = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    cart: CartEntity;
+    bag: BagEntity;
+    quantity: number;
+};
+
+export type AddToCartValidator = {
+    bagId: string;
+    quantity: number;
+};
+
 export type AddBagValidator = {
     name: string;
     price: number;
@@ -202,6 +255,84 @@ export type GetCategoriesWithBagsResponses = {
 };
 
 export type GetCategoriesWithBagsResponse = GetCategoriesWithBagsResponses[keyof GetCategoriesWithBagsResponses];
+
+export type AddToCartData = {
+    body: AddToCartValidator;
+    path?: never;
+    query?: never;
+    url: '/cart/add-to-cart';
+};
+
+export type AddToCartResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            existingCart: CartEntity;
+        };
+        message: string;
+    };
+};
+
+export type AddToCartResponse = AddToCartResponses[keyof AddToCartResponses];
+
+export type RemoveFromCartData = {
+    body: AddToCartValidator;
+    path?: never;
+    query?: never;
+    url: '/cart/remove-from-cart';
+};
+
+export type RemoveFromCartResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: CartEntity;
+        message: string;
+    };
+};
+
+export type RemoveFromCartResponse = RemoveFromCartResponses[keyof RemoveFromCartResponses];
+
+export type UpdateCartData = {
+    body: AddToCartValidator;
+    path?: never;
+    query?: never;
+    url: '/cart/update-cart';
+};
+
+export type UpdateCartResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: CartEntity;
+        message: string;
+    };
+};
+
+export type UpdateCartResponse = UpdateCartResponses[keyof UpdateCartResponses];
+
+export type GetCartData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/cart/get-cart';
+};
+
+export type GetCartResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: CartEntity;
+        message: string;
+    };
+};
+
+export type GetCartResponse = GetCartResponses[keyof GetCartResponses];
 
 export type AddBagData = {
     body: AddBagValidator;

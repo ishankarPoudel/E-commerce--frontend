@@ -1,9 +1,10 @@
 import { getCategoriesWithBagsOptions } from "@/api/@tanstack/react-query.gen";
+import AddToCart from "@/ui/molecules/Buttons/AddToCart";
 import { Button } from "@/ui/shadcn/button";
 import { Card, CardContent } from "@/ui/shadcn/card";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 export default function CategoryBasedBags() {
   const { data: bagsList, isPending: isBagListPending } = useQuery({
@@ -61,11 +62,8 @@ export default function CategoryBasedBags() {
                           target.src = "/placeholder.svg?height=120&width=120";
                         }}
                       />
-                      <Button
-                        size='sm'
-                        className='absolute top-2 right-2 h-8 px-3 text-xs font-medium bg-green-600 hover:bg-green-700'>
-                        <Plus className='h-3 w-3 mr-1' />
-                      </Button>
+
+                      <AddToCart bagId={bag.id} />
                     </div>
 
                     <div className='space-y-2'>
