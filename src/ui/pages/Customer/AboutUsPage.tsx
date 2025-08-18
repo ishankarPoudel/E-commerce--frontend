@@ -1,4 +1,4 @@
-import LandingPageLayout from "../layouts/LandingPageLayout";
+import LandingPageLayout from "@/ui/layouts/LandingPageLayout";
 
 const AboutUsPage = () => {
   return (

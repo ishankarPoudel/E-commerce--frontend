@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as CartIndexImport } from './routes/cart/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
 import { Route as AuthResetPasswordIndexImport } from './routes/auth/reset-password/index'
 import { Route as AuthRegisterIndexImport } from './routes/auth/register/index'
@@ -29,6 +30,12 @@ import { Route as AdminDashboardBagsIdImport } from './routes/admin-dashboard/ba
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CartIndexRoute = CartIndexImport.update({
+  id: '/cart/',
+  path: '/cart/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -117,6 +124,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardIndexImport
       parentRoute: typeof rootRoute
     }
+    '/cart/': {
+      id: '/cart/'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/admin-dashboard/bags/$id': {
       id: '/admin-dashboard/bags/$id'
       path: '/admin-dashboard/bags/$id'
@@ -195,6 +209,7 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
+  '/cart': typeof CartIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
@@ -210,6 +225,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
+  '/cart': typeof CartIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
@@ -226,6 +242,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
+  '/cart/': typeof CartIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
@@ -243,6 +260,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin-dashboard'
+    | '/cart'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
     | '/auth/recover-password/$id'
@@ -257,6 +275,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin-dashboard'
+    | '/cart'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
     | '/auth/recover-password/$id'
@@ -271,6 +290,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin-dashboard/'
+    | '/cart/'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
     | '/auth/recover-password/$id'
@@ -287,6 +307,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
+  CartIndexRoute: typeof CartIndexRoute
   AdminDashboardBagsIdRoute: typeof AdminDashboardBagsIdRoute
   AdminDashboardBagsAddBagRoute: typeof AdminDashboardBagsAddBagRoute
   AuthRecoverPasswordIdRoute: typeof AuthRecoverPasswordIdRoute
@@ -302,6 +323,7 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
+  CartIndexRoute: CartIndexRoute,
   AdminDashboardBagsIdRoute: AdminDashboardBagsIdRoute,
   AdminDashboardBagsAddBagRoute: AdminDashboardBagsAddBagRoute,
   AuthRecoverPasswordIdRoute: AuthRecoverPasswordIdRoute,
@@ -326,6 +348,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/admin-dashboard/",
+        "/cart/",
         "/admin-dashboard/bags/$id",
         "/admin-dashboard/bags/addBag",
         "/auth/recover-password/$id",
@@ -343,6 +366,9 @@ export const routeTree = rootRoute
     },
     "/admin-dashboard/": {
       "filePath": "admin-dashboard/index.tsx"
+    },
+    "/cart/": {
+      "filePath": "cart/index.tsx"
     },
     "/admin-dashboard/bags/$id": {
       "filePath": "admin-dashboard/bags/$id.tsx"

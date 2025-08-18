@@ -1,12 +1,14 @@
-import Footer from "../organisms/Footer";
-import Navbar from "../organisms/Navbar";
+import { AppSidebar } from "@/components/App-sidebar";
+import { SidebarProvider, SidebarTrigger } from "../shadcn/sidebar";
 
 const LandingPageLayout = ({ children }: { children: any }) => {
   return (
     <div className='pl-3'>
-      <Navbar />
-      {children}
-      <Footer />
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarTrigger />
+        {children}
+      </SidebarProvider>
     </div>
   );
 };
