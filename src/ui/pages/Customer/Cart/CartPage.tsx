@@ -10,11 +10,15 @@ import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/ui/shadcn/card";
 import { Button } from "@/ui/shadcn/button";
 import { Separator } from "@/ui/shadcn/separator";
-import { useQuery } from "@tanstack/react-query";
-import { getCartOptions } from "@/api/@tanstack/react-query.gen";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getCartOptions,
+  getCartQueryKey,
+  removeFromCartMutation,
+  updateCartMutation,
+} from "@/api/@tanstack/react-query.gen";
 import { getImageUrl } from "@/utils/urlHelpers";
-// NOTE: You will need to implement these mutations later
-// import { updateCartMutation, removeFromCartMutation } from "@/api/@tanstack/react-query.gen";
+import { toast } from "sonner";
 
 export default function CartPage() {
   const {
@@ -23,14 +27,59 @@ export default function CartPage() {
     error,
   } = useQuery({
     ...getCartOptions(),
-    // It's good practice to have a query key
   });
 
-  // TODO: Implement mutations for updating and removing items
-  // const { mutate: updateQuantity } = useMutation({...updateCartMutation()});
-  // const { mutate: removeItem } = useMutation({...removeFromCartMutation()});
+  const queryClient = useQueryClient();
+  // mutation to delete the entire cart
+  const { mutate: removeCart } = useMutation({
+    ...removeFromCartMutation(),
+  });
 
-  // Derive items directly from the fetched data
+  //mutation to update cart item quantity
+  const { mutate: updateCart } = useMutation({
+    ...updateCartMutation(),
+  });
+
+  const handleCartDeletion = (itemId: string) => {
+    removeCart(
+      {
+        body: {
+          bagId: itemId,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          queryClient.invalidateQueries({
+            queryKey: getCartQueryKey(),
+          });
+          toast.success(response?.message || "Item removed from cart");
+        },
+        onError: (error: Error) => {
+          toast.error(error.message || "Failed to remove item from cart");
+        },
+      }
+    );
+  };
+
+  const handleQuantityUpdate = (itemId: string, itemQuantity: number) => {
+    updateCart(
+      {
+        body: {
+          bagId: itemId,
+          quantity: itemQuantity,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          queryClient.invalidateQueries({
+            queryKey: getCartQueryKey(),
+          });
+          toast.success(response?.message || "Cart item updated successfully");
+        },
+      }
+    );
+  };
+
   const cartItems =
     cartData?.data?.cartItems?.map((item) => ({
       id: item.id,
@@ -149,7 +198,7 @@ export default function CartPage() {
                           <Button
                             variant='ghost'
                             size='sm'
-                            // onClick={() => removeItem(item.id)} // TODO: Implement mutation
+                            onClick={() => handleCartDeletion(item.id)}
                             className='text-muted-foreground hover:text-destructive'>
                             <Trash2 className='h-4 w-4' />
                           </Button>
@@ -168,7 +217,9 @@ export default function CartPage() {
                             <Button
                               variant='outline'
                               size='sm'
-                              // onClick={() => updateQuantity(item.id, item.quantity - 1)} // TODO: Implement mutation
+                              onClick={() =>
+                                handleQuantityUpdate(item.id, item.quantity - 1)
+                              }
                               className='h-8 w-8 p-0'>
                               <Minus className='h-3 w-3' />
                             </Button>
@@ -178,7 +229,9 @@ export default function CartPage() {
                             <Button
                               variant='outline'
                               size='sm'
-                              // onClick={() => updateQuantity(item.id, item.quantity + 1)} // TODO: Implement mutation
+                              onClick={() =>
+                                handleQuantityUpdate(item.id, item.quantity + 1)
+                              }
                               className='h-8 w-8 p-0'>
                               <Plus className='h-3 w-3' />
                             </Button>

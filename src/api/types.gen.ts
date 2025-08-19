@@ -268,9 +268,7 @@ export type AddToCartResponses = {
      * Ok
      */
     200: {
-        data: {
-            existingCart: CartEntity;
-        };
+        data: CartEntity;
         message: string;
     };
 };
@@ -278,7 +276,10 @@ export type AddToCartResponses = {
 export type AddToCartResponse = AddToCartResponses[keyof AddToCartResponses];
 
 export type RemoveFromCartData = {
-    body: AddToCartValidator;
+    body: {
+        userId?: string;
+        bagId: string;
+    };
     path?: never;
     query?: never;
     url: '/cart/remove-from-cart';
@@ -289,7 +290,9 @@ export type RemoveFromCartResponses = {
      * Ok
      */
     200: {
-        data: CartEntity;
+        data: {
+            itemsToRemove: CartItemEntity;
+        };
         message: string;
     };
 };
@@ -297,7 +300,10 @@ export type RemoveFromCartResponses = {
 export type RemoveFromCartResponse = RemoveFromCartResponses[keyof RemoveFromCartResponses];
 
 export type UpdateCartData = {
-    body: AddToCartValidator;
+    body: {
+        quantity: number;
+        bagId: string;
+    };
     path?: never;
     query?: never;
     url: '/cart/update-cart';
