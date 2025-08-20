@@ -50,8 +50,8 @@ export const customerNavLinks = [
     icon: Home,
   },
   {
-    title: "My Orders",
-    url: "/orders",
+    title: "My Cart",
+    url: "/cart",
     icon: ShoppingBag,
   },
   {
