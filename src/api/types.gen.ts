@@ -71,6 +71,21 @@ export type UserEntity = {
     refreshToken: string;
     deviceInfo: DeviceInfoEntity;
     cart: CartEntity;
+    orders: Array<OrderEntity>;
+};
+
+export type OrderEntity = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    user: UserEntity;
+    status: 'pending' | 'paid' | 'failed' | 'refunded';
+    currency: string;
+    amount: number;
+    stripePaymentIntentId?: string;
+    stripeChargeId?: string;
+    itemsSnapShot?: unknown;
 };
 
 export type CartItemEntity = {
@@ -187,6 +202,29 @@ export type UploadMediaResponses = {
 };
 
 export type UploadMediaResponse = UploadMediaResponses[keyof UploadMediaResponses];
+
+export type CreatePaymentIntentData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/checkout/create-payment-intent';
+};
+
+export type CreatePaymentIntentResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            clientSecret: string;
+            orderId: string;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type CreatePaymentIntentResponse = CreatePaymentIntentResponses[keyof CreatePaymentIntentResponses];
 
 export type AddCategoryData = {
     body: CreateCategoryValidator;
@@ -314,7 +352,7 @@ export type UpdateCartResponses = {
      * Ok
      */
     200: {
-        data: CartEntity;
+        data: CartItemEntity;
         message: string;
     };
 };

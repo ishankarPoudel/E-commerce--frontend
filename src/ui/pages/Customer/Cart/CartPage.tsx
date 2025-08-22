@@ -12,6 +12,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Separator } from "@/ui/shadcn/separator";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  createPaymentIntentMutation,
   getCartOptions,
   getCartQueryKey,
   removeFromCartMutation,
@@ -19,6 +20,7 @@ import {
 } from "@/api/@tanstack/react-query.gen";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { toast } from "sonner";
+import { loadStripe } from "@stripe/stripe-js";
 
 export default function CartPage() {
   const {
@@ -39,6 +41,36 @@ export default function CartPage() {
   const { mutate: updateCart } = useMutation({
     ...updateCartMutation(),
   });
+
+  const stripePromise = loadStripe(
+    import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!
+  );
+  //mutataion to handle checkout
+  const { mutate: paymentCheckout, isPending: ischeckoutPending } = useMutation(
+    {
+      ...createPaymentIntentMutation(),
+      onSuccess: async (data) => {
+        const stripe = await stripePromise;
+        if (!stripe) {
+          toast.error("Stripe not initialized");
+          return;
+        }
+        const result = await stripe.confirmPayment({
+          clientSecret: data.data.clientSecret,
+          redirect: "if_required",
+        });
+        if (result.error) {
+          toast.error(result.error.message);
+        } else {
+          toast.success("Payment successful!");
+        }
+      },
+    }
+  );
+  const handleCheckout = () => {
+    //@ts-expect-error
+    paymentCheckout({ body: {} });
+  };
 
   const handleCartDeletion = (itemId: string) => {
     removeCart(
@@ -292,6 +324,7 @@ export default function CartPage() {
                 </div>
 
                 <Button
+                  onClick={handleCheckout}
                   className='w-full h-12 text-base font-medium'
                   disabled={
                     cartItems.length === 0 ||
