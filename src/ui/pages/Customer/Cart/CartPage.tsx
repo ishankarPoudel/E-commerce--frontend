@@ -21,8 +21,10 @@ import {
 import { getImageUrl } from "@/utils/urlHelpers";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
+import { useNavigate } from "@tanstack/react-router";
 
 export default function CartPage() {
+  const navigate = useNavigate();
   const {
     data: cartData,
     isPending,
@@ -50,20 +52,21 @@ export default function CartPage() {
     {
       ...createPaymentIntentMutation(),
       onSuccess: async (data) => {
-        const stripe = await stripePromise;
-        if (!stripe) {
-          toast.error("Stripe not initialized");
+        const clientSecret = data?.data?.clientSecret;
+        const orderId = data?.data?.orderId;
+        if (!clientSecret || !orderId) {
+          toast.error(
+            "Unable to process payment at this time. Try again later."
+          );
           return;
         }
-        const result = await stripe.confirmPayment({
-          clientSecret: data.data.clientSecret,
-          redirect: "if_required",
-        });
-        if (result.error) {
-          toast.error(result.error.message);
-        } else {
-          toast.success("Payment successful!");
-        }
+
+        sessionStorage.setItem(
+          "checkout",
+          JSON.stringify({ clientSecret, orderId })
+        );
+
+        navigate({ to: "/checkout" });
       },
     }
   );
