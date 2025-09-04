@@ -15,6 +15,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as CheckoutIndexImport } from './routes/checkout/index'
 import { Route as CartIndexImport } from './routes/cart/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
+import { Route as CheckoutResultImport } from './routes/checkout/result'
 import { Route as AuthResetPasswordIndexImport } from './routes/auth/reset-password/index'
 import { Route as AuthRegisterIndexImport } from './routes/auth/register/index'
 import { Route as AuthProtectedIndexImport } from './routes/auth/protected/index'
@@ -49,6 +50,12 @@ const CartIndexRoute = CartIndexImport.update({
 const AdminDashboardIndexRoute = AdminDashboardIndexImport.update({
   id: '/admin-dashboard/',
   path: '/admin-dashboard/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CheckoutResultRoute = CheckoutResultImport.update({
+  id: '/checkout/result',
+  path: '/checkout/result',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -122,6 +129,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/checkout/result': {
+      id: '/checkout/result'
+      path: '/checkout/result'
+      fullPath: '/checkout/result'
+      preLoaderRoute: typeof CheckoutResultImport
       parentRoute: typeof rootRoute
     }
     '/admin-dashboard/': {
@@ -222,6 +236,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/checkout/result': typeof CheckoutResultRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/cart': typeof CartIndexRoute
   '/checkout': typeof CheckoutIndexRoute
@@ -239,6 +254,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/checkout/result': typeof CheckoutResultRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/cart': typeof CartIndexRoute
   '/checkout': typeof CheckoutIndexRoute
@@ -257,6 +273,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/checkout/result': typeof CheckoutResultRoute
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
   '/cart/': typeof CartIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
@@ -276,6 +293,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/checkout/result'
     | '/admin-dashboard'
     | '/cart'
     | '/checkout'
@@ -292,6 +310,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/checkout/result'
     | '/admin-dashboard'
     | '/cart'
     | '/checkout'
@@ -308,6 +327,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/checkout/result'
     | '/admin-dashboard/'
     | '/cart/'
     | '/checkout/'
@@ -326,6 +346,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CheckoutResultRoute: typeof CheckoutResultRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
   CartIndexRoute: typeof CartIndexRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
@@ -343,6 +364,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CheckoutResultRoute: CheckoutResultRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
   CartIndexRoute: CartIndexRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
@@ -369,6 +391,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/checkout/result",
         "/admin-dashboard/",
         "/cart/",
         "/checkout/",
@@ -386,6 +409,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/checkout/result": {
+      "filePath": "checkout/result.tsx"
     },
     "/admin-dashboard/": {
       "filePath": "admin-dashboard/index.tsx"
