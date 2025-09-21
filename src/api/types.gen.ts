@@ -162,12 +162,13 @@ export type GetUserByIdResponses = {
      */
     200: {
         data: {
+            updatedAt: string;
+            createdAt: string;
             provider: string;
             isOauth: boolean;
             isEmailVerified: boolean;
             fullName: string;
             email: string;
-            id: string;
         };
         message: string;
         success: boolean;
@@ -178,7 +179,7 @@ export type GetUserByIdResponse = GetUserByIdResponses[keyof GetUserByIdResponse
 
 export type GetOrderByIdData = {
     body: {
-        orderId: string;
+        orderId?: string;
     };
     path?: never;
     query?: never;
@@ -393,7 +394,9 @@ export type GetCartResponses = {
      * Ok
      */
     200: {
-        data: CartEntity;
+        data: CartEntity | {
+            cartItems: Array<unknown>;
+        };
         message: string;
     };
 };

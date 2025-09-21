@@ -1,20 +1,23 @@
+import { getUserByIdOptions } from "@/api/@tanstack/react-query.gen";
 import { Badge } from "@/ui/shadcn/badge";
 import { Button } from "@/ui/shadcn/button";
 import { Card, CardContent } from "@/ui/shadcn/card";
-
-import { User, Mail, Phone, Calendar, Edit } from "lucide-react";
-
-// Mock user data - in a real app this would come from props or API
-const userData = {
-  name: "Sarah Johnson",
-  email: "sarah.johnson@example.com",
-  phone: "+1 (555) 123-4567",
-  joinDate: "March 15, 2023",
-  avatar: "/professional-woman-avatar.png",
-  emailVerified: true,
-};
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/ui/shadcn/tooltip";
+import { useQuery } from "@tanstack/react-query";
+import { User, Mail, Calendar, Edit, Info } from "lucide-react";
 
 export function CustomerProfile() {
+  const { data: user, isPending: isUserLoading } = useQuery({
+    ...getUserByIdOptions(),
+  });
+  if (isUserLoading) {
+    return <div>Loading...</div>;
+  }
   return (
     <div className='min-h-screen bg-gray-50/50'>
       <div className='bg-white border-b border-gray-200'>
@@ -42,39 +45,52 @@ export function CustomerProfile() {
                 <div className='space-y-2'>
                   <div className='flex items-center gap-3'>
                     <h1 className='text-3xl font-bold text-foreground'>
-                      {userData.name}
+                      {user?.data.fullName || "User"}
                     </h1>
                   </div>
                   <p className='text-lg text-muted-foreground'>
-                    {userData.email}
+                    {user?.data.email || "user@example.com"}
                   </p>
                   <div className='flex items-center gap-4 text-sm text-muted-foreground'>
-                    <span>{userData.phone}</span>
-                    <span>•</span>
-                    <span>Member since {userData.joinDate}</span>
-                  </div>
-                  <div className='flex items-center gap-6 mt-4 pt-4 border-t border-gray-100'>
-                    <div className='text-center'>
-                      <p className='text-2xl font-bold text-foreground'>24</p>
-                      <p className='text-xs text-muted-foreground'>Orders</p>
-                    </div>
-                    <div className='text-center'>
-                      <p className='text-2xl font-bold text-foreground'>
-                        $2,847
-                      </p>
-                      <p className='text-xs text-muted-foreground'>
-                        Total Spent
-                      </p>
-                    </div>
+                    <span>
+                      Member since{" "}
+                      {user?.data.createdAt
+                        ? new Date(user.data.createdAt).toLocaleDateString(
+                            undefined,
+                            { year: "numeric", month: "long", day: "numeric" }
+                          )
+                        : "Not available"}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div className='flex items-center gap-3'>
-                <Button className='gap-2 hover:bg-green-700 text-white border-0'>
+                <Button
+                  disabled={user?.data.isOauth}
+                  className='gap-2 hover:bg-green-700 text-white border-0'>
                   <Edit className='h-4 w-4' />
                   Edit Profile
                 </Button>
+                {user?.data.isOauth && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className='h-4 w-4 cursor-pointer text-yellow-500' />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className='text-sm text-break-word max-w-xs border-4p-2 '>
+                          You signed up with Google. Some details like your
+                          email, name are managed by Google and can’t be changed
+                          here, but you can update them in your Google account
+                          settings if needed and they will sync here. Be
+                          cautious when changing your information in Google as
+                          it may affect your login access to this app.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </div>
             </div>
           </CardContent>
@@ -91,7 +107,10 @@ export function CustomerProfile() {
                 variant='ghost'
                 size='sm'
                 className='text-muted-foreground hover:text-foreground'>
-                Last updated 2 hours ago
+                Last updated{" "}
+                {user?.data.updatedAt
+                  ? new Date(user.data.updatedAt).toLocaleDateString()
+                  : "Not available"}
               </Button>
             </div>
 
@@ -106,7 +125,7 @@ export function CustomerProfile() {
                     Full Name
                   </p>
                   <p className='text-base text-muted-foreground'>
-                    {userData.name}
+                    {user?.data.fullName || "User"}
                   </p>
                 </div>
               </div>
@@ -122,9 +141,9 @@ export function CustomerProfile() {
                   </p>
                   <div className='flex items-center gap-2'>
                     <p className='text-base text-muted-foreground truncate'>
-                      {userData.email}
+                      {user?.data.email || "user@example.com"}
                     </p>
-                    {userData.emailVerified && (
+                    {user?.data.isEmailVerified && (
                       <Badge
                         variant='secondary'
                         className='text-xs bg-green-100 text-green-700 hover:bg-green-100 flex-shrink-0'>
@@ -135,18 +154,60 @@ export function CustomerProfile() {
                 </div>
               </div>
 
-              {/* Phone Number */}
+              {/* Login Method */}
               <div className='flex items-start gap-4 p-4 rounded-lg bg-gray-50/50 hover:bg-gray-50 transition-colors'>
-                <div className='flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center'>
-                  <Phone className='h-5 w-5 text-purple-600' />
+                <div className='flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center'>
+                  {user?.data.isOauth ? (
+                    <img
+                      src={
+                        user?.data.provider === "google"
+                          ? "https://www.svgrepo.com/show/355037/google.svg"
+                          : user?.data.provider === "github"
+                            ? "https://www.svgrepo.com/show/512317/github-142.svg"
+                            : "https://www.svgrepo.com/show/452213/user.svg" // fallback generic user icon
+                      }
+                      alt={user?.data.provider}
+                      className='h-5 w-5'
+                    />
+                  ) : (
+                    <Mail className='h-5 w-5 text-yellow-600' />
+                  )}
                 </div>
                 <div className='flex-1 min-w-0'>
                   <p className='text-sm font-medium text-foreground mb-1'>
-                    Phone Number
+                    Login Method
                   </p>
-                  <p className='text-base text-muted-foreground'>
-                    {userData.phone}
-                  </p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipContent side='right' className='max-w-xs text-sm'>
+                        <p>
+                          This indicates how you created your account. If it
+                          says Google, you log in with your Google account.
+                          Otherwise, you use your email and password.
+                        </p>
+                      </TooltipContent>
+                      <div className='flex items-center gap-2'>
+                        <p className='text-base text-muted-foreground capitalize'>
+                          {user?.data.isOauth
+                            ? `${user?.data.provider} Account`
+                            : "Email & Password"}
+                        </p>
+                        <Badge
+                          variant='secondary'
+                          className='text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-100'>
+                          {user?.data.isOauth ? "OAuth" : "Local"}
+                        </Badge>
+                      </div>
+                      <p className='text-xs text-muted-foreground mt-1'>
+                        {user?.data.isOauth
+                          ? `You signed up using your ${user?.data.provider} account.`
+                          : "You signed up with your email and password."}
+                      </p>
+                      <TooltipTrigger asChild>
+                        <Info className='h-4 w-4 text-muted-foreground cursor-pointer' />
+                      </TooltipTrigger>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
 
@@ -160,7 +221,12 @@ export function CustomerProfile() {
                     Member Since
                   </p>
                   <p className='text-base text-muted-foreground'>
-                    {userData.joinDate}
+                    {user?.data.createdAt
+                      ? new Date(user.data.createdAt).toLocaleDateString(
+                          undefined,
+                          { year: "numeric", month: "long", day: "numeric" }
+                        )
+                      : "Not available"}
                   </p>
                 </div>
               </div>
