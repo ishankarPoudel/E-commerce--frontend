@@ -1,4 +1,5 @@
 import { getUserByIdOptions } from "@/api/@tanstack/react-query.gen";
+import { EditDialog } from "@/ui/molecules/dialogs/EditDialog";
 import { Badge } from "@/ui/shadcn/badge";
 import { Button } from "@/ui/shadcn/button";
 import { Card, CardContent } from "@/ui/shadcn/card";
@@ -10,8 +11,10 @@ import {
 } from "@/ui/shadcn/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { User, Mail, Calendar, Edit, Info } from "lucide-react";
+import { useState } from "react";
 
 export function CustomerProfile() {
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const { data: user, isPending: isUserLoading } = useQuery({
     ...getUserByIdOptions(),
   });
@@ -20,23 +23,25 @@ export function CustomerProfile() {
   }
   return (
     <div className='min-h-screen bg-gray-50/50'>
-      <div className='bg-white border-b border-gray-200'>
-        <div className='max-w-6xl mx-auto px-6 py-4'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-4'>
-              <div className='h-6 w-px bg-gray-300' />
-              <div>
-                <h1 className='text-2xl font-bold text-foreground'>Profile</h1>
-                <p className='text-sm text-muted-foreground'>
-                  Manage your personal information and settings
-                </p>
+      <div className='sticky top-0 z-20 bg-white border-b border-gray-200'>
+        <div className='bg-white border-b border-gray-200'>
+          <div className='max-w-6xl mx-auto px-6 py-4'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-4'>
+                <div className='h-6 w-px bg-gray-300' />
+                <div className='heading'>
+                  <h1 className='text-2xl font-bold bg-transparent'>Profile</h1>
+                  <p className='text-sm text-muted-foreground'>
+                    Manage your personal information and settings
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className='max-w-4xl mx-auto px-6 py-8 space-y-8'>
+      <div className='max-w-4xl mx-auto px-6 py-3 space-y-8'>
         {/* Profile Header Card */}
         <Card className='shadow-sm border-0 bg-white'>
           <CardContent className='p-8'>
@@ -68,6 +73,7 @@ export function CustomerProfile() {
               <div className='flex items-center gap-3'>
                 <Button
                   disabled={user?.data.isOauth}
+                  onClick={() => setOpenEditDialog(true)}
                   className='gap-2 hover:bg-green-700 text-white border-0'>
                   <Edit className='h-4 w-4' />
                   Edit Profile
@@ -234,6 +240,12 @@ export function CustomerProfile() {
           </CardContent>
         </Card>
       </div>
+      {/* Edit Dialog Component */}
+      <EditDialog
+        open={openEditDialog}
+        setOpen={setOpenEditDialog}
+        userInfo={user?.data}
+      />
     </div>
   );
 }

@@ -177,6 +177,28 @@ export type GetUserByIdResponses = {
 
 export type GetUserByIdResponse = GetUserByIdResponses[keyof GetUserByIdResponses];
 
+export type UpdateUserByIdData = {
+    body: unknown;
+    path?: never;
+    query?: never;
+    url: '/user/update-me';
+};
+
+export type UpdateUserByIdResponses = {
+    /**
+     * User updated successfully
+     */
+    200: {
+        data: {
+            fullName: string;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type UpdateUserByIdResponse = UpdateUserByIdResponses[keyof UpdateUserByIdResponses];
+
 export type GetOrderByIdData = {
     body: {
         orderId?: string;
