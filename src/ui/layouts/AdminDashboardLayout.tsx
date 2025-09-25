@@ -6,8 +6,6 @@ const AdminDashboardLayout = ({ children }: { children: any }) => {
   return (
     <div>
       <SidebarProvider>
-        {/* <AppSidebar /> */}
-
         <Sidebar>
           <SidebarContent />
           <SideBarMenu navLinks={adminNavLinks} />

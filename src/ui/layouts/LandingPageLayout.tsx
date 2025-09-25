@@ -1,15 +1,19 @@
 import { AppSidebar } from "@/components/App-sidebar";
 import { SidebarProvider, SidebarTrigger } from "../shadcn/sidebar";
 
-const LandingPageLayout = ({ children }: { children: any }) => {
+const LandingPageLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className='pl-3'>
-      <SidebarProvider>
+    <SidebarProvider>
+      <div className='flex min-h-screen'>
         <AppSidebar />
-        <SidebarTrigger />
-        {children}
-      </SidebarProvider>
-    </div>
+        <div className='flex flex-1 flex-col'>
+          <header className='flex items-center gap-2 border-b p-2'>
+            <SidebarTrigger />
+          </header>
+          <main className='flex-1'>{children}</main>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };
 

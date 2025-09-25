@@ -29,7 +29,7 @@ window.fetch = async (input, init) => {
     ).includes("/refresh-token");
 
     if (!isRefreshEndpoint) {
-      console.log("⚠️ 401 DETECTED! Refreshing token...");
+      console.log(" 401 DETECTED! Refreshing token...");
 
       // Call the refresh endpoint directly
       try {
@@ -46,7 +46,7 @@ window.fetch = async (input, init) => {
 
         return await originalFetch(retryRequest, retryInit);
       } catch (e) {
-        console.error("❌ Failed to refresh token:", e);
+        console.error("Failed to refresh token:", e);
       }
     }
   }
