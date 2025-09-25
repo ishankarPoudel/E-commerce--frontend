@@ -14,10 +14,13 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/ui/shadcn/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/shadcn/avatar";
+import { Avatar, AvatarFallback } from "@/ui/shadcn/avatar";
 import { Button } from "@/ui/shadcn/button";
 import { useQuery } from "@tanstack/react-query";
 import { getUserByIdOptions } from "@/api/@tanstack/react-query.gen";
+import { useState } from "react";
+
+import LogoutDialog from "@/ui/molecules/dialogs/LogoutDialog";
 
 interface MenuItem {
   title: string;
@@ -30,10 +33,11 @@ export function SideBarMenu({ navLinks }: { navLinks: MenuItem[] }) {
   const { data: loggedInUser, isPending: isUserLoading } = useQuery({
     ...getUserByIdOptions(),
   });
+  const [open, setOpen] = useState(false);
 
   const user = {
-    name: loggedInUser?.data?.fullName || "Alex Johnsonn",
-    email: loggedInUser?.data?.email || "alex@example.com",
+    name: loggedInUser?.data?.fullName || "loading...",
+    email: loggedInUser?.data?.email || "loading...",
   };
 
   return (
@@ -95,12 +99,14 @@ export function SideBarMenu({ navLinks }: { navLinks: MenuItem[] }) {
             </span>
           </div>
           <Button
+            onClick={() => setOpen(true)}
             variant='ghost'
             size='icon'
             className='h-8 w-8 text-muted-foreground hover:text-black'>
             <LogOut className='h-4 w-4' />
             <span className='sr-only'>Log out</span>
           </Button>
+          <LogoutDialog open={open} setOpen={setOpen} />
         </div>
       </SidebarFooter>
 
