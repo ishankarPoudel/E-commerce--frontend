@@ -634,6 +634,25 @@ export type LoginUserResponses = {
 
 export type LoginUserResponse = LoginUserResponses[keyof LoginUserResponses];
 
+export type LogoutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/logout';
+};
+
+export type LogoutResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        message: string;
+        success: boolean;
+    };
+};
+
+export type LogoutResponse = LogoutResponses[keyof LogoutResponses];
+
 export type ResetPasswordData = {
     body: {
         email: string;

@@ -1,3 +1,4 @@
+import { logoutMutation } from "@/api/@tanstack/react-query.gen";
 import {
   AlertDialogHeader,
   AlertDialogFooter,
@@ -10,6 +11,9 @@ import {
   AlertDialogAction,
 } from "@/ui/shadcn/alert-dialog";
 
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+
 const LogoutDialog = ({
   open,
   setOpen,
@@ -17,6 +21,25 @@ const LogoutDialog = ({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) => {
+  const { mutate: logout, isPending: isLoggingOut } = useMutation({
+    ...logoutMutation(),
+  });
+  const handleLogoutClick = () => {
+    logout(
+      {},
+      {
+        onSuccess: (response) => {
+          localStorage.removeItem("email");
+          window.location.href = "/auth/login";
+          toast.success(response.message || "Logged out successfully");
+        },
+        onError: () => {
+          toast.error("Logout failed");
+        },
+      }
+    );
+  };
+
   return (
     <>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -31,7 +54,10 @@ const LogoutDialog = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>Logout</AlertDialogAction>
+
+            <AlertDialogAction onClick={handleLogoutClick}>
+              {isLoggingOut ? "Logging out..." : "Logout"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
