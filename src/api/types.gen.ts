@@ -221,6 +221,26 @@ export type GetOrderByIdResponses = {
 
 export type GetOrderByIdResponse = GetOrderByIdResponses[keyof GetOrderByIdResponses];
 
+export type GetAllOrdersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/order/get-all-orders';
+};
+
+export type GetAllOrdersResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: Array<OrderEntity>;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetAllOrdersResponse = GetAllOrdersResponses[keyof GetAllOrdersResponses];
+
 export type UploadMediaData = {
     body: {
         bagId: string;
