@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as ProfileIndexImport } from './routes/profile/index'
+import { Route as OrdersIndexImport } from './routes/orders/index'
 import { Route as CheckoutIndexImport } from './routes/checkout/index'
 import { Route as CartIndexImport } from './routes/cart/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
@@ -39,6 +40,12 @@ const IndexRoute = IndexImport.update({
 const ProfileIndexRoute = ProfileIndexImport.update({
   id: '/profile/',
   path: '/profile/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const OrdersIndexRoute = OrdersIndexImport.update({
+  id: '/orders/',
+  path: '/orders/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -166,6 +173,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutIndexImport
       parentRoute: typeof rootRoute
     }
+    '/orders/': {
+      id: '/orders/'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/profile/': {
       id: '/profile/'
       path: '/profile'
@@ -254,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/cart': typeof CartIndexRoute
   '/checkout': typeof CheckoutIndexRoute
+  '/orders': typeof OrdersIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
@@ -273,6 +288,7 @@ export interface FileRoutesByTo {
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/cart': typeof CartIndexRoute
   '/checkout': typeof CheckoutIndexRoute
+  '/orders': typeof OrdersIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
@@ -293,6 +309,7 @@ export interface FileRoutesById {
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
   '/cart/': typeof CartIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
+  '/orders/': typeof OrdersIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
@@ -314,6 +331,7 @@ export interface FileRouteTypes {
     | '/admin-dashboard'
     | '/cart'
     | '/checkout'
+    | '/orders'
     | '/profile'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
@@ -332,6 +350,7 @@ export interface FileRouteTypes {
     | '/admin-dashboard'
     | '/cart'
     | '/checkout'
+    | '/orders'
     | '/profile'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
@@ -350,6 +369,7 @@ export interface FileRouteTypes {
     | '/admin-dashboard/'
     | '/cart/'
     | '/checkout/'
+    | '/orders/'
     | '/profile/'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
@@ -370,6 +390,7 @@ export interface RootRouteChildren {
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
   CartIndexRoute: typeof CartIndexRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
   AdminDashboardBagsIdRoute: typeof AdminDashboardBagsIdRoute
   AdminDashboardBagsAddBagRoute: typeof AdminDashboardBagsAddBagRoute
@@ -389,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
   CartIndexRoute: CartIndexRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
   AdminDashboardBagsIdRoute: AdminDashboardBagsIdRoute,
   AdminDashboardBagsAddBagRoute: AdminDashboardBagsAddBagRoute,
@@ -417,6 +439,7 @@ export const routeTree = rootRoute
         "/admin-dashboard/",
         "/cart/",
         "/checkout/",
+        "/orders/",
         "/profile/",
         "/admin-dashboard/bags/$id",
         "/admin-dashboard/bags/addBag",
@@ -444,6 +467,9 @@ export const routeTree = rootRoute
     },
     "/checkout/": {
       "filePath": "checkout/index.tsx"
+    },
+    "/orders/": {
+      "filePath": "orders/index.tsx"
     },
     "/profile/": {
       "filePath": "profile/index.tsx"

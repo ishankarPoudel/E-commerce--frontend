@@ -6,8 +6,8 @@ import {
   Settings,
   ShoppingCart,
   ShoppingBag,
-  Heart,
   User,
+  Luggage,
 } from "lucide-react";
 
 export const adminNavLinks = [
@@ -55,9 +55,9 @@ export const customerNavLinks = [
     icon: ShoppingBag,
   },
   {
-    title: "Wishlist",
-    url: "/wishlist",
-    icon: Heart,
+    title: "My Orders",
+    url: "/orders",
+    icon: Luggage,
   },
   {
     title: "Profile",
