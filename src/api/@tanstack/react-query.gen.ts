@@ -146,9 +146,9 @@ export const uploadMediaMutation = (options?: Partial<Options<UploadMediaData>>)
     return mutationOptions;
 };
 
-export const createPaymentIntentQueryKey = (options?: Options<CreatePaymentIntentData>) => createQueryKey('createPaymentIntent', options);
+export const createPaymentIntentQueryKey = (options: Options<CreatePaymentIntentData>) => createQueryKey('createPaymentIntent', options);
 
-export const createPaymentIntentOptions = (options?: Options<CreatePaymentIntentData>) => {
+export const createPaymentIntentOptions = (options: Options<CreatePaymentIntentData>) => {
     return queryOptions({
         queryFn: async ({ queryKey, signal }) => {
             const { data } = await createPaymentIntent({

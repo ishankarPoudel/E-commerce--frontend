@@ -87,11 +87,24 @@ export type OrderEntity = {
     deletedAt: string | null;
     user: UserEntity;
     status: 'pending' | 'paid' | 'failed' | 'refunded';
+    deliveryMethod: 'delivery' | 'pickup';
     currency: string;
     amount: number;
+    items?: Array<OrderItemEntity>;
     stripePaymentIntentId?: string;
     stripeChargeId?: string;
     itemsSnapShot?: unknown;
+};
+
+export type OrderItemEntity = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    order: OrderEntity;
+    bag: BagEntity;
+    quantity: number;
+    unitPrice: number;
 };
 
 export type CreateCategoryValidator = {
@@ -233,7 +246,34 @@ export type GetAllOrdersResponses = {
      * Ok
      */
     200: {
-        data: Array<OrderEntity>;
+        data: {
+            orders: Array<{
+                deletedAt: string;
+                updatedAt: string;
+                createdAt: string;
+                id: string;
+                itemsSnapShot?: unknown;
+                amount: number;
+                currency: string;
+                deliveryMethod: 'delivery' | 'pickup';
+                status: 'pending' | 'paid' | 'failed' | 'refunded';
+                user: UserEntity;
+                items: Array<{
+                    bag: {
+                        images: Array<{
+                            url: string;
+                            id: string;
+                        }>;
+                        price: number;
+                        name: string;
+                        id: string;
+                    };
+                    unitPrice: number;
+                    quantity: number;
+                    id: string;
+                }>;
+            }>;
+        };
         message: string;
         success: boolean;
     };
@@ -269,7 +309,9 @@ export type UploadMediaResponses = {
 export type UploadMediaResponse = UploadMediaResponses[keyof UploadMediaResponses];
 
 export type CreatePaymentIntentData = {
-    body?: never;
+    body: {
+        deliveryMethod?: 'delivery' | 'pickup';
+    };
     path?: never;
     query?: never;
     url: '/checkout/create-payment-intent';
@@ -281,6 +323,13 @@ export type CreatePaymentIntentResponses = {
      */
     200: {
         data: {
+            clientSecret?: unknown;
+            message: string;
+            deliveryMethod: 'delivery' | 'pickup';
+            orderId: string;
+        } | {
+            message?: unknown;
+            deliveryMethod: 'delivery' | 'pickup';
             clientSecret: string;
             orderId: string;
         };

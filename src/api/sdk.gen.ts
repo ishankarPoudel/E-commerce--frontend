@@ -66,10 +66,14 @@ export const uploadMedia = <ThrowOnError extends boolean = false>(options: Optio
     });
 };
 
-export const createPaymentIntent = <ThrowOnError extends boolean = false>(options?: Options<CreatePaymentIntentData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CreatePaymentIntentResponse, unknown, ThrowOnError>({
+export const createPaymentIntent = <ThrowOnError extends boolean = false>(options: Options<CreatePaymentIntentData, ThrowOnError>) => {
+    return (options.client ?? _heyApiClient).post<CreatePaymentIntentResponse, unknown, ThrowOnError>({
         url: '/checkout/create-payment-intent',
-        ...options
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options?.headers
+        }
     });
 };
 
