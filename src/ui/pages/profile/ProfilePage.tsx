@@ -9,8 +9,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/ui/shadcn/tooltip";
+
 import { useQuery } from "@tanstack/react-query";
-import { User, Mail, Calendar, Edit, Info } from "lucide-react";
+import { User, Mail, Calendar, Edit, Info, Home } from "lucide-react";
 import { useState } from "react";
 
 export function CustomerProfile() {
@@ -21,6 +22,7 @@ export function CustomerProfile() {
   if (isUserLoading) {
     return <div>Loading...</div>;
   }
+
   return (
     <div className='min-h-screen bg-gray-50/50'>
       <div className='sticky top-0 z-20 bg-white border-b border-gray-200'>
@@ -159,6 +161,8 @@ export function CustomerProfile() {
                   </div>
                 </div>
               </div>
+
+              {/* Delivery address */}
 
               {/* Login Method */}
               <div className='flex items-start gap-4 p-4 rounded-lg bg-gray-50/50 hover:bg-gray-50 transition-colors'>
