@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/App-sidebar";
 import { SidebarProvider, SidebarTrigger } from "../shadcn/sidebar";
+import Header from "../organisms/header/header";
 
 const LandingPageLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -7,8 +8,9 @@ const LandingPageLayout = ({ children }: { children: React.ReactNode }) => {
       <div className='flex min-h-screen'>
         <AppSidebar />
         <div className='flex flex-1 flex-col'>
-          <header className='flex items-center gap-2 border-b p-2'>
+          <header className='flex items-center gap-2 p-2'>
             <SidebarTrigger />
+            <Header />
           </header>
           <main className='flex-1'>{children}</main>
         </div>

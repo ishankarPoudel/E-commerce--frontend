@@ -1,3 +1,4 @@
+import Header from "@/ui/organisms/header/header";
 import CategoryBasedBags from "@/ui/organisms/products/CategoryBasedBags";
 import { OnsaleBags } from "@/ui/organisms/products/OnSaleBags";
 
