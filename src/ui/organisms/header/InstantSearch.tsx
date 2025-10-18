@@ -3,71 +3,33 @@ import { Search, TrendingUp, Clock } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Card } from "@/ui/shadcn/card";
 import { Badge } from "@/ui/shadcn/badge";
+import { useQuery } from "@tanstack/react-query";
+import { searchBagsOptions } from "@/api/@tanstack/react-query.gen";
+import { getImageUrl } from "@/utils/urlHelpers";
 
 interface SearchResult {
-  id: number;
+  id: string | number;
   name: string;
   category: string;
   price: number;
   image: string;
 }
 
-interface Suggestion {
-  text: string;
-  type: "trending" | "recent";
-}
-
-const mockSuggestions: Suggestion[] = [
-  { text: "Leather Tote Bags", type: "trending" },
-  { text: "Crossbody Bags", type: "trending" },
-  { text: "Designer Handbags", type: "trending" },
-  { text: "Travel Backpacks", type: "recent" },
-  { text: "Laptop Bags", type: "recent" },
-];
-
-const mockResults: SearchResult[] = [
-  {
-    id: 1,
-    name: "Classic Leather Tote",
-    category: "Tote Bags",
-    price: 129.99,
-    image: "/leather-tote-bag.png",
-  },
-  {
-    id: 2,
-    name: "Minimalist Crossbody",
-    category: "Crossbody Bags",
-    price: 89.99,
-    image: "/stylish-crossbody-bag.png",
-  },
-  {
-    id: 3,
-    name: "Designer Shoulder Bag",
-    category: "Shoulder Bags",
-    price: 249.99,
-    image: "/designer-shoulder-bag.jpg",
-  },
-  {
-    id: 4,
-    name: "Travel Backpack Pro",
-    category: "Backpacks",
-    price: 159.99,
-    image: "/travel-backpack.png",
-  },
-  {
-    id: 5,
-    name: "Professional Laptop Bag",
-    category: "Laptop Bags",
-    price: 99.99,
-    image: "/laptop-bag.jpg",
-  },
-];
-
 export function InstantSearch() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const { data, isLoading, isError } = useQuery({
+    ...searchBagsOptions({
+      query: {
+        query: (searchQuery as string) || "",
+      },
+    }),
+    enabled: Boolean(searchQuery.trim()),
+  });
+  console.log("Search data:", data);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -84,17 +46,38 @@ export function InstantSearch() {
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
-      const results = mockResults.filter(
-        (item) =>
-          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredResults(results);
-    } else {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) {
       setFilteredResults([]);
+      return;
     }
-  }, [searchQuery]);
+
+    const items: any[] = Array.isArray(data?.data) ? data!.data : [];
+
+    const filtered = items.filter((item: any) => {
+      const nameMatch = item?.name?.toLowerCase()?.includes(q);
+      const categoryMatch =
+        Array.isArray(item?.categories) &&
+        item.categories.some((cat: any) =>
+          cat?.categoryName?.toLowerCase()?.includes(q)
+        );
+      return Boolean(nameMatch || categoryMatch);
+    });
+
+    const normalized: SearchResult[] = filtered.map((item: any) => ({
+      id: item?.id,
+      name: String(item?.name ?? ""),
+      category: Array.isArray(item?.categories)
+        ? String(item.categories[0]?.categoryName ?? "")
+        : "",
+      price: Number(item?.price ?? 0),
+      image: Array.isArray(item?.bagImages)
+        ? String(item.bagImages[0]?.image ?? "")
+        : "",
+    }));
+
+    setFilteredResults(normalized);
+  }, [searchQuery, data]);
 
   const handleFocus = () => {
     setIsOpen(true);
@@ -106,88 +89,92 @@ export function InstantSearch() {
   };
 
   return (
-    <div ref={searchRef} className='relative max-w-2xl'>
+    <div ref={searchRef} className='relative max-w-2xl w-full'>
       <div className='relative'>
         <Search className='absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground' />
         <Input
           type='text'
           placeholder='Search for bags...'
           value={searchQuery}
-          onChange={(e: any) => setSearchQuery(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setSearchQuery(e.target.value)
+          }
           onFocus={handleFocus}
-          className='pl-12 w-full pr-4 h-14 text-base rounded-full border-2 focus-visible:ring-2 focus-visible:ring-primary'
+          className='pl-12 pr-4 w-full h-14 text-base rounded-full border border-input bg-background shadow-sm transition-all focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1'
         />
       </div>
 
       {isOpen && (
-        <Card className='absolute top-full mt-2 w-full max-h-[500px] overflow-hidden shadow-2xl z-50 border-2'>
-          <div className='overflow-y-auto max-h-[500px]'>
+        <Card className='absolute top-full mt-3 w-full max-h-[500px] overflow-hidden rounded-2xl shadow-2xl z-50 border border-border backdrop-blur-md bg-background/90 transition-all duration-200'>
+          <div className='overflow-y-auto max-h-[500px] p-3 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent'>
             {!searchQuery.trim() ? (
-              <div className='p-4'>
-                <div className='mb-4'>
-                  <h3 className='text-sm font-semibold mb-3 flex items-center gap-2'>
-                    <TrendingUp className='h-4 w-4' />
+              <div className='space-y-6'>
+                {/* Trending */}
+                <div>
+                  <h3 className='text-sm font-semibold mb-3 flex items-center gap-2 text-foreground/80'>
+                    <TrendingUp className='h-4 w-4 text-primary' />
                     Trending Searches
                   </h3>
-                  <div className='space-y-2'>
-                    {mockSuggestions
-                      .filter((s) => s.type === "trending")
-                      .map((suggestion, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSuggestionClick(suggestion.text)}
-                          className='w-full text-left px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm'>
-                          {suggestion.text}
-                        </button>
-                      ))}
+                  <div className='flex flex-wrap gap-2'>
+                    {data?.data.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion.name)}
+                        className='px-4 py-2 text-sm rounded-full bg-accent/60 hover:bg-accent text-foreground transition-all shadow-sm'>
+                        {suggestion.name}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
+                {/* Recent */}
                 <div>
-                  <h3 className='text-sm font-semibold mb-3 flex items-center gap-2'>
-                    <Clock className='h-4 w-4' />
+                  <h3 className='text-sm font-semibold mb-3 flex items-center gap-2 text-foreground/80'>
+                    <Clock className='h-4 w-4 text-primary' />
                     Recent Searches
                   </h3>
-                  <div className='space-y-2'>
-                    {mockSuggestions
-                      .filter((s) => s.type === "recent")
-                      .map((suggestion, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSuggestionClick(suggestion.text)}
-                          className='w-full text-left px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm text-muted-foreground'>
-                          {suggestion.text}
-                        </button>
-                      ))}
+                  <div className='flex flex-wrap gap-2'>
+                    {data?.data.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion.name)}
+                        className='px-4 py-2 text-sm rounded-full bg-muted hover:bg-accent text-muted-foreground transition-all shadow-sm'>
+                        {suggestion.name}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className='p-4'>
+              <div>
                 {filteredResults.length > 0 ? (
                   <>
-                    <p className='text-sm text-muted-foreground mb-4'>
+                    <p className='text-sm text-muted-foreground mb-4 px-1'>
                       {filteredResults.length} result
                       {filteredResults.length !== 1 ? "s" : ""} found
                     </p>
-                    <div className='space-y-3'>
+                    <div className='space-y-2'>
                       {filteredResults.map((result) => (
                         <button
-                          key={result.id}
-                          className='w-full flex items-center gap-4 p-3 rounded-lg hover:bg-accent transition-colors text-left'>
+                          key={String(result.id)}
+                          className='w-full flex items-center gap-4 p-3 rounded-xl hover:bg-accent/70 transition-all text-left border border-transparent hover:border-border'>
                           <img
-                            src={result.image || "/placeholder.svg"}
+                            src={
+                              result.image
+                                ? getImageUrl(result.image)
+                                : "/placeholder.svg"
+                            }
                             alt={result.name}
-                            className='w-20 h-20 object-cover rounded-md bg-muted'
+                            className='w-20 h-20 object-cover rounded-lg bg-muted shadow-sm'
                           />
                           <div className='flex-1 min-w-0'>
-                            <h4 className='font-medium text-base mb-1 truncate'>
+                            <h4 className='font-medium text-base mb-1 truncate text-foreground'>
                               {result.name}
                             </h4>
                             <Badge variant='secondary' className='mb-2'>
                               {result.category}
                             </Badge>
-                            <p className='text-lg font-semibold'>
+                            <p className='text-lg font-semibold text-primary'>
                               ${result.price}
                             </p>
                           </div>
@@ -196,9 +183,10 @@ export function InstantSearch() {
                     </div>
                   </>
                 ) : (
-                  <div className='text-center py-8'>
-                    <p className='text-muted-foreground'>
-                      No results found for "{searchQuery}"
+                  <div className='text-center py-10'>
+                    <p className='text-muted-foreground text-base'>
+                      No results found for{" "}
+                      <span className='font-medium'>{searchQuery}</span>
                     </p>
                     <p className='text-sm text-muted-foreground mt-2'>
                       Try different keywords
