@@ -6,6 +6,7 @@ import { Badge } from "@/ui/shadcn/badge";
 import { useQuery } from "@tanstack/react-query";
 import { searchBagsOptions } from "@/api/@tanstack/react-query.gen";
 import { getImageUrl } from "@/utils/urlHelpers";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 interface SearchResult {
   id: string | number;
@@ -17,6 +18,7 @@ interface SearchResult {
 
 export function InstantSearch() {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebouncedValue(searchQuery, 500);
   const [isOpen, setIsOpen] = useState(false);
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -24,10 +26,10 @@ export function InstantSearch() {
   const { data, isLoading, isError } = useQuery({
     ...searchBagsOptions({
       query: {
-        query: (searchQuery as string) || "",
+        query: (debouncedSearch as string) || "",
       },
     }),
-    enabled: Boolean(searchQuery.trim()),
+    enabled: Boolean(debouncedSearch.trim()),
   });
   console.log("Search data:", data);
 
@@ -103,6 +105,17 @@ export function InstantSearch() {
           className='pl-12 pr-4 w-full h-14 text-base rounded-full border border-input bg-background shadow-sm transition-all focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1'
         />
       </div>
+
+      {isLoading && (
+        <div className='absolute top-full mt-3 w-full rounded-2xl shadow-2xl z-50 border border-border backdrop-blur-md bg-background/90 p-4 text-center text-sm text-muted-foreground'>
+          Loading...
+        </div>
+      )}
+      {isError && (
+        <div className='absolute top-full mt-3 w-full rounded-2xl shadow-2xl z-50 border border-border backdrop-blur-md bg-background/90 p-4 text-center text-sm text-red-500'>
+          Error fetching search results.
+        </div>
+      )}
 
       {isOpen && (
         <Card className='absolute top-full mt-3 w-full max-h-[500px] overflow-hidden rounded-2xl shadow-2xl z-50 border border-border backdrop-blur-md bg-background/90 transition-all duration-200'>
