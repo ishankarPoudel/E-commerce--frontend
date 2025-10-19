@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Sparkles, TrendingUp } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Card } from "@/ui/shadcn/card";
 import { Badge } from "@/ui/shadcn/badge";
@@ -10,6 +10,7 @@ import {
 } from "@/api/@tanstack/react-query.gen";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { Link } from "@tanstack/react-router";
 
 interface SearchResult {
   id: string | number;
@@ -157,6 +158,18 @@ export function InstantSearch() {
                   </h3>
                 </div>
                 <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+                  {isCategoriesLoading && (
+                    <div className='flex items-center justify-center col-span-4'>
+                      <div className='h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent' />
+                    </div>
+                  )}
+                  {isCategoriesError && (
+                    <div className='flex items-center justify-center col-span-4'>
+                      <p className='text-sm font-medium text-destructive'>
+                        Error fetching categories. Please try again.
+                      </p>
+                    </div>
+                  )}
                   {categoryNames.map((category: any, index: number) => (
                     <button
                       key={index}
@@ -176,7 +189,11 @@ export function InstantSearch() {
                         />
                       </div>
                       <span className='text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors'>
-                        {categoryNames[index]}
+                        <Link
+                          to='/search'
+                          search={{ category: categoryNames[index] }}>
+                          {categoryNames[index]}
+                        </Link>
                       </span>
                     </button>
                   ))}
@@ -187,51 +204,53 @@ export function InstantSearch() {
               <div className='space-y-5'>
                 {filteredResults.length > 0 ? (
                   <>
-                    <div className='flex items-center justify-between'>
-                      <p className='text-xs font-medium text-muted-foreground'>
-                        {filteredResults.length} result
-                        {filteredResults.length !== 1 ? "s" : ""} found
-                      </p>
-                      <Badge
-                        variant='secondary'
-                        className='font-semibold text-xs'>
-                        {searchQuery}
-                      </Badge>
-                    </div>
+                    <Link to='/search' search={{ q: searchQuery }}>
+                      <div className='flex items-center justify-between'>
+                        <p className='text-xs font-medium text-muted-foreground'>
+                          {filteredResults.length} result
+                          {filteredResults.length !== 1 ? "s" : ""} found
+                        </p>
+                        <Badge
+                          variant='secondary'
+                          className='font-semibold text-xs'>
+                          {searchQuery}
+                        </Badge>
+                      </div>
 
-                    <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
-                      {filteredResults.map((result) => (
-                        <button
-                          key={String(result.id)}
-                          className='group flex flex-col gap-2 p-3 rounded-xl hover:bg-accent/50 transition-all duration-200 text-left border-2 border-transparent hover:border-primary/30 hover:shadow-lg active:scale-[0.98]'>
-                          <div className='relative w-full aspect-square overflow-hidden rounded-lg bg-muted'>
-                            <div className='absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity' />
-                            <img
-                              src={
-                                result.image
-                                  ? getImageUrl(result.image)
-                                  : "/placeholder.svg?height=150&width=150"
-                              }
-                              alt={result.name}
-                              className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-110'
-                            />
-                          </div>
-                          <div className='space-y-1'>
-                            <h4 className='font-semibold text-xs text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors'>
-                              {result.name}
-                            </h4>
-                            <Badge
-                              variant='outline'
-                              className='text-[10px] font-medium'>
-                              {result.category}
-                            </Badge>
-                            <p className='text-sm font-bold text-primary'>
-                              ${result.price.toFixed(2)}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                      <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+                        {filteredResults.map((result) => (
+                          <button
+                            key={String(result.id)}
+                            className='group flex flex-col gap-2 p-3 rounded-xl hover:bg-accent/50 transition-all duration-200 text-left border-2 border-transparent hover:border-primary/30 hover:shadow-lg active:scale-[0.98]'>
+                            <div className='relative w-full aspect-square overflow-hidden rounded-lg bg-muted'>
+                              <div className='absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity' />
+                              <img
+                                src={
+                                  result.image
+                                    ? getImageUrl(result.image)
+                                    : "/placeholder.svg?height=150&width=150"
+                                }
+                                alt={result.name}
+                                className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-110'
+                              />
+                            </div>
+                            <div className='space-y-1'>
+                              <h4 className='font-semibold text-xs text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors'>
+                                {result.name}
+                              </h4>
+                              <Badge
+                                variant='outline'
+                                className='text-[10px] font-medium'>
+                                {result.category}
+                              </Badge>
+                              <p className='text-sm font-bold text-primary'>
+                                ${result.price.toFixed(2)}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </Link>
                   </>
                 ) : (
                   <div className='text-center py-16 space-y-3'>

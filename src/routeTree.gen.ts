@@ -12,11 +12,13 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as SearchIndexImport } from './routes/search/index'
 import { Route as ProfileIndexImport } from './routes/profile/index'
 import { Route as OrdersIndexImport } from './routes/orders/index'
 import { Route as CheckoutIndexImport } from './routes/checkout/index'
 import { Route as CartIndexImport } from './routes/cart/index'
 import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
+import { Route as SearchIdImport } from './routes/search/$id'
 import { Route as CheckoutResultImport } from './routes/checkout/result'
 import { Route as AuthResetPasswordIndexImport } from './routes/auth/reset-password/index'
 import { Route as AuthRegisterIndexImport } from './routes/auth/register/index'
@@ -34,6 +36,12 @@ import { Route as AdminDashboardBagsIdImport } from './routes/admin-dashboard/ba
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SearchIndexRoute = SearchIndexImport.update({
+  id: '/search/',
+  path: '/search/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -64,6 +72,12 @@ const CartIndexRoute = CartIndexImport.update({
 const AdminDashboardIndexRoute = AdminDashboardIndexImport.update({
   id: '/admin-dashboard/',
   path: '/admin-dashboard/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SearchIdRoute = SearchIdImport.update({
+  id: '/search/$id',
+  path: '/search/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -152,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutResultImport
       parentRoute: typeof rootRoute
     }
+    '/search/$id': {
+      id: '/search/$id'
+      path: '/search/$id'
+      fullPath: '/search/$id'
+      preLoaderRoute: typeof SearchIdImport
+      parentRoute: typeof rootRoute
+    }
     '/admin-dashboard/': {
       id: '/admin-dashboard/'
       path: '/admin-dashboard'
@@ -185,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/search/': {
+      id: '/search/'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchIndexImport
       parentRoute: typeof rootRoute
     }
     '/admin-dashboard/bags/$id': {
@@ -265,11 +293,13 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkout/result': typeof CheckoutResultRoute
+  '/search/$id': typeof SearchIdRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/cart': typeof CartIndexRoute
   '/checkout': typeof CheckoutIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/search': typeof SearchIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
@@ -285,11 +315,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout/result': typeof CheckoutResultRoute
+  '/search/$id': typeof SearchIdRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/cart': typeof CartIndexRoute
   '/checkout': typeof CheckoutIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/profile': typeof ProfileIndexRoute
+  '/search': typeof SearchIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
@@ -306,11 +338,13 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/checkout/result': typeof CheckoutResultRoute
+  '/search/$id': typeof SearchIdRoute
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
   '/cart/': typeof CartIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/profile/': typeof ProfileIndexRoute
+  '/search/': typeof SearchIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
@@ -328,11 +362,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/checkout/result'
+    | '/search/$id'
     | '/admin-dashboard'
     | '/cart'
     | '/checkout'
     | '/orders'
     | '/profile'
+    | '/search'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
     | '/auth/recover-password/$id'
@@ -347,11 +383,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/checkout/result'
+    | '/search/$id'
     | '/admin-dashboard'
     | '/cart'
     | '/checkout'
     | '/orders'
     | '/profile'
+    | '/search'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
     | '/auth/recover-password/$id'
@@ -366,11 +404,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/checkout/result'
+    | '/search/$id'
     | '/admin-dashboard/'
     | '/cart/'
     | '/checkout/'
     | '/orders/'
     | '/profile/'
+    | '/search/'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
     | '/auth/recover-password/$id'
@@ -387,11 +427,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckoutResultRoute: typeof CheckoutResultRoute
+  SearchIdRoute: typeof SearchIdRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
   CartIndexRoute: typeof CartIndexRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
+  SearchIndexRoute: typeof SearchIndexRoute
   AdminDashboardBagsIdRoute: typeof AdminDashboardBagsIdRoute
   AdminDashboardBagsAddBagRoute: typeof AdminDashboardBagsAddBagRoute
   AuthRecoverPasswordIdRoute: typeof AuthRecoverPasswordIdRoute
@@ -407,11 +449,13 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckoutResultRoute: CheckoutResultRoute,
+  SearchIdRoute: SearchIdRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
   CartIndexRoute: CartIndexRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
+  SearchIndexRoute: SearchIndexRoute,
   AdminDashboardBagsIdRoute: AdminDashboardBagsIdRoute,
   AdminDashboardBagsAddBagRoute: AdminDashboardBagsAddBagRoute,
   AuthRecoverPasswordIdRoute: AuthRecoverPasswordIdRoute,
@@ -436,11 +480,13 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/checkout/result",
+        "/search/$id",
         "/admin-dashboard/",
         "/cart/",
         "/checkout/",
         "/orders/",
         "/profile/",
+        "/search/",
         "/admin-dashboard/bags/$id",
         "/admin-dashboard/bags/addBag",
         "/auth/recover-password/$id",
@@ -459,6 +505,9 @@ export const routeTree = rootRoute
     "/checkout/result": {
       "filePath": "checkout/result.tsx"
     },
+    "/search/$id": {
+      "filePath": "search/$id.tsx"
+    },
     "/admin-dashboard/": {
       "filePath": "admin-dashboard/index.tsx"
     },
@@ -473,6 +522,9 @@ export const routeTree = rootRoute
     },
     "/profile/": {
       "filePath": "profile/index.tsx"
+    },
+    "/search/": {
+      "filePath": "search/index.tsx"
     },
     "/admin-dashboard/bags/$id": {
       "filePath": "admin-dashboard/bags/$id.tsx"
