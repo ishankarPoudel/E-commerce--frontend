@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, TrendingUp, Clock } from "lucide-react";
+import { Search, Sparkles, TrendingUp } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Card } from "@/ui/shadcn/card";
 import { Badge } from "@/ui/shadcn/badge";
 import { useQuery } from "@tanstack/react-query";
-import { searchBagsOptions } from "@/api/@tanstack/react-query.gen";
+import {
+  getCategoriesOptions,
+  searchBagsOptions,
+} from "@/api/@tanstack/react-query.gen";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
@@ -31,8 +34,19 @@ export function InstantSearch() {
     }),
     enabled: Boolean(debouncedSearch.trim()),
   });
-  console.log("Search data:", data);
 
+  const {
+    data: categories,
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
+  } = useQuery({
+    ...getCategoriesOptions(),
+  });
+
+  const categoryNames = Array.isArray(categories?.data)
+    ? (categories.data as any[]).map((cat: any) => cat.categoryName)
+    : [];
+  console.log(categoryNames);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -91,104 +105,128 @@ export function InstantSearch() {
   };
 
   return (
-    <div ref={searchRef} className='relative max-w-2xl w-full'>
-      <div className='relative'>
-        <Search className='absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground' />
+    <div ref={searchRef} className='relative max-w-3xl w-full mx-auto'>
+      {/* Search Input */}
+      <div className='relative group'>
+        <div className='absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500' />
+        <Search className='absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 transition-colors group-focus-within:text-primary' />
         <Input
           type='text'
-          placeholder='Search for bags...'
+          placeholder='Search for products...'
           value={searchQuery}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setSearchQuery(e.target.value)
           }
           onFocus={handleFocus}
-          className='pl-12 pr-4 w-full h-14 text-base rounded-full border border-input bg-background shadow-sm transition-all focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1'
+          className='relative pl-12 pr-6 w-full h-12 text-sm rounded-full border-2 border-border bg-card shadow-lg transition-all duration-300 focus:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:ring-offset-0 hover:shadow-xl'
         />
       </div>
 
+      {/* Loading State */}
       {isLoading && (
-        <div className='absolute top-full mt-3 w-full rounded-2xl shadow-2xl z-50 border border-border backdrop-blur-md bg-background/90 p-4 text-center text-sm text-muted-foreground'>
-          Loading...
-        </div>
+        <Card className='absolute top-full mt-4 w-full rounded-2xl shadow-2xl z-50 border-2 border-border/50 backdrop-blur-xl bg-card/95 p-6'>
+          <div className='flex items-center justify-center gap-3'>
+            <div className='h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent' />
+            <span className='text-sm font-medium text-muted-foreground'>
+              Searching...
+            </span>
+          </div>
+        </Card>
       )}
+
+      {/* Error State */}
       {isError && (
-        <div className='absolute top-full mt-3 w-full rounded-2xl shadow-2xl z-50 border border-border backdrop-blur-md bg-background/90 p-4 text-center text-sm text-red-500'>
-          Error fetching search results.
-        </div>
+        <Card className='absolute top-full mt-4 w-full rounded-2xl shadow-2xl z-50 border-2 border-destructive/50 backdrop-blur-xl bg-card/95 p-6'>
+          <p className='text-center text-sm font-medium text-destructive'>
+            Error fetching search results. Please try again.
+          </p>
+        </Card>
       )}
 
-      {isOpen && (
-        <Card className='absolute top-full mt-3 w-full max-h-[500px] overflow-hidden rounded-2xl shadow-2xl z-50 border border-border backdrop-blur-md bg-background/90 transition-all duration-200'>
-          <div className='overflow-y-auto max-h-[500px] p-3 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent'>
+      {/* Search Results Dropdown */}
+      {isOpen && !isLoading && !isError && (
+        <Card className='absolute top-full mt-4 w-full max-h-[600px] overflow-hidden rounded-2xl shadow-2xl z-50 border-2 border-border/50 backdrop-blur-xl bg-card/95 transition-all duration-300 animate-in fade-in slide-in-from-top-2'>
+          <div className='overflow-y-auto max-h-[600px] p-6 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/40'>
             {!searchQuery.trim() ? (
-              <div className='space-y-6'>
-                {/* Trending */}
-                <div>
-                  <h3 className='text-sm font-semibold mb-3 flex items-center gap-2 text-foreground/80'>
-                    <TrendingUp className='h-4 w-4 text-primary' />
-                    Trending Searches
+              // Popular Searches
+              <div className='space-y-5'>
+                <div className='flex items-center gap-2'>
+                  <Sparkles className='h-4 w-4 text-primary' />
+                  <h3 className='text-base font-bold text-foreground'>
+                    Popular Searches
                   </h3>
-                  <div className='flex flex-wrap gap-2'>
-                    {data?.data.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSuggestionClick(suggestion.name)}
-                        className='px-4 py-2 text-sm rounded-full bg-accent/60 hover:bg-accent text-foreground transition-all shadow-sm'>
-                        {suggestion.name}
-                      </button>
-                    ))}
-                  </div>
                 </div>
-
-                {/* Recent */}
-                <div>
-                  <h3 className='text-sm font-semibold mb-3 flex items-center gap-2 text-foreground/80'>
-                    <Clock className='h-4 w-4 text-primary' />
-                    Recent Searches
-                  </h3>
-                  <div className='flex flex-wrap gap-2'>
-                    {data?.data.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSuggestionClick(suggestion.name)}
-                        className='px-4 py-2 text-sm rounded-full bg-muted hover:bg-accent text-muted-foreground transition-all shadow-sm'>
-                        {suggestion.name}
-                      </button>
-                    ))}
-                  </div>
+                <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+                  {categoryNames.map((category: any, index: number) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestionClick(category)}
+                      className='group flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/60 transition-all duration-200 text-left border border-transparent hover:border-border hover:shadow-md active:scale-[0.98]'>
+                      <div className='relative flex-shrink-0'>
+                        <div className='absolute inset-0 bg-primary/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity' />
+                        <img
+                          src={
+                            Array.isArray(category?.bagImages) &&
+                            category.bagImages[0]?.image
+                              ? getImageUrl(category.bagImages[0]?.image)
+                              : "/placeholder.svg?height=40&width=40"
+                          }
+                          alt={category?.name ?? "Product"}
+                          className='relative w-10 h-10 object-cover rounded-lg bg-background'
+                        />
+                      </div>
+                      <span className='text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors'>
+                        {categoryNames[index]}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
             ) : (
-              <div>
+              // Search Results
+              <div className='space-y-5'>
                 {filteredResults.length > 0 ? (
                   <>
-                    <p className='text-sm text-muted-foreground mb-4 px-1'>
-                      {filteredResults.length} result
-                      {filteredResults.length !== 1 ? "s" : ""} found
-                    </p>
-                    <div className='space-y-2'>
+                    <div className='flex items-center justify-between'>
+                      <p className='text-xs font-medium text-muted-foreground'>
+                        {filteredResults.length} result
+                        {filteredResults.length !== 1 ? "s" : ""} found
+                      </p>
+                      <Badge
+                        variant='secondary'
+                        className='font-semibold text-xs'>
+                        {searchQuery}
+                      </Badge>
+                    </div>
+
+                    <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
                       {filteredResults.map((result) => (
                         <button
                           key={String(result.id)}
-                          className='w-full flex items-center gap-4 p-3 rounded-xl hover:bg-accent/70 transition-all text-left border border-transparent hover:border-border'>
-                          <img
-                            src={
-                              result.image
-                                ? getImageUrl(result.image)
-                                : "/placeholder.svg"
-                            }
-                            alt={result.name}
-                            className='w-20 h-20 object-cover rounded-lg bg-muted shadow-sm'
-                          />
-                          <div className='flex-1 min-w-0'>
-                            <h4 className='font-medium text-base mb-1 truncate text-foreground'>
+                          className='group flex flex-col gap-2 p-3 rounded-xl hover:bg-accent/50 transition-all duration-200 text-left border-2 border-transparent hover:border-primary/30 hover:shadow-lg active:scale-[0.98]'>
+                          <div className='relative w-full aspect-square overflow-hidden rounded-lg bg-muted'>
+                            <div className='absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity' />
+                            <img
+                              src={
+                                result.image
+                                  ? getImageUrl(result.image)
+                                  : "/placeholder.svg?height=150&width=150"
+                              }
+                              alt={result.name}
+                              className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-110'
+                            />
+                          </div>
+                          <div className='space-y-1'>
+                            <h4 className='font-semibold text-xs text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors'>
                               {result.name}
                             </h4>
-                            <Badge variant='secondary' className='mb-2'>
+                            <Badge
+                              variant='outline'
+                              className='text-[10px] font-medium'>
                               {result.category}
                             </Badge>
-                            <p className='text-lg font-semibold text-primary'>
-                              ${result.price}
+                            <p className='text-sm font-bold text-primary'>
+                              ${result.price.toFixed(2)}
                             </p>
                           </div>
                         </button>
@@ -196,14 +234,18 @@ export function InstantSearch() {
                     </div>
                   </>
                 ) : (
-                  <div className='text-center py-10'>
-                    <p className='text-muted-foreground text-base'>
-                      No results found for{" "}
-                      <span className='font-medium'>{searchQuery}</span>
-                    </p>
-                    <p className='text-sm text-muted-foreground mt-2'>
-                      Try different keywords
-                    </p>
+                  <div className='text-center py-16 space-y-3'>
+                    <div className='w-16 h-16 mx-auto rounded-full bg-muted/50 flex items-center justify-center'>
+                      <Search className='h-8 w-8 text-muted-foreground' />
+                    </div>
+                    <div className='space-y-1'>
+                      <p className='text-base font-semibold text-foreground'>
+                        No results found
+                      </p>
+                      <p className='text-sm text-muted-foreground'>
+                        Try searching with different keywords
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
