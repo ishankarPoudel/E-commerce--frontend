@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+body {
+  font-family: Geist Sans, sans-serif, font-sans;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

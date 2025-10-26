@@ -7,6 +7,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <>
+      {/* @ts-ignore */}
       <App />
     </>
   );
