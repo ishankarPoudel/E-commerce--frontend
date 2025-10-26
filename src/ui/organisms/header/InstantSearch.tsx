@@ -44,10 +44,9 @@ export function InstantSearch() {
     ...getCategoriesOptions(),
   });
 
-  const categoryNames = Array.isArray(categories?.data)
-    ? (categories.data as any[]).map((cat: any) => cat.categoryName)
-    : [];
-  console.log(categoryNames);
+  const categoryData = Array.isArray(categories?.data) ? categories.data : [];
+
+  console.log("category data:", categoryData[0]?.categoryName);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -97,11 +96,6 @@ export function InstantSearch() {
   }, [searchQuery, data]);
 
   const handleFocus = () => {
-    setIsOpen(true);
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setSearchQuery(suggestion);
     setIsOpen(true);
   };
 
@@ -157,51 +151,58 @@ export function InstantSearch() {
                     Popular Searches
                   </h3>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {isCategoriesLoading && (
-                    <div className="flex items-center justify-center col-span-4">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    </div>
-                  )}
-                  {isCategoriesError && (
-                    <div className="flex items-center justify-center col-span-4">
-                      <p className="text-sm font-medium text-destructive">
-                        Error fetching categories. Please try again.
-                      </p>
-                    </div>
-                  )}
-                  {categoryNames.map((category: any, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => handleSuggestionClick(category)}
-                      className="group flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/60 transition-all duration-200 text-left border border-transparent hover:border-border hover:shadow-md active:scale-[0.98]"
-                    >
-                      <div className="relative flex-shrink-0">
-                        <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <img
-                          src={
-                            Array.isArray(category?.bagImages) &&
-                            category.bagImages[0]?.image
-                              ? getImageUrl(category.bagImages[0]?.image)
-                              : "/placeholder.svg?height=40&width=40"
-                          }
-                          alt={category?.name ?? "Product"}
-                          className="relative w-10 h-10 object-cover rounded-lg bg-background"
-                        />
+
+                {/* Scrollable grid container */}
+                <div className="max-h-[300px] overflow-y-auto pr-1">
+                  <div className="grid grid-cols-3 gap-3 auto-rows-auto">
+                    {isCategoriesLoading && (
+                      <div className="flex items-center justify-center col-span-3">
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                       </div>
-                      <span className="text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                        <Link
-                          to="/search"
-                          search={{
-                            q: categoryNames[index],
-                            category: categoryNames[index],
-                          }}
-                        >
-                          {categoryNames[index]}
-                        </Link>
-                      </span>
-                    </button>
-                  ))}
+                    )}
+
+                    {isCategoriesError && (
+                      <div className="flex items-center justify-center col-span-3">
+                        <p className="text-sm font-medium text-destructive">
+                          Error fetching categories. Please try again.
+                        </p>
+                      </div>
+                    )}
+
+                    {categoryData.map((category: any, index: number) => (
+                      <Link
+                        key={category.id || index}
+                        to="/search"
+                        search={{
+                          q: "",
+                          category: category.categoryName,
+                          categoryId: String(category.id),
+                        }}
+                        onClick={() => setIsOpen(false)}
+                        className="
+            group flex items-center gap-3 p-3
+            rounded-xl bg-muted/30 hover:bg-muted/60
+            transition-all duration-200 text-left border border-transparent
+            hover:border-border hover:shadow-md active:scale-[0.98]
+          "
+                      >
+                        <div className="relative flex-shrink-0">
+                          <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <img
+                            src={
+                              getImageUrl(category.image) ||
+                              "/placeholder.svg?height=40&width=40"
+                            }
+                            alt={category.categoryName || "Category"}
+                            className="relative w-10 h-10 object-cover rounded-lg bg-background"
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">
+                          {category.categoryName}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -211,7 +212,8 @@ export function InstantSearch() {
                   <>
                     <Link
                       to="/search"
-                      search={{ q: searchQuery, category: "" }}
+                      search={{ q: searchQuery, category: "", categoryId: "" }}
+                      onClick={() => setIsOpen(false)}
                     >
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-medium text-muted-foreground">
