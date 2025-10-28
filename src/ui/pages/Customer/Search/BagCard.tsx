@@ -26,7 +26,7 @@ interface BagCardProps {
   showCategory?: boolean;
   showBrand?: boolean;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
 }
 
 export function BagCard({

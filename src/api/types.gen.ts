@@ -282,6 +282,32 @@ export type GetAllOrdersResponses = {
 
 export type GetAllOrdersResponse = GetAllOrdersResponses[keyof GetAllOrdersResponses];
 
+export type ChatWithAiData = {
+    body: {
+        message: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/openai/chatWithAI';
+};
+
+export type ChatWithAiResponses = {
+    /**
+     * Ok
+     */
+    200: string | {
+        data?: unknown;
+        message: string;
+        success: boolean;
+    } | {
+        data: Array<BagEntity>;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type ChatWithAiResponse = ChatWithAiResponses[keyof ChatWithAiResponses];
+
 export type UploadMediaData = {
     body: {
         bagId: string;
