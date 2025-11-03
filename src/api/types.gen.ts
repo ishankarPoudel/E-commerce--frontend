@@ -282,32 +282,6 @@ export type GetAllOrdersResponses = {
 
 export type GetAllOrdersResponse = GetAllOrdersResponses[keyof GetAllOrdersResponses];
 
-export type ChatWithAiData = {
-    body: {
-        message: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/openai/chatWithAI';
-};
-
-export type ChatWithAiResponses = {
-    /**
-     * Ok
-     */
-    200: string | {
-        data?: unknown;
-        message: string;
-        success: boolean;
-    } | {
-        data: Array<BagEntity>;
-        message: string;
-        success: boolean;
-    };
-};
-
-export type ChatWithAiResponse = ChatWithAiResponses[keyof ChatWithAiResponses];
-
 export type UploadMediaData = {
     body: {
         bagId: string;
@@ -334,6 +308,33 @@ export type UploadMediaResponses = {
 };
 
 export type UploadMediaResponse = UploadMediaResponses[keyof UploadMediaResponses];
+
+export type SearchData = {
+    body: {
+        userMessage: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/gemini/search';
+};
+
+export type SearchErrors = {
+    404: {
+        message: string;
+    };
+    500: {
+        message: string;
+    };
+};
+
+export type SearchError = SearchErrors[keyof SearchErrors];
+
+export type SearchResponses = {
+    /**
+     * Ok
+     */
+    200: unknown;
+};
 
 export type CreatePaymentIntentData = {
     body: {
