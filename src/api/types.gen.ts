@@ -319,9 +319,6 @@ export type SearchData = {
 };
 
 export type SearchErrors = {
-    404: {
-        message: string;
-    };
     500: {
         message: string;
     };

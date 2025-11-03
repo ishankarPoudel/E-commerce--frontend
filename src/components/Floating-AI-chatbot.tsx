@@ -26,7 +26,7 @@ export default function FloatingAIChat() {
                     AI Assistant
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    Powered by advanced reasoning
+                    Powered by Gemini AI
                   </p>
                 </div>
               </div>
