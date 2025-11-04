@@ -5,6 +5,7 @@ import { getImageUrl } from "@/utils/urlHelpers";
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import DetailProduct from "@/ui/organisms/products/DetailProduct";
 
 interface BagProduct {
   id: string;
@@ -26,7 +27,6 @@ interface BagCardProps {
   showCategory?: boolean;
   showBrand?: boolean;
   className?: string;
-  onClick?: (e?: React.MouseEvent) => void;
 }
 
 export function BagCard({
@@ -36,9 +36,9 @@ export function BagCard({
   showCategory = true,
   showBrand = true,
   className,
-  onClick,
 }: BagCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   // Normalize image handling for both data formats
   const getProductImage = () => {
@@ -64,11 +64,11 @@ export function BagCard({
   const getCardStyles = () => {
     switch (variant) {
       case "compact":
-        return "w-52 flex-shrink-0"; // For horizontal scrolling
+        return "w-52 flex-shrink-0";
       case "horizontal":
-        return "w-full"; // For full-width layouts
+        return "w-full";
       default:
-        return "max-w-sm"; // For grid layouts
+        return "max-w-sm";
     }
   };
 
@@ -92,119 +92,145 @@ export function BagCard({
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't open detail if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (
+      target.closest("button") ||
+      target.tagName === "BUTTON" ||
+      target.closest('[role="button"]')
+    ) {
+      return;
+    }
+    setShowDetailDialog(true);
+  };
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
+  };
+
   return (
-    <Card
-      className={cn(
-        "group cursor-pointer overflow-hidden border border-border/50 bg-card hover:border-border transition-all duration-300 hover:shadow-lg",
-        variant === "compact" && "rounded-2xl",
-        getCardStyles(),
-        className
-      )}
-      onClick={onClick}
-    >
-      <CardContent className="p-0">
-        {/* Image Container */}
-        <div
-          className={cn(
-            "relative overflow-hidden bg-muted/30",
-            getImageStyles()
-          )}
-        >
-          <img
-            src={getImageUrl(getProductImage())}
-            alt={getAltText()}
-            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "/placeholder.svg?height=200&width=200";
-            }}
-          />
-
-          {/* Wishlist Button */}
-          {showWishlist && (
-            <button
-              className={cn(
-                "absolute top-3 right-3 h-8 w-8 rounded-full backdrop-blur-sm border border-white/20 transition-all duration-200 flex items-center justify-center",
-                "opacity-0 group-hover:opacity-100",
-                isWishlisted
-                  ? "bg-red-500/90 text-white hover:bg-red-600"
-                  : "bg-white/80 text-gray-600 hover:bg-white"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsWishlisted(!isWishlisted);
+    <>
+      <Card
+        className={cn(
+          "group cursor-pointer overflow-hidden border border-border/50 bg-card hover:border-border transition-all duration-300 hover:shadow-lg",
+          variant === "compact" && "rounded-2xl",
+          getCardStyles(),
+          className
+        )}
+        onClick={handleCardClick}
+      >
+        <CardContent className="p-0">
+          {/* Image Container */}
+          <div
+            className={cn(
+              "relative overflow-hidden bg-muted/30",
+              getImageStyles()
+            )}
+          >
+            <img
+              src={getImageUrl(getProductImage())}
+              alt={getAltText()}
+              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = "/placeholder.svg?height=200&width=200";
               }}
-            >
-              <Heart
-                className={cn("h-4 w-4", isWishlisted && "fill-current")}
-              />
-            </button>
-          )}
+            />
 
-          {/* Stock Overlay */}
-          {product.inStock === false && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-              <Badge variant="secondary" className="bg-white/90 text-black">
-                Out of Stock
-              </Badge>
-            </div>
-          )}
-
-          {/* Add to Cart Button */}
-          <AddToCart bagId={product.id} />
-        </div>
-
-        {/* Product Info */}
-        <div className={getPaddingStyles()}>
-          {/* Brand & Category */}
-          {(showBrand || showCategory) && (
-            <div className="flex items-center justify-between">
-              {showBrand && product.brand && (
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {product.brand}
-                </span>
-              )}
-              {showCategory && product.category && (
-                <Badge variant="outline" className="text-xs">
-                  {product.category}
-                </Badge>
-              )}
-            </div>
-          )}
-
-          {/* Product Name */}
-          <h3 className="font-medium text-sm text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-            {product.name}
-          </h3>
-
-          {/* Price & Stock Status */}
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-baseline gap-1">
-              <span className="text-base font-semibold text-foreground">
-                Rs {Math.floor(product.price)}
-              </span>
-              {product.price % 1 !== 0 && (
-                <span className="text-xs text-muted-foreground">
-                  .{(product.price % 1).toFixed(2).substring(2)}
-                </span>
-              )}
-            </div>
-
-            {/* Stock Indicator */}
-            <div className="flex items-center gap-1.5">
-              <div
+            {/* Wishlist Button */}
+            {showWishlist && (
+              <button
                 className={cn(
-                  "w-2 h-2 rounded-full",
-                  product.inStock !== false ? "bg-green-500" : "bg-red-500"
+                  "absolute top-3 left-3 h-8 w-8 rounded-full backdrop-blur-sm border border-white/20 transition-all duration-200 flex items-center justify-center",
+                  "opacity-0 group-hover:opacity-100",
+                  isWishlisted
+                    ? "bg-red-500/90 text-white hover:bg-red-600"
+                    : "bg-white/80 text-gray-600 hover:bg-white"
                 )}
-              />
-              <span className="text-xs text-muted-foreground">
-                {product.inStock !== false ? "Available" : "Sold Out"}
-              </span>
+                onClick={handleWishlistClick}
+              >
+                <Heart
+                  className={cn("h-4 w-4", isWishlisted && "fill-current")}
+                />
+              </button>
+            )}
+
+            {/* Stock Overlay */}
+            {product.inStock === false && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <Badge variant="secondary" className="bg-white/90 text-black">
+                  Out of Stock
+                </Badge>
+              </div>
+            )}
+
+            {/* Add to Cart Button */}
+            <AddToCart bagId={product.id} />
+          </div>
+
+          {/* Product Info */}
+          <div className={getPaddingStyles()}>
+            {/* Brand & Category */}
+            {(showBrand || showCategory) && (
+              <div className="flex items-center justify-between">
+                {showBrand && product.brand && (
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {product.brand}
+                  </span>
+                )}
+                {showCategory && product.category && (
+                  <Badge variant="outline" className="text-xs">
+                    {product.category}
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Product Name */}
+            <h3 className="font-medium text-sm text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+              {product.name}
+            </h3>
+
+            {/* Price & Stock Status */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-semibold text-foreground">
+                  Rs {Math.floor(product.price)}
+                </span>
+                {product.price % 1 !== 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    .{(product.price % 1).toFixed(2).substring(2)}
+                  </span>
+                )}
+              </div>
+
+              {/* Stock Indicator */}
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={cn(
+                    "w-2 h-2 rounded-full",
+                    product.inStock !== false ? "bg-green-500" : "bg-red-500"
+                  )}
+                />
+                <span className="text-xs text-muted-foreground">
+                  {product.inStock !== false ? "Available" : "Sold Out"}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Detail Product Dialog - Rendered conditionally */}
+      {showDetailDialog && (
+        <DetailProduct
+          bagId={product.id}
+          openWindow={showDetailDialog}
+          onClose={() => setShowDetailDialog(false)}
+        />
+      )}
+    </>
   );
 }

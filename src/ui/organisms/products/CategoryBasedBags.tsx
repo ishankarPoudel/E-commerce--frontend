@@ -7,12 +7,15 @@ import { Separator } from "@/ui/shadcn/separator";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Grid3X3, Loader2, X } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
+import DetailProduct from "./DetailProduct";
 
 export default function CategoryBasedBags() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [openDialog, setOpenDialog] = useState<string | null>(null); // Track which category dialog is open
+  const [openDialog, setOpenDialog] = useState<string | null>(null);
+  const [detailProductWindow, setDetailProductWindow] = useState(false);
+  const [selectedBagId, setSelectedBagId] = useState<string | null>(null);
 
   const { data: listOfBag, isPending: isBagListPending } = useQuery({
     ...getCategoriesWithBagsOptions({
@@ -55,6 +58,11 @@ export default function CategoryBasedBags() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const handleBagClick = (bagId: string) => {
+    setDetailProductWindow(true);
+    setSelectedBagId(bagId);
+    setOpenDialog(null); // Close any open category dialog
+  };
   const bagsList = listOfBag;
 
   if (isBagListPending) {
@@ -139,20 +147,18 @@ export default function CategoryBasedBags() {
                         <div className="p-8 overflow-y-auto h-[calc(85vh-80px)]">
                           <div className="grid grid-cols-5 gap-8">
                             {category.bags.map((bag) => (
-                              <BagCard
+                              <div
                                 key={bag.id}
-                                product={bag}
-                                variant="compact"
-                                showBrand={false}
-                                showCategory={false}
-                                onClick={(e?: React.MouseEvent) => {
-                                  if (e) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                  }
-                                  console.log("Navigate to product:", bag.id);
-                                }}
-                              />
+                                onClick={() => handleBagClick(bag.id)}
+                                className="cursor-pointer"
+                              >
+                                <BagCard
+                                  product={bag}
+                                  variant="compact"
+                                  showBrand={false}
+                                  showCategory={false}
+                                />
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -196,21 +202,17 @@ export default function CategoryBasedBags() {
                     style={{ maxWidth: "100%" }}
                   >
                     {visibleBags.map((bag) => (
-                      <div key={bag.id} className="flex-shrink-0 w-52">
+                      <div
+                        key={bag.id}
+                        className="flex-shrink-0 w-52 cursor-pointer"
+                        onClick={() => handleBagClick(bag.id)}
+                      >
                         <BagCard
                           product={bag}
                           variant="compact"
                           showBrand={false}
                           showCategory={true}
                           showWishlist={true}
-                          onClick={(e?: React.MouseEvent) => {
-                            if (e) {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }
-                            console.log("Navigate to product:", bag.id);
-                            setTimeout(() => setOpenDialog(null), 100);
-                          }}
                         />
                       </div>
                     ))}
@@ -221,6 +223,13 @@ export default function CategoryBasedBags() {
           }
         )}
       </div>
+      {selectedBagId && (
+        <DetailProduct
+          bagId={selectedBagId}
+          openWindow={true}
+          onClose={() => setSelectedBagId(null)}
+        />
+      )}
     </div>
   );
 }

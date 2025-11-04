@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { MessageCircle, X, Sparkles } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
