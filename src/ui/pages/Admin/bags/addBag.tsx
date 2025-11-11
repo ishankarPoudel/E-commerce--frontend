@@ -26,24 +26,11 @@ import {
 import { Switch } from "@/ui/shadcn/switch";
 import { useState } from "react";
 
-// Mock categories - in production, fetch from API
-const MOCK_CATEGORIES = [
-  "Business",
-  "Travel",
-  "Outdoor",
-  "Fashion",
-  "Sports",
-  "Casual",
-  "Luxury",
-  "Kids",
-];
-
 export function AddBagForm() {
   const [colorInput, setColorInput] = useState("");
   const [sizeInput, setSizeInput] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -51,6 +38,8 @@ export function AddBagForm() {
     handleSubmit,
     watch,
     setValue,
+    setError,
+    reset,
     formState: { errors },
   } = useForm<ProductFormData>({
     defaultValues: {
@@ -67,19 +56,21 @@ export function AddBagForm() {
       isFeatured: false,
       categories: [],
       images: [],
-      hasWheels: false,
-      telescopicHandle: false,
-      expandable: false,
-      hasReflectiveStraps: false,
-      laptopCompartment: false,
-      hasLaptopCompartment: false,
-      paddedStraps: false,
-      waterproof: false,
-      chestStrap: false,
-      waterResistant: false,
-      hydrationPackCompatible: false,
-      innerPockets: false,
-      zipperClosure: false,
+      features: {
+        hasWheels: false,
+        telescopicHandle: false,
+        expandable: false,
+        hasReflectiveStraps: false,
+        laptopCompartment: false,
+        hasLaptopCompartment: false,
+        paddedStraps: false,
+        waterproof: false,
+        chestStrap: false,
+        waterResistant: false,
+        hydrationPackCompatible: false,
+        innerPockets: false,
+        zipperClosure: false,
+      },
     },
   });
 
@@ -138,120 +129,84 @@ export function AddBagForm() {
     setValue("images", newImages);
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
-  const toggleCategory = (category: string) => {
-    const newCategories = selectedCategories.includes(category)
-      ? selectedCategories.filter((c) => c !== category)
-      : [...selectedCategories, category];
+  const toggleCategory = (categoryId: string) => {
+    const newCategories = selectedCategories.includes(categoryId)
+      ? selectedCategories.filter((id) => id !== categoryId)
+      : [...selectedCategories, categoryId];
     setSelectedCategories(newCategories);
     setValue("categories", newCategories);
   };
 
   const { data: categoriesData } = useQuery(getCategoriesOptions());
 
+  const categories = categoriesData?.data || [];
+
   const { mutate: addBag, isPending: isBagAdding } = useMutation(
     addBagMutation()
   );
-  const { mutateAsync: uploadMedia, isPending: isImageUploading } = useMutation(
-    uploadMediaMutation()
-  );
+  // const { mutateAsync: uploadMedia, isPending: isImageUploading } = useMutation(
+  //   uploadMediaMutation()
+  // );
 
   const onSubmit = async (data: ProductFormData) => {
-    setIsSubmitting(true);
-
     const validationErrors = validateProductForm(data);
 
     if (validationErrors.length > 0) {
       validationErrors.forEach((error) => {
-        ({
-          title: "Validation Error",
-          description: error.message,
-          variant: "destructive",
+        setError(error.field as keyof ProductFormData, {
+          type: "manual",
+          message: error.message,
         });
       });
-      setIsSubmitting(false);
       return;
     }
 
-    // Create FormData for submission
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("type", data.type);
-    formData.append("price", data.price.toString());
-    if (data.description) formData.append("description", data.description);
-    if (data.brand) formData.append("brand", data.brand);
-    if (data.material) formData.append("material", data.material);
-    if (data.weightKg) formData.append("weightKg", data.weightKg.toString());
-    if (data.capacityLiters)
-      formData.append("capacityLiters", data.capacityLiters.toString());
-    formData.append("isFeatured", data.isFeatured ? "true" : "false");
-    formData.append("colors", JSON.stringify(data.colors));
-    formData.append("sizes", JSON.stringify(data.sizes));
-    formData.append("categories", JSON.stringify(data.categories));
-
-    if (data.hasWheels !== undefined)
-      formData.append("hasWheels", data.hasWheels ? "true" : "false");
-    if (data.telescopicHandle !== undefined)
-      formData.append(
-        "telescopicHandle",
-        data.telescopicHandle ? "true" : "false"
-      );
-    if (data.expandable !== undefined)
-      formData.append("expandable", data.expandable ? "true" : "false");
-    if (data.hasReflectiveStraps !== undefined)
-      formData.append(
-        "hasReflectiveStraps",
-        data.hasReflectiveStraps ? "true" : "false"
-      );
-    if (data.laptopCompartment !== undefined)
-      formData.append(
-        "laptopCompartment",
-        data.laptopCompartment ? "true" : "false"
-      );
-    if (data.hasLaptopCompartment !== undefined)
-      formData.append(
-        "hasLaptopCompartment",
-        data.hasLaptopCompartment ? "true" : "false"
-      );
-    if (data.paddedStraps !== undefined)
-      formData.append("paddedStraps", data.paddedStraps ? "true" : "false");
-    if (data.waterproof !== undefined)
-      formData.append("waterproof", data.waterproof ? "true" : "false");
-    if (data.chestStrap !== undefined)
-      formData.append("chestStrap", data.chestStrap ? "true" : "false");
-    if (data.waterResistant !== undefined)
-      formData.append("waterResistant", data.waterResistant ? "true" : "false");
-    if (data.hydrationPackCompatible !== undefined)
-      formData.append(
-        "hydrationPackCompatible",
-        data.hydrationPackCompatible ? "true" : "false"
-      );
-    if (data.innerPockets !== undefined)
-      formData.append("innerPockets", data.innerPockets ? "true" : "false");
-    if (data.zipperClosure !== undefined)
-      formData.append("zipperClosure", data.zipperClosure ? "true" : "false");
-
-    data.images?.forEach((image, index) => {
-      formData.append(`images`, image);
-    });
-
-    console.log("[v0] Form data prepared for submission:", {
-      name: data.name,
-      type: data.type,
-      price: data.price,
-      colors: data.colors,
-      sizes: data.sizes,
-      categories: data.categories,
-      imageCount: data.images?.length || 0,
-    });
-
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Product Created",
-        description: "Your product has been successfully added to the catalog.",
-      });
-      setIsSubmitting(false);
-    }, 1500);
+    addBag(
+      {
+        body: {
+          name: data.name,
+          type: data.type,
+          price: Number(data.price),
+          description: data.description || "",
+          brand: data.brand || "",
+          material: data.material || "",
+          colors: data.colors || [],
+          sizes: data.sizes || [],
+          weightKg: data.weightKg ? Number(data.weightKg) : 0,
+          capacityLiters: data.capacityLiters ? Number(data.capacityLiters) : 0,
+          categories: data.categories || [],
+          isFeatured: Boolean(data.isFeatured),
+          features: {
+            hasWheels: Boolean(data.features?.hasWheels),
+            telescopicHandle: Boolean(data.features?.telescopicHandle),
+            expandable: Boolean(data.features?.expandable),
+            hasReflectiveStraps: Boolean(data.features?.hasReflectiveStraps),
+            laptopCompartment: Boolean(data.features?.laptopCompartment),
+            hasLaptopCompartment: Boolean(data.features?.hasLaptopCompartment),
+            paddedStraps: Boolean(data.features?.paddedStraps),
+            waterproof: Boolean(data.features?.waterproof),
+            chestStrap: Boolean(data.features?.chestStrap),
+            waterResistant: Boolean(data.features?.waterResistant),
+            hydrationPackCompatible: Boolean(
+              data.features?.hydrationPackCompatible
+            ),
+            innerPockets: Boolean(data.features?.innerPockets),
+            zipperClosure: Boolean(data.features?.zipperClosure),
+          },
+        },
+      },
+      {
+        onSuccess: (response) => {
+          toast.success(response.message || "Product added successfully");
+          // Reset form or redirect as needed
+          reset();
+        },
+        onError: (error: Error) => {
+          toast.error(error.message || "Failed to add product");
+          console.error("Add bag error:", error);
+        },
+      }
+    );
   };
   const isLuggageType =
     watchedBagType === BagType.LUGGAGE || watchedBagType === BagType.SUITCASE;
@@ -351,7 +306,7 @@ export function AddBagForm() {
                 <Input
                   id="price"
                   type="number"
-                  step="0.01"
+                  step="50"
                   {...register("price", { valueAsNumber: true })}
                   placeholder="0.00"
                   className="h-11"
@@ -452,11 +407,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="hasWheels"
+                      name="features.hasWheels"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="hasWheels"
+                          id="features.hasWheels"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -477,11 +432,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="telescopicHandle"
+                      name="features.telescopicHandle"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="telescopicHandle"
+                          id="features.telescopicHandle"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -502,11 +457,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="expandable"
+                      name="features.expandable"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="expandable"
+                          id="features.expandable"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -531,11 +486,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="hasReflectiveStraps"
+                      name="features.hasReflectiveStraps"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="hasReflectiveStraps"
+                          id="features.hasReflectiveStraps"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -556,11 +511,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="laptopCompartment"
+                      name="features.laptopCompartment"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="laptopCompartment"
+                          id="features.laptopCompartment"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -585,11 +540,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="hasLaptopCompartment"
+                      name="features.hasLaptopCompartment"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="hasLaptopCompartment"
+                          id="features.hasLaptopCompartment"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -610,11 +565,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="paddedStraps"
+                      name="features.paddedStraps"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="paddedStraps"
+                          id="features.paddedStraps"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -635,7 +590,7 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="waterproof"
+                      name="features.waterproof"
                       control={control}
                       render={({ field }) => (
                         <Switch
@@ -664,11 +619,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="chestStrap"
+                      name="features.chestStrap"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="chestStrap"
+                          id="features.chestStrap"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -689,11 +644,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="waterResistant"
+                      name="features.waterResistant"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="waterResistant"
+                          id="features.waterResistant"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -714,11 +669,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="hydrationPackCompatible"
+                      name="features.hydrationPackCompatible"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="hydrationPackCompatible"
+                          id="features.hydrationPackCompatible"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -743,11 +698,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="innerPockets"
+                      name="features.innerPockets"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="innerPockets"
+                          id="features.innerPockets"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -768,11 +723,11 @@ export function AddBagForm() {
                       </p>
                     </div>
                     <Controller
-                      name="zipperClosure"
+                      name="features.zipperClosure"
                       control={control}
                       render={({ field }) => (
                         <Switch
-                          id="zipperClosure"
+                          id="features.zipperClosure"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
@@ -892,6 +847,11 @@ export function AddBagForm() {
                 Categories & Settings
               </h2>
             </div>
+            {selectedCategories.length > 0 && (
+              <div className="flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                <span>{selectedCategories.length} selected</span>
+              </div>
+            )}
 
             <div className="space-y-6">
               {/* Categories */}
@@ -900,18 +860,18 @@ export function AddBagForm() {
                   Product Categories
                 </Label>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {MOCK_CATEGORIES.map((category) => (
+                  {categories.map((category) => (
                     <button
-                      key={category}
+                      key={category.id}
                       type="button"
-                      onClick={() => toggleCategory(category)}
+                      onClick={() => toggleCategory(category.id)}
                       className={`rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all ${
-                        selectedCategories.includes(category)
+                        selectedCategories.includes(category.id)
                           ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-300"
                           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600"
                       }`}
                     >
-                      {category}
+                      {category.categoryName}
                     </button>
                   ))}
                 </div>
@@ -1007,20 +967,15 @@ export function AddBagForm() {
 
           {/* Submit Button */}
           <div className="flex items-center justify-end gap-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 p-6 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => window.location.reload()}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" disabled={isBagAdding}>
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isBagAdding}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 hover:from-blue-700 hover:to-indigo-700"
             >
-              {isSubmitting ? "Creating..." : "Create Product"}
+              {isBagAdding ? "Creating..." : "Create Product"}
             </Button>
           </div>
         </form>

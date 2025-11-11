@@ -15,7 +15,7 @@ export interface ProductFormData {
   name: string;
   type: BagType;
   price: number;
-  description?: string;
+  description: string;
   brand?: string;
   material?: string;
   colors?: string[];
@@ -25,24 +25,25 @@ export interface ProductFormData {
   isFeatured?: boolean;
   categories?: string[];
   images?: File[];
-  // Luggage/Suitcase specific fields
-  hasWheels?: boolean;
-  telescopicHandle?: boolean;
-  expandable?: boolean;
-  // School bag specific fields
-  hasReflectiveStraps?: boolean;
-  laptopCompartment?: boolean;
-  // Laptop bag specific fields
-  hasLaptopCompartment?: boolean;
-  paddedStraps?: boolean;
-  waterproof?: boolean;
-  // Backpack specific fields
-  chestStrap?: boolean;
-  waterResistant?: boolean;
-  hydrationPackCompatible?: boolean;
-  // Duffel/Tote/Handbag/Crossbody specific fields
-  innerPockets?: boolean;
-  zipperClosure?: boolean;
+  features?: {
+    hasWheels?: boolean;
+    telescopicHandle?: boolean;
+    expandable?: boolean;
+    // School bag specific fields
+    hasReflectiveStraps?: boolean;
+    laptopCompartment?: boolean;
+    // Laptop bag specific fields
+    hasLaptopCompartment?: boolean;
+    paddedStraps?: boolean;
+    waterproof?: boolean;
+    // Backpack specific fields
+    chestStrap?: boolean;
+    waterResistant?: boolean;
+    hydrationPackCompatible?: boolean;
+    // Duffel/Tote/Handbag/Crossbody specific fields
+    innerPockets?: boolean;
+    zipperClosure?: boolean;
+  };
 }
 
 export interface ValidationError {
@@ -116,22 +117,28 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
     data.type === BagType.SUITCASE ||
     data.type === BagType.TRAVEL_SET
   ) {
-    if (data.hasWheels !== undefined && typeof data.hasWheels !== "boolean") {
+    if (
+      data.features?.hasWheels !== undefined &&
+      typeof data.features.hasWheels !== "boolean"
+    ) {
       errors.push({
         field: "hasWheels",
         message: "Has wheels must be a boolean",
       });
     }
     if (
-      data.telescopicHandle !== undefined &&
-      typeof data.telescopicHandle !== "boolean"
+      data.features?.telescopicHandle !== undefined &&
+      typeof data.features.telescopicHandle !== "boolean"
     ) {
       errors.push({
         field: "telescopicHandle",
         message: "Telescopic handle must be a boolean",
       });
     }
-    if (data.expandable !== undefined && typeof data.expandable !== "boolean") {
+    if (
+      data.features?.expandable !== undefined &&
+      typeof data.features.expandable !== "boolean"
+    ) {
       errors.push({
         field: "expandable",
         message: "Expandable must be a boolean",
@@ -142,8 +149,8 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
   // School bag specific validation
   if (data.type === BagType.SCHOOL_BAG) {
     if (
-      data.hasReflectiveStraps !== undefined &&
-      typeof data.hasReflectiveStraps !== "boolean"
+      data.features?.hasReflectiveStraps !== undefined &&
+      typeof data.features.hasReflectiveStraps !== "boolean"
     ) {
       errors.push({
         field: "hasReflectiveStraps",
@@ -151,8 +158,8 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
       });
     }
     if (
-      data.laptopCompartment !== undefined &&
-      typeof data.laptopCompartment !== "boolean"
+      data.features?.laptopCompartment !== undefined &&
+      typeof data.features.laptopCompartment !== "boolean"
     ) {
       errors.push({
         field: "laptopCompartment",
@@ -164,8 +171,8 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
   // Laptop bag specific validation
   if (data.type === BagType.LAPTOP_BAG) {
     if (
-      data.hasLaptopCompartment !== undefined &&
-      typeof data.hasLaptopCompartment !== "boolean"
+      data.features?.hasLaptopCompartment !== undefined &&
+      typeof data.features.hasLaptopCompartment !== "boolean"
     ) {
       errors.push({
         field: "hasLaptopCompartment",
@@ -173,15 +180,18 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
       });
     }
     if (
-      data.paddedStraps !== undefined &&
-      typeof data.paddedStraps !== "boolean"
+      data.features?.paddedStraps !== undefined &&
+      typeof data.features.paddedStraps !== "boolean"
     ) {
       errors.push({
         field: "paddedStraps",
         message: "Padded straps must be a boolean",
       });
     }
-    if (data.waterproof !== undefined && typeof data.waterproof !== "boolean") {
+    if (
+      data.features?.waterproof !== undefined &&
+      typeof data.features.waterproof !== "boolean"
+    ) {
       errors.push({
         field: "waterproof",
         message: "Waterproof must be a boolean",
@@ -191,15 +201,18 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
 
   // Backpack specific validation
   if (data.type === BagType.BACKPACK) {
-    if (data.chestStrap !== undefined && typeof data.chestStrap !== "boolean") {
+    if (
+      data.features?.chestStrap !== undefined &&
+      typeof data.features.chestStrap !== "boolean"
+    ) {
       errors.push({
         field: "chestStrap",
         message: "Chest strap must be a boolean",
       });
     }
     if (
-      data.waterResistant !== undefined &&
-      typeof data.waterResistant !== "boolean"
+      data.features?.waterResistant !== undefined &&
+      typeof data.features.waterResistant !== "boolean"
     ) {
       errors.push({
         field: "waterResistant",
@@ -207,8 +220,8 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
       });
     }
     if (
-      data.hydrationPackCompatible !== undefined &&
-      typeof data.hydrationPackCompatible !== "boolean"
+      data.features?.hydrationPackCompatible !== undefined &&
+      typeof data.features.hydrationPackCompatible !== "boolean"
     ) {
       errors.push({
         field: "hydrationPackCompatible",
@@ -225,8 +238,8 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
     data.type === BagType.CROSSBODY
   ) {
     if (
-      data.innerPockets !== undefined &&
-      typeof data.innerPockets !== "boolean"
+      data.features?.innerPockets !== undefined &&
+      typeof data.features.innerPockets !== "boolean"
     ) {
       errors.push({
         field: "innerPockets",
@@ -234,8 +247,8 @@ export function validateProductForm(data: ProductFormData): ValidationError[] {
       });
     }
     if (
-      data.zipperClosure !== undefined &&
-      typeof data.zipperClosure !== "boolean"
+      data.features?.zipperClosure !== undefined &&
+      typeof data.features.zipperClosure !== "boolean"
     ) {
       errors.push({
         field: "zipperClosure",

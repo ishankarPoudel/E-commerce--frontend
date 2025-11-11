@@ -39,16 +39,27 @@ export type CartEntity = {
     cartItems: Array<CartItemEntity>;
 };
 
+export type BagType = 'handbag' | 'backpack' | 'duffel' | 'tote' | 'crossbody' | 'laptop_bag' | 'luggage' | 'suitcase' | 'travel_set' | 'school_bag';
+
 export type BagEntity = {
     id: string;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
     name: string;
+    type: BagType;
     price: number;
     description: string;
+    brand: string;
+    material: string;
+    colors: Array<string>;
+    sizes: Array<string>;
+    weightKg: number;
+    capacityLiters: number;
+    isFeatured: boolean;
     categories: Array<Category>;
-    bagImages: Array<MediaEntity>;
+    features: RecordStringBoolean;
+    images: Array<MediaEntity>;
     search_vector: string;
 };
 
@@ -59,6 +70,13 @@ export type Category = {
     deletedAt: string | null;
     categoryName: string;
     bags: Array<BagEntity>;
+};
+
+/**
+ * Construct a type with a set of properties K of type T
+ */
+export type RecordStringBoolean = {
+    [key: string]: boolean;
 };
 
 export type MediaEntity = {
@@ -77,7 +95,7 @@ export type CartItemEntity = {
     updatedAt: string;
     deletedAt: string | null;
     cart: CartEntity;
-    bag: BagEntity;
+    product: BagEntity;
     quantity: number;
 };
 
@@ -122,6 +140,15 @@ export type AddBagValidator = {
     price: number;
     description: string;
     categories: Array<string>;
+    brand: string;
+    material: string;
+    colors: Array<string>;
+    sizes: Array<string>;
+    weightKg: number;
+    capacityLiters: number;
+    isFeatured: boolean;
+    type: BagType;
+    features: RecordStringBoolean;
 };
 
 export type UpdateBagValidator = {
@@ -261,10 +288,7 @@ export type GetAllOrdersResponses = {
                 user: UserEntity;
                 items: Array<{
                     bag: {
-                        images: Array<{
-                            url: string;
-                            id: string;
-                        }>;
+                        images: unknown;
                         price: number;
                         name: string;
                         id: string;
