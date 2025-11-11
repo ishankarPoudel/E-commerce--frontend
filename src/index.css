@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 
 body {
-  font-family: Geist Sans, sans-serif, font-sans;
+  @apply font-sans;
 }
 
 @custom-variant dark (&:is(.dark *));
