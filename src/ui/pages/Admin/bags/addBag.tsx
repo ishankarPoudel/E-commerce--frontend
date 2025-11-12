@@ -30,6 +30,7 @@ export function AddBagForm() {
   const [colorInput, setColorInput] = useState("");
   const [sizeInput, setSizeInput] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const {
@@ -110,8 +111,9 @@ export function AddBagForm() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      const newImages = [...images, ...files];
-      setValue("images", newImages);
+      const newImageFile = [...imageFiles, ...files];
+      setValue("images", newImageFile);
+      setImageFiles(newImageFile);
 
       // Create preview URLs
       files.forEach((file) => {
@@ -125,8 +127,9 @@ export function AddBagForm() {
   };
 
   const removeImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index);
-    setValue("images", newImages);
+    const newImageFiles = imageFiles.filter((_, i) => i !== index);
+    setImageFiles(newImageFiles);
+    setValue("images", newImageFiles);
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
   const toggleCategory = (categoryId: string) => {
@@ -144,9 +147,9 @@ export function AddBagForm() {
   const { mutate: addBag, isPending: isBagAdding } = useMutation(
     addBagMutation()
   );
-  // const { mutateAsync: uploadMedia, isPending: isImageUploading } = useMutation(
-  //   uploadMediaMutation()
-  // );
+  const { mutateAsync: uploadMedia, isPending: isImageUploading } = useMutation(
+    uploadMediaMutation()
+  );
 
   const onSubmit = async (data: ProductFormData) => {
     const validationErrors = validateProductForm(data);
@@ -196,10 +199,63 @@ export function AddBagForm() {
         },
       },
       {
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           toast.success(response.message || "Product added successfully");
-          // Reset form or redirect as needed
+
+          const bagId = response.data?.id;
+
+          if (!bagId) {
+            toast.error("Bag created but missing ID for image upload");
+            return;
+          }
+
+          // Upload images if any exist
+          if (imageFiles.length > 0) {
+            toast.info(`Uploading ${imageFiles.length} image(s)...`);
+
+            try {
+              const uploadPromises = imageFiles.map(async (file) => {
+                const formData = new FormData();
+                formData.append("bagId", bagId);
+                formData.append("file", file);
+
+                return uploadMedia(
+                  {
+                    body: {
+                      bagId: bagId,
+                      file: file,
+                    },
+                  },
+                  {
+                    onSuccess: (res) => {
+                      toast.success(
+                        res.message || "Image uploaded successfully"
+                      );
+                    },
+                    onError: (err) => {
+                      toast.error(err.message || "Image upload failed");
+                    },
+                  }
+                );
+              });
+
+              const results = await Promise.all(uploadPromises);
+
+              const successCount = results.filter((r) => r.data).length;
+              toast.success(
+                `${successCount} of ${imageFiles.length} image(s) uploaded successfully`
+              );
+            } catch (error) {
+              console.error("Image upload error:", error);
+              toast.error("Some images failed to upload");
+            }
+          }
+
+          // Reset form after everything is done
           reset();
+          setImageFiles([]);
+          setImagePreviews([]);
+          setSelectedCategories([]);
         },
         onError: (error: Error) => {
           toast.error(error.message || "Failed to add product");
@@ -335,7 +391,7 @@ export function AddBagForm() {
             <div className="mb-6 flex items-center gap-2 border-b border-slate-200 pb-4 dark:border-slate-800">
               <div className="h-2 w-2 rounded-full bg-indigo-500"></div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                Optional Details
+                Detailed Specifications
               </h2>
             </div>
 
