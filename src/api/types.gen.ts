@@ -249,7 +249,8 @@ export type GetAllUsersData = {
         page?: number;
         pageSize?: number;
         search?: string;
-        sort?: string;
+        sortBy?: 'name' | 'joinedAt';
+        order?: 'asc' | 'desc';
     };
     url: '/user/all-users';
 };
