@@ -261,6 +261,9 @@ export type GetAllUsersResponses = {
      */
     200: {
         data: {
+            totalPages: number;
+            pageSize: number;
+            page: number;
             total: number;
             data: Array<UserEntity>;
         };

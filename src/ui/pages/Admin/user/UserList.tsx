@@ -3,7 +3,6 @@ import { getAllUsersOptions } from "@/api/@tanstack/react-query.gen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { userColumn } from "@/ui/molecules/columns/userColumn";
 import { DataTable } from "@/ui/organisms/table/DataTable";
-
 import { Button } from "@/ui/shadcn/button";
 import {
   Card,
@@ -142,6 +141,10 @@ const UserTableSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "joinedAt">("joinedAt");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
 
@@ -154,11 +157,17 @@ const UserTableSection = () => {
     ...getAllUsersOptions({
       query: {
         search: debouncedSearchQuery,
+        page: pagination.pageIndex + 1, // backend pages are 1-indexed
+        pageSize: pagination.pageSize,
         order,
         sortBy,
       },
     }),
   });
+
+  const pageCount = users?.data?.total
+    ? Math.ceil(users.data.total / pagination.pageSize)
+    : 0;
 
   return (
     <Card className="border-border">
@@ -166,6 +175,9 @@ const UserTableSection = () => {
         <CardTitle>All Users</CardTitle>
         <CardDescription>
           A comprehensive list of all registered users
+          {users?.data?.total && (
+            <span className="ml-2">(Total: {users.data.total})</span>
+          )}
         </CardDescription>
       </CardHeader>
 
@@ -265,9 +277,11 @@ const UserTableSection = () => {
             <DataTable
               columns={userColumn}
               data={(users?.data?.data as UserEntity[]) || []}
+              pagination={pagination}
+              onPaginationChange={setPagination}
+              pageCount={pageCount}
             />
           )}
-          {/* <DataTablePagination table={Table} /> */}
         </div>
       </CardContent>
     </Card>
