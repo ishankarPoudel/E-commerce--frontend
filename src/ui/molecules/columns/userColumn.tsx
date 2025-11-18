@@ -21,7 +21,9 @@ import {
 } from "lucide-react";
 import { Badge } from "@/ui/shadcn/badge";
 
-export const userColumn: ColumnDef<UserEntity>[] = [
+export const userColumn = (
+  onViewDetails: (user: UserEntity) => void
+): ColumnDef<UserEntity>[] => [
   {
     header: "SN",
     cell: ({ row }) => (
@@ -138,7 +140,6 @@ export const userColumn: ColumnDef<UserEntity>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(user.email)}
             >
@@ -146,7 +147,7 @@ export const userColumn: ColumnDef<UserEntity>[] = [
               Copy email
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onViewDetails(user)}>
               <Eye className="mr-2 h-4 w-4" />
               View details
             </DropdownMenuItem>

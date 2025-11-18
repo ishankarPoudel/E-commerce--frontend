@@ -31,6 +31,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState, memo } from "react";
+import { UserDetailsDialog } from "./UserDetails";
 
 // Mock stats - replace with real data
 const stats = {
@@ -145,7 +146,8 @@ const UserTableSection = () => {
     pageIndex: 0,
     pageSize: 10,
   });
-
+  const [selectedUser, setSelectedUser] = useState<UserEntity | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
 
   const {
@@ -169,122 +171,136 @@ const UserTableSection = () => {
     ? Math.ceil(users.data.total / pagination.pageSize)
     : 0;
 
+  //Handle view details
+  const handleViewDetails = (user: UserEntity) => {
+    setSelectedUser(user);
+    setIsDetailsModalOpen(true);
+  };
+
   return (
-    <Card className="border-border">
-      <CardHeader>
-        <CardTitle>All Users</CardTitle>
-        <CardDescription>
-          A comprehensive list of all registered users
-          {users?.data?.total && (
-            <span className="ml-2">(Total: {users.data.total})</span>
-          )}
-        </CardDescription>
-      </CardHeader>
+    <>
+      <Card className="border-border">
+        <CardHeader>
+          <CardTitle>All Users</CardTitle>
+          <CardDescription>
+            A comprehensive list of all registered users
+            {users?.data?.total && (
+              <span className="ml-2">(Total: {users.data.total})</span>
+            )}
+          </CardDescription>
+        </CardHeader>
 
-      {/* Search */}
-      <div className="flex p-4 flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search users by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {/* Filters dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Filter by Joined Date</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                setSortBy("joinedAt");
-                setOrder("desc");
-              }}
-            >
-              Newest
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onClick={() => {
-                setSortBy("joinedAt");
-                setOrder("asc");
-              }}
-            >
-              Oldest
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Sort By Name</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                setSortBy("name");
-                setOrder("asc");
-              }}
-            >
-              Ascending
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onClick={() => {
-                setSortBy("name");
-                setOrder("desc");
-              }}
-            >
-              Descending
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Table */}
-      <CardContent>
-        <div className="space-y-4">
-          {isLoading && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
-          )}
-
-          {error && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-destructive">
-                  Error: {error.message}
-                </p>
-                <Button
-                  onClick={() => refetch()}
-                  variant="destructive"
-                  size="sm"
-                >
-                  Retry Now
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {!isLoading && !error && (
-            <DataTable
-              columns={userColumn}
-              data={(users?.data?.data as UserEntity[]) || []}
-              pagination={pagination}
-              onPaginationChange={setPagination}
-              pageCount={pageCount}
+        {/* Search */}
+        <div className="flex p-4 flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search users by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
             />
-          )}
+          </div>
+
+          {/* Filters dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Filter className="mr-2 h-4 w-4" />
+                Filters
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Filter by Joined Date</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setSortBy("joinedAt");
+                  setOrder("desc");
+                }}
+              >
+                Newest
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  setSortBy("joinedAt");
+                  setOrder("asc");
+                }}
+              >
+                Oldest
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Sort By Name</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setSortBy("name");
+                  setOrder("asc");
+                }}
+              >
+                Ascending
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  setSortBy("name");
+                  setOrder("desc");
+                }}
+              >
+                Descending
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Table */}
+        <CardContent>
+          <div className="space-y-4">
+            {isLoading && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            )}
+
+            {error && (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-destructive">
+                    Error: {error.message}
+                  </p>
+                  <Button
+                    onClick={() => refetch()}
+                    variant="destructive"
+                    size="sm"
+                  >
+                    Retry Now
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!isLoading && !error && (
+              <DataTable
+                columns={userColumn(handleViewDetails)}
+                data={(users?.data?.data as UserEntity[]) || []}
+                pagination={pagination}
+                onPaginationChange={setPagination}
+                pageCount={pageCount}
+              />
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <UserDetailsDialog
+        user={selectedUser}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+      />
+    </>
   );
 };
 
