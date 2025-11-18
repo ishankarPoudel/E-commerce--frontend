@@ -24,20 +24,6 @@ interface UserDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const mockSecurityData = {
-  lastLogin: "2025-01-17 14:32:15",
-  lastLoginIp: "192.168.1.105",
-  failedLoginAttempts: 0,
-  passwordUpdatedAt: "2024-12-01 09:15:00",
-  twoFactorEnabled: true,
-};
-
-const mockOrderData = {
-  totalOrders: 47,
-  totalSpent: "$12,847.50",
-  lastOrderDate: "2025-01-15",
-};
-
 const mockSessions = [
   {
     id: "1",
@@ -78,11 +64,10 @@ export function UserDetailsDialog({
         </DialogHeader>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="sessions">Sessions</TabsTrigger>
+            <TabsTrigger value="security">Security Info</TabsTrigger>
+            <TabsTrigger value="sessions">Active Session</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
@@ -131,7 +116,7 @@ export function UserDetailsDialog({
                       Last Login
                     </div>
                     <div className="font-bold">
-                      {user.deviceInfo.updatedAt
+                      {user?.deviceInfo?.updatedAt
                         ? new Date(user.deviceInfo.updatedAt).toLocaleString()
                         : "N/A"}
                     </div>
@@ -145,7 +130,7 @@ export function UserDetailsDialog({
                         ? (() => {
                             try {
                               const location = JSON.parse(
-                                user.deviceInfo.location
+                                user.deviceInfo.location || "{}"
                               );
                               return (
                                 <div className="space-y-1">
@@ -172,44 +157,6 @@ export function UserDetailsDialog({
                         : "N/A"}
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Orders Tab */}
-          <TabsContent value="orders" className="mt-6">
-            <Card className="rounded-xl shadow-sm">
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">
-                      Total Orders
-                    </div>
-                    <div className="font-bold">{mockOrderData.totalOrders}</div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">
-                      Total Spent
-                    </div>
-                    <div className="font-bold">{mockOrderData.totalSpent}</div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">
-                      Last Order Date
-                    </div>
-                    <div className="font-bold">
-                      {new Date(mockOrderData.lastOrderDate).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )}
-                    </div>
-                  </div>
-                  <Button className="w-full">View All Orders</Button>
                 </div>
               </CardContent>
             </Card>
