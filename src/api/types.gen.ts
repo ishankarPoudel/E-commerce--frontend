@@ -12,12 +12,13 @@ export type UserEntity = {
     isOauth: boolean;
     provider: string;
     isEmailVerified: boolean;
-    emailVerificationToken: string;
-    emailVerificationTokenExpiresAt: string | null;
-    refreshToken: string;
     deviceInfo: DeviceInfoEntity;
     cart: CartEntity;
     orders: Array<OrderEntity>;
+    emailVerificationToken: string;
+    emailVerificationTokenExpiresAt: string | null;
+    refreshToken: string;
+    tokenVersion: number;
 };
 
 export type DeviceInfoEntity = {
@@ -916,6 +917,27 @@ export type RefreshTokenResponses = {
 };
 
 export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
+
+export type RevokeUserSessionData = {
+    body: {
+        userId: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/revoke-session';
+};
+
+export type RevokeUserSessionResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        message: string;
+        success: boolean;
+    };
+};
+
+export type RevokeUserSessionResponse = RevokeUserSessionResponses[keyof RevokeUserSessionResponses];
 
 export type GoogleAuthData = {
     body?: never;

@@ -45,7 +45,7 @@ export const EditDialog = ({
   const queryClient = useQueryClient();
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className='sm:max-w-[425px]'>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
           <DialogDescription>
@@ -85,43 +85,44 @@ export const EditDialog = ({
               toast.error(err?.message || "Failed to update profile");
             }
           }}
-          className='grid gap-4'>
-          <div className='grid gap-3'>
-            <Label htmlFor='name'>Name</Label>
+          className="grid gap-4"
+        >
+          <div className="grid gap-3">
+            <Label htmlFor="name">Name</Label>
             <Input
               onFocus={(e) => e.target.select()}
-              id='name'
-              name='name'
+              id="name"
+              name="name"
               defaultValue={userInfo?.fullName || ""}
             />
           </div>
-          <div className='grid gap-3'>
-            <Label htmlFor='email'>Email</Label>
+          <div className="grid gap-3">
+            <Label htmlFor="email">Email</Label>
             <Input
-              id='email'
-              name='email'
+              id="email"
+              name="email"
               disabled
               defaultValue={userInfo?.email || ""}
             />
-            <p className='text-xs text-muted-foreground'>
+            <p className="text-xs text-muted-foreground">
               For security reasons, email cannot be changed.
             </p>
           </div>
 
-          <div className='grid gap-3'>
-            <Label htmlFor='address'> Delivery Address</Label>
+          <div className="grid gap-3">
+            <Label htmlFor="address"> Delivery Address</Label>
             <Input
-              id='address'
-              name='address'
+              id="address"
+              name="address"
               defaultValue={userInfo?.address || ""}
             />
-            <p className='text-xs text-muted-foreground'>
+            {/* <p className="text-xs text-muted-foreground">
               Based on your login activity, we have detected that you are
               currently in{" "}
               <strong>
                 {location
                   ? (() => {
-                      const loc = JSON.parse(location);
+                      const loc = JSON?.parse(location);
                       const parts = [loc.city, loc.region, loc.country].filter(
                         Boolean
                       );
@@ -133,15 +134,15 @@ export const EditDialog = ({
               </strong>
               . Please ensure your delivery address is correct. Add as much
               detail as possible.
-            </p>
+            </p> */}
           </div>
-          <AlertDialogFooter className='mt-2'>
+          <AlertDialogFooter className="mt-2">
             <DialogClose asChild>
-              <Button variant='outline' disabled={isPending}>
+              <Button variant="outline" disabled={isPending}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type='submit' disabled={isPending}>
+            <Button type="submit" disabled={isPending}>
               {isPending ? "Saving..." : "Save changes"}
             </Button>
           </AlertDialogFooter>
