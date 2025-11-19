@@ -1,5 +1,9 @@
 import { UserEntity } from "@/api";
-import { getAllUsersOptions } from "@/api/@tanstack/react-query.gen";
+import {
+  banUserMutation,
+  getAllUsersOptions,
+  unbanUserMutation,
+} from "@/api/@tanstack/react-query.gen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { userColumn } from "@/ui/molecules/columns/userColumn";
 import { DataTable } from "@/ui/organisms/table/DataTable";
@@ -20,33 +24,17 @@ import {
 } from "@/ui/shadcn/dropdown-menu";
 import { Input } from "@/ui/shadcn/input";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Filter,
-  Loader2,
-  Search,
-  TrendingUp,
-  UserCheck,
-  UserX,
-  Users,
-} from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Filter, Loader2, Search } from "lucide-react";
 import { useState, memo } from "react";
 import { UserDetailsDialog } from "./UserDetails";
-
-// Mock stats - replace with real data
-const stats = {
-  total: 2847,
-  active: 2456,
-  inactive: 391,
-  growth: 12.5,
-};
+import { toast } from "sonner";
 
 const UserHeader = memo(() => {
   return (
     <div className="border-b border-border bg-card">
       <div className="container mx-auto px-6 py-8">
         <div className="flex flex-col gap-6">
-          {/* Title */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight text-foreground">
@@ -56,81 +44,6 @@ const UserHeader = memo(() => {
                 Manage and monitor all users across your platform
               </p>
             </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="border-border">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Total Users
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold text-foreground">
-                      {stats.total.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-primary/10 p-3">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Active Users
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold text-foreground">
-                      {stats.active.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-chart-2/10 p-3">
-                    <UserCheck className="h-5 w-5 text-chart-2" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Inactive Users
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold text-foreground">
-                      {stats.inactive.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-muted p-3">
-                    <UserX className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Growth Rate
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold text-foreground">
-                      +{stats.growth}%
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-chart-3/10 p-3">
-                    <TrendingUp className="h-5 w-5 text-chart-3" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
@@ -167,6 +80,15 @@ const UserTableSection = () => {
     }),
   });
 
+  //mutation to ban/ unban user
+  const { mutate: banUser } = useMutation({
+    ...banUserMutation(),
+  });
+
+  const { mutate: unbanUser } = useMutation({
+    ...unbanUserMutation(),
+  });
+
   const pageCount = users?.data?.total
     ? Math.ceil(users.data.total / pagination.pageSize)
     : 0;
@@ -175,6 +97,48 @@ const UserTableSection = () => {
   const handleViewDetails = (user: UserEntity) => {
     setSelectedUser(user);
     setIsDetailsModalOpen(true);
+  };
+
+  //handle user ban
+  const handleUserBan = (userId: string) => {
+    console.log("Ban user with ID:", userId);
+    banUser(
+      {
+        body: {
+          userId,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          toast.success(response.message || "User banned successfully");
+          refetch();
+        },
+        onError: (error: any) => {
+          toast.error(error.message || "Failed to ban user");
+        },
+      }
+    );
+  };
+  //handle user unban
+  const handleUserUnban = (userId: string) => {
+    console.log("Unban user with ID:", userId);
+    unbanUser(
+      {
+        body: {
+          userId,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          toast.success(response.message || "User unbanned successfully");
+          refetch();
+        },
+
+        onError: (error: any) => {
+          toast.error(error.message || "Failed to unban user");
+        },
+      }
+    );
   };
 
   return (
@@ -284,7 +248,11 @@ const UserTableSection = () => {
 
             {!isLoading && !error && (
               <DataTable
-                columns={userColumn(handleViewDetails)}
+                columns={userColumn(
+                  handleViewDetails,
+                  handleUserBan,
+                  handleUserUnban
+                )}
                 data={(users?.data?.data as UserEntity[]) || []}
                 pagination={pagination}
                 onPaginationChange={setPagination}

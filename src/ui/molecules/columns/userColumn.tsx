@@ -18,11 +18,14 @@ import {
   Shield,
   Trash2,
   Eye,
+  Unlock,
 } from "lucide-react";
 import { Badge } from "@/ui/shadcn/badge";
 
 export const userColumn = (
-  onViewDetails: (user: UserEntity) => void
+  onViewDetails: (user: UserEntity) => void,
+  handleUserBan: (userId: string) => void,
+  handleUserUnban: (userId: string) => void
 ): ColumnDef<UserEntity>[] => [
   {
     header: "SN",
@@ -82,6 +85,29 @@ export const userColumn = (
       return (
         <Badge variant={isOauth ? "secondary" : "outline"}>
           {provider || "Local"}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "isBanned",
+    header: "Status",
+    cell: ({ row }) => {
+      const isBanned = row.getValue("isBanned");
+      console.log("isBanned:", isBanned);
+      return (
+        <Badge variant={isBanned ? "destructive" : "default"} className="gap-1">
+          {isBanned ? (
+            <>
+              <XCircle className="h-3 w-3" />
+              Banned
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="h-3 w-3" />
+              Active
+            </>
+          )}
         </Badge>
       );
     },
@@ -156,9 +182,20 @@ export const userColumn = (
               View orders
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
+            <DropdownMenuItem
+              className="text-red-600"
+              onClick={() => handleUserBan(user.id)}
+            >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete user
+              Ban user
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              className="text-green-600"
+              onClick={() => handleUserUnban(user.id)}
+            >
+              <Unlock className="mr-2 h-4 w-4" />
+              Unban user
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

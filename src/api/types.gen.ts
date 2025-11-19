@@ -19,6 +19,7 @@ export type UserEntity = {
     emailVerificationTokenExpiresAt: string | null;
     refreshToken: string;
     tokenVersion: number;
+    isBanned: boolean;
 };
 
 export type DeviceInfoEntity = {
@@ -918,27 +919,6 @@ export type RefreshTokenResponses = {
 
 export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
 
-export type RevokeUserSessionData = {
-    body: {
-        userId: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/auth/revoke-session';
-};
-
-export type RevokeUserSessionResponses = {
-    /**
-     * Ok
-     */
-    200: {
-        message: string;
-        success: boolean;
-    };
-};
-
-export type RevokeUserSessionResponse = RevokeUserSessionResponses[keyof RevokeUserSessionResponses];
-
 export type GoogleAuthData = {
     body?: never;
     path?: never;
@@ -970,6 +950,72 @@ export type GoogleCallBackResponses = {
 };
 
 export type GoogleCallBackResponse = GoogleCallBackResponses[keyof GoogleCallBackResponses];
+
+export type RevokeUserSessionData = {
+    body: {
+        userId: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/admin/revoke-session';
+};
+
+export type RevokeUserSessionResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        forceLogout: boolean;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type RevokeUserSessionResponse = RevokeUserSessionResponses[keyof RevokeUserSessionResponses];
+
+export type BanUserData = {
+    body: {
+        userId: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/admin/ban-user';
+};
+
+export type BanUserResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        forceLogout: boolean;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type BanUserResponse = BanUserResponses[keyof BanUserResponses];
+
+export type UnbanUserData = {
+    body: {
+        userId: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/admin/unban-user';
+};
+
+export type UnbanUserResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        forceLogout: boolean;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type UnbanUserResponse = UnbanUserResponses[keyof UnbanUserResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
