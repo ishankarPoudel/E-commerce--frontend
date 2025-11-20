@@ -23,6 +23,7 @@ import { Route as AuthRegisterIndexRouteImport } from './routes/auth/register/in
 import { Route as AuthProtectedIndexRouteImport } from './routes/auth/protected/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/auth/login/index'
 import { Route as AdminDashboardUsersIndexRouteImport } from './routes/admin-dashboard/users/index'
+import { Route as AdminDashboardOrdersIndexRouteImport } from './routes/admin-dashboard/orders/index'
 import { Route as AdminDashboardCategoryIndexRouteImport } from './routes/admin-dashboard/category/index'
 import { Route as AdminDashboardBagsIndexRouteImport } from './routes/admin-dashboard/bags/index'
 import { Route as AuthRegisterVerifyOtpRouteImport } from './routes/auth/register/verify-otp'
@@ -101,6 +102,12 @@ const AdminDashboardUsersIndexRoute =
     path: '/admin-dashboard/users/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminDashboardOrdersIndexRoute =
+  AdminDashboardOrdersIndexRouteImport.update({
+    id: '/admin-dashboard/orders/',
+    path: '/admin-dashboard/orders/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminDashboardCategoryIndexRoute =
   AdminDashboardCategoryIndexRouteImport.update({
     id: '/admin-dashboard/category/',
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
+  '/admin-dashboard/orders': typeof AdminDashboardOrdersIndexRoute
   '/admin-dashboard/users': typeof AdminDashboardUsersIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/protected': typeof AuthProtectedIndexRoute
@@ -172,6 +180,7 @@ export interface FileRoutesByTo {
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
+  '/admin-dashboard/orders': typeof AdminDashboardOrdersIndexRoute
   '/admin-dashboard/users': typeof AdminDashboardUsersIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/protected': typeof AuthProtectedIndexRoute
@@ -195,6 +204,7 @@ export interface FileRoutesById {
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags/': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category/': typeof AdminDashboardCategoryIndexRoute
+  '/admin-dashboard/orders/': typeof AdminDashboardOrdersIndexRoute
   '/admin-dashboard/users/': typeof AdminDashboardUsersIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/protected/': typeof AuthProtectedIndexRoute
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
+    | '/admin-dashboard/orders'
     | '/admin-dashboard/users'
     | '/auth/login'
     | '/auth/protected'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
+    | '/admin-dashboard/orders'
     | '/admin-dashboard/users'
     | '/auth/login'
     | '/auth/protected'
@@ -263,6 +275,7 @@ export interface FileRouteTypes {
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags/'
     | '/admin-dashboard/category/'
+    | '/admin-dashboard/orders/'
     | '/admin-dashboard/users/'
     | '/auth/login/'
     | '/auth/protected/'
@@ -286,6 +299,7 @@ export interface RootRouteChildren {
   AuthRegisterVerifyOtpRoute: typeof AuthRegisterVerifyOtpRoute
   AdminDashboardBagsIndexRoute: typeof AdminDashboardBagsIndexRoute
   AdminDashboardCategoryIndexRoute: typeof AdminDashboardCategoryIndexRoute
+  AdminDashboardOrdersIndexRoute: typeof AdminDashboardOrdersIndexRoute
   AdminDashboardUsersIndexRoute: typeof AdminDashboardUsersIndexRoute
   AuthLoginIndexRoute: typeof AuthLoginIndexRoute
   AuthProtectedIndexRoute: typeof AuthProtectedIndexRoute
@@ -393,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardUsersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-dashboard/orders/': {
+      id: '/admin-dashboard/orders/'
+      path: '/admin-dashboard/orders'
+      fullPath: '/admin-dashboard/orders'
+      preLoaderRoute: typeof AdminDashboardOrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-dashboard/category/': {
       id: '/admin-dashboard/category/'
       path: '/admin-dashboard/category'
@@ -454,6 +475,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRegisterVerifyOtpRoute: AuthRegisterVerifyOtpRoute,
   AdminDashboardBagsIndexRoute: AdminDashboardBagsIndexRoute,
   AdminDashboardCategoryIndexRoute: AdminDashboardCategoryIndexRoute,
+  AdminDashboardOrdersIndexRoute: AdminDashboardOrdersIndexRoute,
   AdminDashboardUsersIndexRoute: AdminDashboardUsersIndexRoute,
   AuthLoginIndexRoute: AuthLoginIndexRoute,
   AuthProtectedIndexRoute: AuthProtectedIndexRoute,

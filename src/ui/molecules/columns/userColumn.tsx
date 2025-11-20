@@ -15,7 +15,6 @@ import {
   XCircle,
   Mail,
   Calendar,
-  Shield,
   Trash2,
   Eye,
   Unlock,
@@ -176,10 +175,6 @@ export const userColumn = (
             <DropdownMenuItem onClick={() => onViewDetails(user)}>
               <Eye className="mr-2 h-4 w-4" />
               View details
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Shield className="mr-2 h-4 w-4" />
-              View orders
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

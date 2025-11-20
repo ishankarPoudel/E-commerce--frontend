@@ -110,6 +110,7 @@ export type OrderEntity = {
     deletedAt: string | null;
     user: UserEntity;
     status: 'pending' | 'paid' | 'failed' | 'refunded';
+    orderStatus: 'new' | 'processed' | 'cancelled' | 'completed';
     deliveryMethod: 'delivery' | 'pickup';
     currency: string;
     amount: number;
@@ -259,7 +260,7 @@ export type GetAllUsersData = {
 
 export type GetAllUsersResponses = {
     /**
-     * Users retrieved successfully
+     * Ok
      */
     200: {
         data: {
@@ -320,11 +321,15 @@ export type GetAllOrdersResponses = {
                 amount: number;
                 currency: string;
                 deliveryMethod: 'delivery' | 'pickup';
+                orderStatus: 'new' | 'processed' | 'cancelled' | 'completed';
                 status: 'pending' | 'paid' | 'failed' | 'refunded';
                 user: UserEntity;
                 items: Array<{
                     bag: {
-                        images: unknown;
+                        images: Array<{
+                            url: string;
+                            id: string;
+                        }>;
                         price: number;
                         name: string;
                         id: string;
@@ -341,6 +346,37 @@ export type GetAllOrdersResponses = {
 };
 
 export type GetAllOrdersResponse = GetAllOrdersResponses[keyof GetAllOrdersResponses];
+
+export type GetAllOrdersForAdminData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        pageSize?: number;
+        search?: string;
+        sortBy?: 'date' | 'totalAmount' | 'orderStatus' | 'deliveryMethod';
+    };
+    url: '/order/admin/get-all-orders';
+};
+
+export type GetAllOrdersForAdminResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            totalPages: number;
+            pageSize: number;
+            page: number;
+            total: number;
+            data: Array<OrderEntity>;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetAllOrdersForAdminResponse = GetAllOrdersForAdminResponses[keyof GetAllOrdersForAdminResponses];
 
 export type UploadMediaData = {
     body: {
