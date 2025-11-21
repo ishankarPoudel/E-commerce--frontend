@@ -6,6 +6,10 @@ import {
   getPaginationRowModel,
   PaginationState,
   OnChangeFn,
+  SortingState,
+  getSortedRowModel,
+  ColumnFiltersState,
+  getFilteredRowModel,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -16,6 +20,8 @@ import {
   TableRow,
 } from "@/ui/shadcn/table";
 import { DataTablePagination } from "./Pagination";
+import React from "react";
+import { Input } from "@/ui/shadcn/input";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -32,6 +38,10 @@ export function DataTable<TData, TValue>({
   onPaginationChange,
   pageCount,
 }: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
   const table = useReactTable({
     data,
     columns,
@@ -39,8 +49,14 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: true,
     pageCount: pageCount ?? -1,
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
-      pagination: pagination,
+      pagination,
+      sorting,
+      columnFilters,
     },
     onPaginationChange,
   });
@@ -48,6 +64,7 @@ export function DataTable<TData, TValue>({
   return (
     <>
       <div className="overflow-hidden rounded-md border">
+        <div className="flex items-center py-4"></div>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

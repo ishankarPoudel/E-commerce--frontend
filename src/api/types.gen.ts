@@ -126,7 +126,7 @@ export type OrderItemEntity = {
     updatedAt: string;
     deletedAt: string | null;
     order: OrderEntity;
-    bag: BagEntity;
+    product: BagEntity;
     quantity: number;
     unitPrice: number;
 };
@@ -325,7 +325,7 @@ export type GetAllOrdersResponses = {
                 status: 'pending' | 'paid' | 'failed' | 'refunded';
                 user: UserEntity;
                 items: Array<{
-                    bag: {
+                    product: {
                         images: Array<{
                             url: string;
                             id: string;
@@ -355,6 +355,9 @@ export type GetAllOrdersForAdminData = {
         pageSize?: number;
         search?: string;
         sortBy?: 'date' | 'totalAmount' | 'orderStatus' | 'deliveryMethod';
+        deliveryMethod?: 'delivery' | 'pickup';
+        status?: 'new' | 'processing' | 'completed' | 'cancelled';
+        sortOrder?: 'ASC' | 'DESC';
     };
     url: '/order/admin/get-all-orders';
 };

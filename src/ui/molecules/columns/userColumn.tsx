@@ -18,6 +18,7 @@ import {
   Trash2,
   Eye,
   Unlock,
+  ArrowUpDown,
 } from "lucide-react";
 import { Badge } from "@/ui/shadcn/badge";
 
@@ -34,14 +35,34 @@ export const userColumn = (
   },
   {
     accessorKey: "fullName",
-    header: "Full Name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Full Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("fullName") || "N/A"}</div>
     ),
   },
   {
     accessorKey: "email",
-    header: "Email",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Email
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Mail className="h-4 w-4 text-muted-foreground" />

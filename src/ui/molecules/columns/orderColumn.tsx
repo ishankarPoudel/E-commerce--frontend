@@ -32,19 +32,24 @@ ColumnDef<OrderEntity>[] => [
   {
     accessorKey: "fullName",
     header: "Full Name",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("fullName") || "N/A"}</div>
-    ),
+    cell: ({ row }) => {
+      const fullName = row.original.user.fullName || "N/A";
+      console.log("row in orderColumn :", row.original);
+      return <div className="font-medium">{fullName}</div>;
+    },
   },
   {
     accessorKey: "email",
     header: "Email",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <Mail className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm">{row.getValue("email")}</span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const email = row.original.user.email || "N/A";
+      return (
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">{email}</span>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "orderStatus",
@@ -53,6 +58,13 @@ ColumnDef<OrderEntity>[] => [
       return (
         <Badge className="gap-1">{row.getValue("orderStatus") || "N/A"}</Badge>
       );
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Payment Status",
+    cell: ({ row }) => {
+      return <Badge className="gap-1">{row.getValue("status") || "N/A"}</Badge>;
     },
   },
   {
