@@ -1,13 +1,13 @@
+import FloatingAIChat from "@/components/Floating-AI-chatbot";
 import Header from "@/ui/organisms/header/Header";
 import CategoryBasedBags from "@/ui/organisms/products/CategoryBasedBags";
-import { OnsaleBags } from "@/ui/organisms/products/OnSaleBags";
 
 const HomePage = () => {
   return (
     <div>
       <Header />
-      <OnsaleBags />
       <CategoryBasedBags />
+      <FloatingAIChat />
     </div>
   );
 };

@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 
 body {
-  font-family: Geist Sans, sans-serif, font-sans;
+  @apply font-sans;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -53,8 +53,7 @@ body {
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.60 0.50 145deg);
-
+  --primary: oklch(0.6 0.5 145deg);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);

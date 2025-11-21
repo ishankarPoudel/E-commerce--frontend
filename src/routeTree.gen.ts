@@ -8,287 +8,138 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as SearchIndexRouteImport } from './routes/search/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as OrdersIndexRouteImport } from './routes/orders/index'
+import { Route as CheckoutIndexRouteImport } from './routes/checkout/index'
+import { Route as CartIndexRouteImport } from './routes/cart/index'
+import { Route as AdminDashboardIndexRouteImport } from './routes/admin-dashboard/index'
+import { Route as SearchIdRouteImport } from './routes/search/$id'
+import { Route as CheckoutResultRouteImport } from './routes/checkout/result'
+import { Route as AuthResetPasswordIndexRouteImport } from './routes/auth/reset-password/index'
+import { Route as AuthRegisterIndexRouteImport } from './routes/auth/register/index'
+import { Route as AuthProtectedIndexRouteImport } from './routes/auth/protected/index'
+import { Route as AuthLoginIndexRouteImport } from './routes/auth/login/index'
+import { Route as AdminDashboardUsersIndexRouteImport } from './routes/admin-dashboard/users/index'
+import { Route as AdminDashboardOrdersIndexRouteImport } from './routes/admin-dashboard/orders/index'
+import { Route as AdminDashboardCategoryIndexRouteImport } from './routes/admin-dashboard/category/index'
+import { Route as AdminDashboardBagsIndexRouteImport } from './routes/admin-dashboard/bags/index'
+import { Route as AuthRegisterVerifyOtpRouteImport } from './routes/auth/register/verify-otp'
+import { Route as AuthRecoverPasswordIdRouteImport } from './routes/auth/recover-password/$id'
+import { Route as AdminDashboardBagsAddBagRouteImport } from './routes/admin-dashboard/bags/addBag'
+import { Route as AdminDashboardBagsIdRouteImport } from './routes/admin-dashboard/bags/$id'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as IndexImport } from './routes/index'
-import { Route as SearchIndexImport } from './routes/search/index'
-import { Route as ProfileIndexImport } from './routes/profile/index'
-import { Route as OrdersIndexImport } from './routes/orders/index'
-import { Route as CheckoutIndexImport } from './routes/checkout/index'
-import { Route as CartIndexImport } from './routes/cart/index'
-import { Route as AdminDashboardIndexImport } from './routes/admin-dashboard/index'
-import { Route as SearchIdImport } from './routes/search/$id'
-import { Route as CheckoutResultImport } from './routes/checkout/result'
-import { Route as AuthResetPasswordIndexImport } from './routes/auth/reset-password/index'
-import { Route as AuthRegisterIndexImport } from './routes/auth/register/index'
-import { Route as AuthProtectedIndexImport } from './routes/auth/protected/index'
-import { Route as AuthLoginIndexImport } from './routes/auth/login/index'
-import { Route as AdminDashboardCategoryIndexImport } from './routes/admin-dashboard/category/index'
-import { Route as AdminDashboardBagsIndexImport } from './routes/admin-dashboard/bags/index'
-import { Route as AuthRegisterVerifyOtpImport } from './routes/auth/register/verify-otp'
-import { Route as AuthRecoverPasswordIdImport } from './routes/auth/recover-password/$id'
-import { Route as AdminDashboardBagsAddBagImport } from './routes/admin-dashboard/bags/addBag'
-import { Route as AdminDashboardBagsIdImport } from './routes/admin-dashboard/bags/$id'
-
-// Create/Update Routes
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const SearchIndexRoute = SearchIndexImport.update({
+const SearchIndexRoute = SearchIndexRouteImport.update({
   id: '/search/',
   path: '/search/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const ProfileIndexRoute = ProfileIndexImport.update({
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
   id: '/profile/',
   path: '/profile/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const OrdersIndexRoute = OrdersIndexImport.update({
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const CheckoutIndexRoute = CheckoutIndexImport.update({
+const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
   id: '/checkout/',
   path: '/checkout/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const CartIndexRoute = CartIndexImport.update({
+const CartIndexRoute = CartIndexRouteImport.update({
   id: '/cart/',
   path: '/cart/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AdminDashboardIndexRoute = AdminDashboardIndexImport.update({
+const AdminDashboardIndexRoute = AdminDashboardIndexRouteImport.update({
   id: '/admin-dashboard/',
   path: '/admin-dashboard/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const SearchIdRoute = SearchIdImport.update({
+const SearchIdRoute = SearchIdRouteImport.update({
   id: '/search/$id',
   path: '/search/$id',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const CheckoutResultRoute = CheckoutResultImport.update({
+const CheckoutResultRoute = CheckoutResultRouteImport.update({
   id: '/checkout/result',
   path: '/checkout/result',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthResetPasswordIndexRoute = AuthResetPasswordIndexImport.update({
+const AuthResetPasswordIndexRoute = AuthResetPasswordIndexRouteImport.update({
   id: '/auth/reset-password/',
   path: '/auth/reset-password/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthRegisterIndexRoute = AuthRegisterIndexImport.update({
+const AuthRegisterIndexRoute = AuthRegisterIndexRouteImport.update({
   id: '/auth/register/',
   path: '/auth/register/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthProtectedIndexRoute = AuthProtectedIndexImport.update({
+const AuthProtectedIndexRoute = AuthProtectedIndexRouteImport.update({
   id: '/auth/protected/',
   path: '/auth/protected/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthLoginIndexRoute = AuthLoginIndexImport.update({
+const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   id: '/auth/login/',
   path: '/auth/login/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
+const AdminDashboardUsersIndexRoute =
+  AdminDashboardUsersIndexRouteImport.update({
+    id: '/admin-dashboard/users/',
+    path: '/admin-dashboard/users/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminDashboardOrdersIndexRoute =
+  AdminDashboardOrdersIndexRouteImport.update({
+    id: '/admin-dashboard/orders/',
+    path: '/admin-dashboard/orders/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminDashboardCategoryIndexRoute =
-  AdminDashboardCategoryIndexImport.update({
+  AdminDashboardCategoryIndexRouteImport.update({
     id: '/admin-dashboard/category/',
     path: '/admin-dashboard/category/',
-    getParentRoute: () => rootRoute,
+    getParentRoute: () => rootRouteImport,
   } as any)
-
-const AdminDashboardBagsIndexRoute = AdminDashboardBagsIndexImport.update({
+const AdminDashboardBagsIndexRoute = AdminDashboardBagsIndexRouteImport.update({
   id: '/admin-dashboard/bags/',
   path: '/admin-dashboard/bags/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthRegisterVerifyOtpRoute = AuthRegisterVerifyOtpImport.update({
+const AuthRegisterVerifyOtpRoute = AuthRegisterVerifyOtpRouteImport.update({
   id: '/auth/register/verify-otp',
   path: '/auth/register/verify-otp',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthRecoverPasswordIdRoute = AuthRecoverPasswordIdImport.update({
+const AuthRecoverPasswordIdRoute = AuthRecoverPasswordIdRouteImport.update({
   id: '/auth/recover-password/$id',
   path: '/auth/recover-password/$id',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AdminDashboardBagsAddBagRoute = AdminDashboardBagsAddBagImport.update({
-  id: '/admin-dashboard/bags/addBag',
-  path: '/admin-dashboard/bags/addBag',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AdminDashboardBagsIdRoute = AdminDashboardBagsIdImport.update({
+const AdminDashboardBagsAddBagRoute =
+  AdminDashboardBagsAddBagRouteImport.update({
+    id: '/admin-dashboard/bags/addBag',
+    path: '/admin-dashboard/bags/addBag',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminDashboardBagsIdRoute = AdminDashboardBagsIdRouteImport.update({
   id: '/admin-dashboard/bags/$id',
   path: '/admin-dashboard/bags/$id',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/checkout/result': {
-      id: '/checkout/result'
-      path: '/checkout/result'
-      fullPath: '/checkout/result'
-      preLoaderRoute: typeof CheckoutResultImport
-      parentRoute: typeof rootRoute
-    }
-    '/search/$id': {
-      id: '/search/$id'
-      path: '/search/$id'
-      fullPath: '/search/$id'
-      preLoaderRoute: typeof SearchIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/admin-dashboard/': {
-      id: '/admin-dashboard/'
-      path: '/admin-dashboard'
-      fullPath: '/admin-dashboard'
-      preLoaderRoute: typeof AdminDashboardIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/cart/': {
-      id: '/cart/'
-      path: '/cart'
-      fullPath: '/cart'
-      preLoaderRoute: typeof CartIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/checkout/': {
-      id: '/checkout/'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof CheckoutIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/orders/': {
-      id: '/orders/'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof OrdersIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/profile/': {
-      id: '/profile/'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/search/': {
-      id: '/search/'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/admin-dashboard/bags/$id': {
-      id: '/admin-dashboard/bags/$id'
-      path: '/admin-dashboard/bags/$id'
-      fullPath: '/admin-dashboard/bags/$id'
-      preLoaderRoute: typeof AdminDashboardBagsIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/admin-dashboard/bags/addBag': {
-      id: '/admin-dashboard/bags/addBag'
-      path: '/admin-dashboard/bags/addBag'
-      fullPath: '/admin-dashboard/bags/addBag'
-      preLoaderRoute: typeof AdminDashboardBagsAddBagImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/recover-password/$id': {
-      id: '/auth/recover-password/$id'
-      path: '/auth/recover-password/$id'
-      fullPath: '/auth/recover-password/$id'
-      preLoaderRoute: typeof AuthRecoverPasswordIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/register/verify-otp': {
-      id: '/auth/register/verify-otp'
-      path: '/auth/register/verify-otp'
-      fullPath: '/auth/register/verify-otp'
-      preLoaderRoute: typeof AuthRegisterVerifyOtpImport
-      parentRoute: typeof rootRoute
-    }
-    '/admin-dashboard/bags/': {
-      id: '/admin-dashboard/bags/'
-      path: '/admin-dashboard/bags'
-      fullPath: '/admin-dashboard/bags'
-      preLoaderRoute: typeof AdminDashboardBagsIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/admin-dashboard/category/': {
-      id: '/admin-dashboard/category/'
-      path: '/admin-dashboard/category'
-      fullPath: '/admin-dashboard/category'
-      preLoaderRoute: typeof AdminDashboardCategoryIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/login/': {
-      id: '/auth/login/'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/protected/': {
-      id: '/auth/protected/'
-      path: '/auth/protected'
-      fullPath: '/auth/protected'
-      preLoaderRoute: typeof AuthProtectedIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/register/': {
-      id: '/auth/register/'
-      path: '/auth/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/reset-password/': {
-      id: '/auth/reset-password/'
-      path: '/auth/reset-password'
-      fullPath: '/auth/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordIndexImport
-      parentRoute: typeof rootRoute
-    }
-  }
-}
-
-// Create and export the route tree
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -306,12 +157,13 @@ export interface FileRoutesByFullPath {
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
+  '/admin-dashboard/orders': typeof AdminDashboardOrdersIndexRoute
+  '/admin-dashboard/users': typeof AdminDashboardUsersIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/protected': typeof AuthProtectedIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
   '/auth/reset-password': typeof AuthResetPasswordIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout/result': typeof CheckoutResultRoute
@@ -328,14 +180,15 @@ export interface FileRoutesByTo {
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category': typeof AdminDashboardCategoryIndexRoute
+  '/admin-dashboard/orders': typeof AdminDashboardOrdersIndexRoute
+  '/admin-dashboard/users': typeof AdminDashboardUsersIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/protected': typeof AuthProtectedIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
   '/auth/reset-password': typeof AuthResetPasswordIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/search/$id': typeof SearchIdRoute
@@ -351,12 +204,13 @@ export interface FileRoutesById {
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags/': typeof AdminDashboardBagsIndexRoute
   '/admin-dashboard/category/': typeof AdminDashboardCategoryIndexRoute
+  '/admin-dashboard/orders/': typeof AdminDashboardOrdersIndexRoute
+  '/admin-dashboard/users/': typeof AdminDashboardUsersIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/protected/': typeof AuthProtectedIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
   '/auth/reset-password/': typeof AuthResetPasswordIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -375,6 +229,8 @@ export interface FileRouteTypes {
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
+    | '/admin-dashboard/orders'
+    | '/admin-dashboard/users'
     | '/auth/login'
     | '/auth/protected'
     | '/auth/register'
@@ -396,6 +252,8 @@ export interface FileRouteTypes {
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags'
     | '/admin-dashboard/category'
+    | '/admin-dashboard/orders'
+    | '/admin-dashboard/users'
     | '/auth/login'
     | '/auth/protected'
     | '/auth/register'
@@ -417,13 +275,14 @@ export interface FileRouteTypes {
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags/'
     | '/admin-dashboard/category/'
+    | '/admin-dashboard/orders/'
+    | '/admin-dashboard/users/'
     | '/auth/login/'
     | '/auth/protected/'
     | '/auth/register/'
     | '/auth/reset-password/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckoutResultRoute: typeof CheckoutResultRoute
@@ -440,10 +299,164 @@ export interface RootRouteChildren {
   AuthRegisterVerifyOtpRoute: typeof AuthRegisterVerifyOtpRoute
   AdminDashboardBagsIndexRoute: typeof AdminDashboardBagsIndexRoute
   AdminDashboardCategoryIndexRoute: typeof AdminDashboardCategoryIndexRoute
+  AdminDashboardOrdersIndexRoute: typeof AdminDashboardOrdersIndexRoute
+  AdminDashboardUsersIndexRoute: typeof AdminDashboardUsersIndexRoute
   AuthLoginIndexRoute: typeof AuthLoginIndexRoute
   AuthProtectedIndexRoute: typeof AuthProtectedIndexRoute
   AuthRegisterIndexRoute: typeof AuthRegisterIndexRoute
   AuthResetPasswordIndexRoute: typeof AuthResetPasswordIndexRoute
+}
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search/': {
+      id: '/search/'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/': {
+      id: '/orders/'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/': {
+      id: '/checkout/'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cart/': {
+      id: '/cart/'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-dashboard/': {
+      id: '/admin-dashboard/'
+      path: '/admin-dashboard'
+      fullPath: '/admin-dashboard'
+      preLoaderRoute: typeof AdminDashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search/$id': {
+      id: '/search/$id'
+      path: '/search/$id'
+      fullPath: '/search/$id'
+      preLoaderRoute: typeof SearchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/result': {
+      id: '/checkout/result'
+      path: '/checkout/result'
+      fullPath: '/checkout/result'
+      preLoaderRoute: typeof CheckoutResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password/': {
+      id: '/auth/reset-password/'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/register/': {
+      id: '/auth/register/'
+      path: '/auth/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/protected/': {
+      id: '/auth/protected/'
+      path: '/auth/protected'
+      fullPath: '/auth/protected'
+      preLoaderRoute: typeof AuthProtectedIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login/': {
+      id: '/auth/login/'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-dashboard/users/': {
+      id: '/admin-dashboard/users/'
+      path: '/admin-dashboard/users'
+      fullPath: '/admin-dashboard/users'
+      preLoaderRoute: typeof AdminDashboardUsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-dashboard/orders/': {
+      id: '/admin-dashboard/orders/'
+      path: '/admin-dashboard/orders'
+      fullPath: '/admin-dashboard/orders'
+      preLoaderRoute: typeof AdminDashboardOrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-dashboard/category/': {
+      id: '/admin-dashboard/category/'
+      path: '/admin-dashboard/category'
+      fullPath: '/admin-dashboard/category'
+      preLoaderRoute: typeof AdminDashboardCategoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-dashboard/bags/': {
+      id: '/admin-dashboard/bags/'
+      path: '/admin-dashboard/bags'
+      fullPath: '/admin-dashboard/bags'
+      preLoaderRoute: typeof AdminDashboardBagsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/register/verify-otp': {
+      id: '/auth/register/verify-otp'
+      path: '/auth/register/verify-otp'
+      fullPath: '/auth/register/verify-otp'
+      preLoaderRoute: typeof AuthRegisterVerifyOtpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/recover-password/$id': {
+      id: '/auth/recover-password/$id'
+      path: '/auth/recover-password/$id'
+      fullPath: '/auth/recover-password/$id'
+      preLoaderRoute: typeof AuthRecoverPasswordIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-dashboard/bags/addBag': {
+      id: '/admin-dashboard/bags/addBag'
+      path: '/admin-dashboard/bags/addBag'
+      fullPath: '/admin-dashboard/bags/addBag'
+      preLoaderRoute: typeof AdminDashboardBagsAddBagRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-dashboard/bags/$id': {
+      id: '/admin-dashboard/bags/$id'
+      path: '/admin-dashboard/bags/$id'
+      fullPath: '/admin-dashboard/bags/$id'
+      preLoaderRoute: typeof AdminDashboardBagsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -462,100 +475,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRegisterVerifyOtpRoute: AuthRegisterVerifyOtpRoute,
   AdminDashboardBagsIndexRoute: AdminDashboardBagsIndexRoute,
   AdminDashboardCategoryIndexRoute: AdminDashboardCategoryIndexRoute,
+  AdminDashboardOrdersIndexRoute: AdminDashboardOrdersIndexRoute,
+  AdminDashboardUsersIndexRoute: AdminDashboardUsersIndexRoute,
   AuthLoginIndexRoute: AuthLoginIndexRoute,
   AuthProtectedIndexRoute: AuthProtectedIndexRoute,
   AuthRegisterIndexRoute: AuthRegisterIndexRoute,
   AuthResetPasswordIndexRoute: AuthResetPasswordIndexRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/checkout/result",
-        "/search/$id",
-        "/admin-dashboard/",
-        "/cart/",
-        "/checkout/",
-        "/orders/",
-        "/profile/",
-        "/search/",
-        "/admin-dashboard/bags/$id",
-        "/admin-dashboard/bags/addBag",
-        "/auth/recover-password/$id",
-        "/auth/register/verify-otp",
-        "/admin-dashboard/bags/",
-        "/admin-dashboard/category/",
-        "/auth/login/",
-        "/auth/protected/",
-        "/auth/register/",
-        "/auth/reset-password/"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/checkout/result": {
-      "filePath": "checkout/result.tsx"
-    },
-    "/search/$id": {
-      "filePath": "search/$id.tsx"
-    },
-    "/admin-dashboard/": {
-      "filePath": "admin-dashboard/index.tsx"
-    },
-    "/cart/": {
-      "filePath": "cart/index.tsx"
-    },
-    "/checkout/": {
-      "filePath": "checkout/index.tsx"
-    },
-    "/orders/": {
-      "filePath": "orders/index.tsx"
-    },
-    "/profile/": {
-      "filePath": "profile/index.tsx"
-    },
-    "/search/": {
-      "filePath": "search/index.tsx"
-    },
-    "/admin-dashboard/bags/$id": {
-      "filePath": "admin-dashboard/bags/$id.tsx"
-    },
-    "/admin-dashboard/bags/addBag": {
-      "filePath": "admin-dashboard/bags/addBag.tsx"
-    },
-    "/auth/recover-password/$id": {
-      "filePath": "auth/recover-password/$id.tsx"
-    },
-    "/auth/register/verify-otp": {
-      "filePath": "auth/register/verify-otp.tsx"
-    },
-    "/admin-dashboard/bags/": {
-      "filePath": "admin-dashboard/bags/index.tsx"
-    },
-    "/admin-dashboard/category/": {
-      "filePath": "admin-dashboard/category/index.tsx"
-    },
-    "/auth/login/": {
-      "filePath": "auth/login/index.tsx"
-    },
-    "/auth/protected/": {
-      "filePath": "auth/protected/index.tsx"
-    },
-    "/auth/register/": {
-      "filePath": "auth/register/index.tsx"
-    },
-    "/auth/reset-password/": {
-      "filePath": "auth/reset-password/index.tsx"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

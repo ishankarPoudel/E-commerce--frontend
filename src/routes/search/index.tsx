@@ -7,6 +7,7 @@ export const Route = createFileRoute("/search/")({
   validateSearch: (search: Record<string, unknown>) => ({
     q: (search.q as string) || "",
     category: (search.category as string) || "",
+    categoryId: (search.categoryId as string) || "",
   }),
 });
 
@@ -16,7 +17,11 @@ function RouteComponent() {
   return (
     <>
       <LandingPageLayout>
-        <SearchResult q={search.q} />
+        <SearchResult
+          q={search.q}
+          category={search.category}
+          categoryId={search.categoryId}
+        />
       </LandingPageLayout>
     </>
   );

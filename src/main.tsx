@@ -23,15 +23,39 @@ window.fetch = async (input, init) => {
       import.meta.env.VITE_API_URL
     )
   ) {
-    // Don't refresh if already at the refresh endpoint
-    const isRefreshEndpoint = (
-      input instanceof Request ? input.url : input.toString()
-    ).includes("/refresh-token");
+    const url = input instanceof Request ? input.url : input.toString();
 
-    if (!isRefreshEndpoint) {
-      console.log(" 401 DETECTED! Refreshing token...");
+    // Skip force logout check for auth endpoints (login, register, etc.)
+    const isAuthEndpoint =
+      url.includes("/auth/login") ||
+      url.includes("/auth/register") ||
+      url.includes("/auth/verify-otp") ||
+      url.includes("/auth/reset-password") ||
+      url.includes("/auth/recover-password");
 
-      // Call the refresh endpoint directly
+    if (!isAuthEndpoint) {
+      // Check if session was revoked
+      const responseClone = response.clone();
+      try {
+        const data = await responseClone.json();
+        if (data.forceLogout === true) {
+          console.log(" Session revoked by admin! Forcing logout...");
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = "/auth/login?error=session_revoked";
+          return response;
+        }
+      } catch (e) {
+        // Not JSON response, continue
+      }
+    }
+
+    // Don't refresh if already at the refresh endpoint or auth endpoints
+    const isRefreshEndpoint = url.includes("/refresh-token");
+
+    if (!isRefreshEndpoint && !isAuthEndpoint) {
+      console.log("🔄 401 DETECTED! Refreshing token...");
+
       try {
         await refreshToken({
           credentials: "include",
@@ -46,7 +70,10 @@ window.fetch = async (input, init) => {
 
         return await originalFetch(retryRequest, retryInit);
       } catch (e) {
-        console.error("Failed to refresh token:", e);
+        console.error("❌ Failed to refresh token:", e);
+        // Redirect to login if refresh fails
+        localStorage.clear();
+        window.location.href = "/auth/login";
       }
     }
   }
