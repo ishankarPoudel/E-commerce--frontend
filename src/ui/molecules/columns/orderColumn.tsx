@@ -13,16 +13,15 @@ import {
   MoreHorizontal,
   Mail,
   Calendar,
-  Trash2,
   Eye,
-  Unlock,
+  Edit,
+  ArrowUpDown,
 } from "lucide-react";
 import { Badge } from "@/ui/shadcn/badge";
 
-export const orderColumn = (): //   onViewDetails: (user: UserEntity) => void,
-//   handleUserBan: (userId: string) => void,
-//   handleUserUnban: (userId: string) => void
-ColumnDef<OrderEntity>[] => [
+export const orderColumn = (
+  onViewDetails: (order: OrderEntity) => void
+): ColumnDef<OrderEntity>[] => [
   {
     header: "SN",
     cell: ({ row }) => (
@@ -107,24 +106,28 @@ ColumnDef<OrderEntity>[] => [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                navigator.clipboard.writeText(order.user.email || "");
+              }}
+            >
               <Mail className="mr-2 h-4 w-4" />
               Copy email
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onViewDetails(order)}>
               <Eye className="mr-2 h-4 w-4" />
               View details
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
-              <Trash2 className="mr-2 h-4 w-4" />
-              ``Delete order
+            <DropdownMenuItem className="text-green-600">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit order
             </DropdownMenuItem>
 
-            <DropdownMenuItem className="text-green-600">
-              <Unlock className="mr-2 h-4 w-4" />
-              Unban user
+            <DropdownMenuItem className="text-yellow-600">
+              <ArrowUpDown className="mr-2 h-4 w-4" />
+              Update status
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

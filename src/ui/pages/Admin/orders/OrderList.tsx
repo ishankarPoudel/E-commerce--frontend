@@ -4,17 +4,10 @@ import { orderColumn } from "@/ui/molecules/columns/orderColumn";
 import { DataTable } from "@/ui/organisms/table/DataTable";
 import { Button } from "@/ui/shadcn/button";
 import { Badge } from "@/ui/shadcn/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/ui/shadcn/card";
+import { Card, CardContent } from "@/ui/shadcn/card";
 import { Input } from "@/ui/shadcn/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { Separator } from "@/ui/shadcn/separator";
-import { Tabs, TabsList, TabsTrigger } from "@/ui/shadcn/tabs";
 import { useQuery } from "@tanstack/react-query";
 import {
   Loader,
@@ -24,13 +17,13 @@ import {
   ArrowUpDown,
   Truck,
   Circle,
-  Filter,
   PlusCircle,
-  CalendarIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { cn } from "@/lib/utils";
+
+import { OrderDetails } from "./OrderDetails";
 
 const OrderList = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,23 +34,17 @@ const OrderList = () => {
     "new" | "processing" | "completed" | "cancelled" | null
   >(null);
   const [sortBy, setSortBy] = useState<"date" | "newest" | "oldest">("date");
-
   // Quick View Tabs State
   const [activeTab, setActiveTab] = useState("all");
+  const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderEntity | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   });
-
-  // Handle Tab Change
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    if (value === "all") setStatus(null);
-    else setStatus(value as any);
-    setPagination({ ...pagination, pageIndex: 0 });
-  };
 
   const {
     data: orders,
@@ -81,6 +68,12 @@ const OrderList = () => {
   const pageCount = orders?.data?.total
     ? Math.ceil(orders.data.total / pagination.pageSize)
     : 0;
+
+  // Handle view details
+  const handleViewDetails = (order: OrderEntity) => {
+    setSelectedOrder(order);
+    setIsDrawerOpen(true);
+  };
 
   const isFiltered =
     deliveryMethod || status || searchQuery || sortBy !== "date";
@@ -343,7 +336,7 @@ const OrderList = () => {
 
             {!isOrdersLoading && !error && (
               <DataTable
-                columns={orderColumn()}
+                columns={orderColumn(handleViewDetails)}
                 data={(orders?.data?.data as OrderEntity[]) || []}
                 pagination={pagination}
                 onPaginationChange={setPagination}
@@ -353,6 +346,14 @@ const OrderList = () => {
           </div>
         </CardContent>
       </Card>
+
+      {selectedOrder && (
+        <OrderDetails
+          order={selectedOrder}
+          open={isDrawerOpen}
+          onOpenChange={setIsDrawerOpen}
+        />
+      )}
     </div>
   );
 };
