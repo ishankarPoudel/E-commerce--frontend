@@ -24,6 +24,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { cn } from "@/lib/utils";
 
 import { OrderDetails } from "./OrderDetails";
+import { UpdateOrderStatus } from "./OrderStatusUpdate";
 
 const OrderList = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,7 +37,7 @@ const OrderList = () => {
   const [sortBy, setSortBy] = useState<"date" | "newest" | "oldest">("date");
   // Quick View Tabs State
   const [activeTab, setActiveTab] = useState("all");
-  const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+  const [isStatusUpdateOpen, setIsStatusUpdateOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderEntity | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -73,6 +74,13 @@ const OrderList = () => {
   const handleViewDetails = (order: OrderEntity) => {
     setSelectedOrder(order);
     setIsDrawerOpen(true);
+  };
+  // Handle order status update
+  const handleOrderStatusUpdate = (orderId: string) => {
+    setIsStatusUpdateOpen(true);
+    setSelectedOrder(
+      orders?.data?.data.find((order) => order.id === orderId) || null
+    );
   };
 
   const isFiltered =
@@ -336,7 +344,10 @@ const OrderList = () => {
 
             {!isOrdersLoading && !error && (
               <DataTable
-                columns={orderColumn(handleViewDetails)}
+                columns={orderColumn(
+                  handleViewDetails,
+                  handleOrderStatusUpdate
+                )}
                 data={(orders?.data?.data as OrderEntity[]) || []}
                 pagination={pagination}
                 onPaginationChange={setPagination}
@@ -354,6 +365,13 @@ const OrderList = () => {
           onOpenChange={setIsDrawerOpen}
         />
       )}
+
+      <UpdateOrderStatus
+        open={isStatusUpdateOpen}
+        onOpenChange={setIsStatusUpdateOpen}
+        orderId={selectedOrder?.id || ""}
+        currentStatus={selectedOrder?.orderStatus || "new"}
+      />
     </div>
   );
 };

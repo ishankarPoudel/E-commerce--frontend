@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -25,9 +24,11 @@ import {
   XCircle,
   Truck,
   Mail,
-  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { getOrderDetailsByOrderIdForAdminOptions } from "@/api/@tanstack/react-query.gen";
+import { getImageUrl } from "@/utils/urlHelpers";
 
 interface OrderDetailsDrawerProps {
   order: OrderEntity;
@@ -40,7 +41,13 @@ export function OrderDetails({
   open,
   onOpenChange,
 }: OrderDetailsDrawerProps) {
-  const [loadingUserOrders, setLoadingUserOrders] = useState(false);
+  const { data: orderDetails, isLoading: loadingOrderDetails } = useQuery({
+    ...getOrderDetailsByOrderIdForAdminOptions({
+      query: { orderId: order.id as string },
+    }),
+  });
+
+  const data = orderDetails?.data;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -82,12 +89,12 @@ export function OrderDetails({
         className="overflow-x-visible rounded-l-2xl bg-white shadow-2xl"
       >
         <div className="flex flex-col h-full">
-          {/* --- HEADER --- */}
+          {/* HEADER */}
           <DrawerHeader className="border-b px-6 py-5 bg-gray-50/40">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <DrawerTitle className="text-xl font-bold flex items-center gap-2">
-                  Order #{order.id?.slice(0, 8)}
+                  Order #{order.id}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -107,6 +114,7 @@ export function OrderDetails({
                     : "N/A"}
                 </DrawerDescription>
               </div>
+
               <Badge
                 variant="outline"
                 className={`px-3 py-1 text-sm font-medium capitalize transition-colors ${statusStyle.badge}`}
@@ -117,62 +125,61 @@ export function OrderDetails({
             </div>
           </DrawerHeader>
 
-          {/* --- SCROLLABLE CONTENT --- */}
-          <ScrollArea className="flex-1">
+          {/* CONTENT */}
+          <ScrollArea className="flex-1 h-vh overflow-y-auto">
             <div className="px-6 py-6 space-y-8">
-              {/* 1. Customer Section */}
-              <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* CUSTOMER DETAILS */}
+              <section>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                   <User className="h-4 w-4" /> Customer Details
                 </h3>
-                <div className="bg-card rounded-xl border p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+
+                <div className="bg-card rounded-xl border p-4 shadow-sm">
                   <div className="flex items-start gap-4">
-                    <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
-                      <AvatarImage src="" /> {/* Add user image if available */}
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src="" />
                       <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                        {order.user?.fullName?.slice(0, 2).toUpperCase() ||
+                        {data?.user?.fullName?.slice(0, 2).toUpperCase() ||
                           "GU"}
                       </AvatarFallback>
                     </Avatar>
+
                     <div className="flex-1 space-y-1">
-                      <p className=" break-words font-semibold text-base text-foreground">
-                        {order.user?.fullName || "Guest User"}
+                      <p className="font-semibold text-base text-foreground">
+                        {data?.user?.fullName || "Guest User"}
                       </p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground group cursor-pointer hover:text-primary transition-colors">
+
+                      <div
+                        className="flex items-center gap-2 text-sm text-muted-foreground group cursor-pointer hover:text-primary"
+                        onClick={() =>
+                          data?.user?.email &&
+                          copyToClipboard(data.user.email, "Email")
+                        }
+                      >
                         <Mail className="h-3.5 w-3.5" />
-                        {order.user?.email}
-                        <Copy
-                          className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() =>
-                            copyToClipboard(order.user?.email, "Email")
-                          }
-                        />
+                        {data?.user?.email}
+                        <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100" />
                       </div>
-                      {/* If you have phone number */}
-                      {/* <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Smartphone className="h-3.5 w-3.5" />
-                        +1 (555) 000-0000
-                      </div> */}
                     </div>
                   </div>
                 </div>
               </section>
 
-              {/* 2. Delivery & Payment Grid */}
-              <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-                {/* Delivery */}
+              {/* DELIVERY & PAYMENT */}
+              <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* DELIVERY */}
                 <div className="rounded-xl border p-4 bg-gray-50/30">
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-3 flex items-center gap-2">
                     <Truck className="h-3.5 w-3.5" /> Delivery Method
                   </h4>
                   <div className="space-y-1">
-                    <p className="font-medium capitalize flex items-center gap-2">
-                      {order.deliveryMethod === "delivery" ? (
+                    <p className="font-medium flex items-center gap-2 capitalize">
+                      {data?.deliveryMethod === "delivery" ? (
                         <Truck className="h-4 w-4 text-blue-500" />
                       ) : (
                         <Package className="h-4 w-4 text-orange-500" />
                       )}
-                      {order.deliveryMethod}
+                      {data?.deliveryMethod}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Standard Shipping
@@ -180,7 +187,7 @@ export function OrderDetails({
                   </div>
                 </div>
 
-                {/* Payment */}
+                {/* PAYMENT */}
                 <div className="rounded-xl border p-4 bg-gray-50/30">
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-3 flex items-center gap-2">
                     <CreditCard className="h-3.5 w-3.5" /> Payment
@@ -199,57 +206,57 @@ export function OrderDetails({
                 </div>
               </section>
 
-              {/* 3. Order Items */}
-              <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
+              {/* ORDER ITEMS */}
+              <section>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4" /> Order Items
                   <Badge variant="secondary" className="ml-auto text-xs">
-                    {order.items?.length || 0} Items
+                    {Array.isArray(data?.itemsSnapShot)
+                      ? data.itemsSnapShot.length
+                      : 0}{" "}
+                    Items
                   </Badge>
                 </h3>
+
                 <div className="rounded-xl border overflow-hidden">
                   <div className="divide-y">
-                    {order.items?.map((item: any, index) => (
-                      <div
-                        key={item.id || index}
-                        className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors group"
-                      >
-                        <div className="h-16 w-16 rounded-lg border bg-gray-100 overflow-hidden flex-shrink-0">
-                          <img
-                            src={
-                              item.product?.images?.[0]?.url ||
-                              item.product?.images?.[0] ||
-                              "/placeholder.png"
-                            }
-                            alt={item.product?.name}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
+                    {Array.isArray(data?.itemsSnapShot) &&
+                      data.itemsSnapShot.map((item: any, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="h-16 w-16 rounded-lg border bg-gray-100 overflow-hidden flex-shrink-0">
+                            <img
+                              src={getImageUrl(
+                                item.image || "/placeholder.png"
+                              )}
+                              alt={item.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Qty: {item.quantity} × ${item.price}
+                            </p>
+                          </div>
+
+                          <div className="text-right font-medium text-sm">
+                            ${(item.quantity * item.price).toFixed(2)}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">
-                            {item.product?.name || "Unknown Product"}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            Qty: {item.quantity} × $
-                            {item.unitPrice || item.price}
-                          </p>
-                        </div>
-                        <div className="text-right font-medium text-sm">
-                          $
-                          {(
-                            (item.quantity || 0) *
-                            (item.unitPrice || item.price || 0)
-                          ).toFixed(2)}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
 
-                  {/* Summary Footer inside Items Card */}
+                  {/* SUMMARY */}
                   <div className="bg-gray-50/50 p-4 space-y-2 border-t">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span>${order.amount}</span>
+                      <span>${data?.amount}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
@@ -263,7 +270,7 @@ export function OrderDetails({
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-base">Total</span>
                       <span className="font-bold text-xl text-primary">
-                        ${order.amount}
+                        ${data?.amount}
                       </span>
                     </div>
                   </div>
@@ -272,7 +279,7 @@ export function OrderDetails({
             </div>
           </ScrollArea>
 
-          {/* --- FOOTER ACTIONS --- */}
+          {/* FOOTER */}
           <DrawerFooter className="border-t px-6 py-4 bg-gray-50/40">
             <div className="flex gap-3 w-full">
               <DrawerClose asChild>

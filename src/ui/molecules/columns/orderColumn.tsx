@@ -9,18 +9,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/shadcn/dropdown-menu";
-import {
-  MoreHorizontal,
-  Mail,
-  Calendar,
-  Eye,
-  Edit,
-  ArrowUpDown,
-} from "lucide-react";
+import { MoreHorizontal, Mail, Calendar, Eye, ArrowUpDown } from "lucide-react";
 import { Badge } from "@/ui/shadcn/badge";
 
 export const orderColumn = (
-  onViewDetails: (order: OrderEntity) => void
+  onViewDetails: (order: OrderEntity) => void,
+  handleOrderStatusUpdate: (orderId: string) => void
 ): ColumnDef<OrderEntity>[] => [
   {
     header: "SN",
@@ -55,7 +49,12 @@ export const orderColumn = (
     header: "Order Status",
     cell: ({ row }) => {
       return (
-        <Badge className="gap-1">{row.getValue("orderStatus") || "N/A"}</Badge>
+        <Badge
+          variant="outline"
+          className="rounded-full px-2.5 py-0.5 text-xs font-medium border-gray-300 text-gray-700"
+        >
+          {row.getValue("orderStatus") || "N/A"}
+        </Badge>
       );
     },
   },
@@ -120,12 +119,11 @@ export const orderColumn = (
               View details
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-green-600">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit order
-            </DropdownMenuItem>
 
-            <DropdownMenuItem className="text-yellow-600">
+            <DropdownMenuItem
+              className="text-yellow-600"
+              onClick={() => handleOrderStatusUpdate(order?.id)}
+            >
               <ArrowUpDown className="mr-2 h-4 w-4" />
               Update status
             </DropdownMenuItem>

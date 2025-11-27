@@ -110,7 +110,7 @@ export type OrderEntity = {
     deletedAt: string | null;
     user: UserEntity;
     status: 'pending' | 'paid' | 'failed' | 'refunded';
-    orderStatus: 'new' | 'processed' | 'cancelled' | 'completed';
+    orderStatus: 'new' | 'processing' | 'cancelled' | 'completed';
     deliveryMethod: 'delivery' | 'pickup';
     currency: string;
     amount: number;
@@ -321,7 +321,7 @@ export type GetAllOrdersResponses = {
                 amount: number;
                 currency: string;
                 deliveryMethod: 'delivery' | 'pickup';
-                orderStatus: 'new' | 'processed' | 'cancelled' | 'completed';
+                orderStatus: 'new' | 'processing' | 'cancelled' | 'completed';
                 status: 'pending' | 'paid' | 'failed' | 'refunded';
                 user: UserEntity;
                 items: Array<{
@@ -380,6 +380,51 @@ export type GetAllOrdersForAdminResponses = {
 };
 
 export type GetAllOrdersForAdminResponse = GetAllOrdersForAdminResponses[keyof GetAllOrdersForAdminResponses];
+
+export type GetOrderDetailsByOrderIdForAdminData = {
+    body?: never;
+    path?: never;
+    query: {
+        orderId: string;
+    };
+    url: '/order/admin/get-order-details/{orderId}';
+};
+
+export type GetOrderDetailsByOrderIdForAdminResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: OrderEntity;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetOrderDetailsByOrderIdForAdminResponse = GetOrderDetailsByOrderIdForAdminResponses[keyof GetOrderDetailsByOrderIdForAdminResponses];
+
+export type UpdateOrderStatusData = {
+    body: {
+        status: 'new' | 'processing' | 'completed' | 'cancelled';
+        orderId: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/order/admin/update-order-status';
+};
+
+export type UpdateOrderStatusResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: OrderEntity;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type UpdateOrderStatusResponse = UpdateOrderStatusResponses[keyof UpdateOrderStatusResponses];
 
 export type UploadMediaData = {
     body: {
