@@ -1,6 +1,5 @@
 import { OrderEntity } from "@/api";
 import { getAllOrdersForAdminOptions } from "@/api/@tanstack/react-query.gen";
-
 import { Button } from "@/ui/shadcn/button";
 import { Badge } from "@/ui/shadcn/badge";
 import { Card, CardContent } from "@/ui/shadcn/card";
@@ -39,7 +38,7 @@ const OrderList = () => {
   // Quick View Tabs State
   const [activeTab, setActiveTab] = useState("all");
   const [isStatusUpdateOpen, setIsStatusUpdateOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderEntity | null>(null);
+  const [selectedOrder] = useState<OrderEntity | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);

@@ -64,9 +64,4 @@ export const customerNavLinks = [
     url: "/profile",
     icon: User,
   },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
 ];
