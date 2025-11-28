@@ -28,6 +28,7 @@ import { Route as AdminDashboardCategoryIndexRouteImport } from './routes/admin-
 import { Route as AdminDashboardBagsIndexRouteImport } from './routes/admin-dashboard/bags/index'
 import { Route as AuthRegisterVerifyOtpRouteImport } from './routes/auth/register/verify-otp'
 import { Route as AuthRecoverPasswordIdRouteImport } from './routes/auth/recover-password/$id'
+import { Route as AdminDashboardOrdersIdRouteImport } from './routes/admin-dashboard/orders/$id'
 import { Route as AdminDashboardBagsAddBagRouteImport } from './routes/admin-dashboard/bags/addBag'
 import { Route as AdminDashboardBagsIdRouteImport } from './routes/admin-dashboard/bags/$id'
 
@@ -129,6 +130,11 @@ const AuthRecoverPasswordIdRoute = AuthRecoverPasswordIdRouteImport.update({
   path: '/auth/recover-password/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminDashboardOrdersIdRoute = AdminDashboardOrdersIdRouteImport.update({
+  id: '/admin-dashboard/orders/$id',
+  path: '/admin-dashboard/orders/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminDashboardBagsAddBagRoute =
   AdminDashboardBagsAddBagRouteImport.update({
     id: '/admin-dashboard/bags/addBag',
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
+  '/admin-dashboard/orders/$id': typeof AdminDashboardOrdersIdRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
+  '/admin-dashboard/orders/$id': typeof AdminDashboardOrdersIdRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags': typeof AdminDashboardBagsIndexRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/search/': typeof SearchIndexRoute
   '/admin-dashboard/bags/$id': typeof AdminDashboardBagsIdRoute
   '/admin-dashboard/bags/addBag': typeof AdminDashboardBagsAddBagRoute
+  '/admin-dashboard/orders/$id': typeof AdminDashboardOrdersIdRoute
   '/auth/recover-password/$id': typeof AuthRecoverPasswordIdRoute
   '/auth/register/verify-otp': typeof AuthRegisterVerifyOtpRoute
   '/admin-dashboard/bags/': typeof AdminDashboardBagsIndexRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
+    | '/admin-dashboard/orders/$id'
     | '/auth/recover-password/$id'
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
+    | '/admin-dashboard/orders/$id'
     | '/auth/recover-password/$id'
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags'
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/search/'
     | '/admin-dashboard/bags/$id'
     | '/admin-dashboard/bags/addBag'
+    | '/admin-dashboard/orders/$id'
     | '/auth/recover-password/$id'
     | '/auth/register/verify-otp'
     | '/admin-dashboard/bags/'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   SearchIndexRoute: typeof SearchIndexRoute
   AdminDashboardBagsIdRoute: typeof AdminDashboardBagsIdRoute
   AdminDashboardBagsAddBagRoute: typeof AdminDashboardBagsAddBagRoute
+  AdminDashboardOrdersIdRoute: typeof AdminDashboardOrdersIdRoute
   AuthRecoverPasswordIdRoute: typeof AuthRecoverPasswordIdRoute
   AuthRegisterVerifyOtpRoute: typeof AuthRegisterVerifyOtpRoute
   AdminDashboardBagsIndexRoute: typeof AdminDashboardBagsIndexRoute
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRecoverPasswordIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-dashboard/orders/$id': {
+      id: '/admin-dashboard/orders/$id'
+      path: '/admin-dashboard/orders/$id'
+      fullPath: '/admin-dashboard/orders/$id'
+      preLoaderRoute: typeof AdminDashboardOrdersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-dashboard/bags/addBag': {
       id: '/admin-dashboard/bags/addBag'
       path: '/admin-dashboard/bags/addBag'
@@ -471,6 +491,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchIndexRoute: SearchIndexRoute,
   AdminDashboardBagsIdRoute: AdminDashboardBagsIdRoute,
   AdminDashboardBagsAddBagRoute: AdminDashboardBagsAddBagRoute,
+  AdminDashboardOrdersIdRoute: AdminDashboardOrdersIdRoute,
   AuthRecoverPasswordIdRoute: AuthRecoverPasswordIdRoute,
   AuthRegisterVerifyOtpRoute: AuthRegisterVerifyOtpRoute,
   AdminDashboardBagsIndexRoute: AdminDashboardBagsIndexRoute,

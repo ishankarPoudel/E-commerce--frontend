@@ -426,6 +426,30 @@ export type UpdateOrderStatusResponses = {
 
 export type UpdateOrderStatusResponse = UpdateOrderStatusResponses[keyof UpdateOrderStatusResponses];
 
+export type GetAllOrdersOfUserForAdminData = {
+    body?: never;
+    path?: never;
+    query: {
+        userId: string;
+    };
+    url: '/order/admin/get-user-orders/{userId}';
+};
+
+export type GetAllOrdersOfUserForAdminResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            orders: Array<OrderEntity>;
+        };
+        message: string;
+        success: boolean;
+    };
+};
+
+export type GetAllOrdersOfUserForAdminResponse = GetAllOrdersOfUserForAdminResponses[keyof GetAllOrdersOfUserForAdminResponses];
+
 export type UploadMediaData = {
     body: {
         bagId: string;

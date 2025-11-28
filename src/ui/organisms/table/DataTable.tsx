@@ -21,7 +21,6 @@ import {
 } from "@/ui/shadcn/table";
 import { DataTablePagination } from "./Pagination";
 import React from "react";
-import { Input } from "@/ui/shadcn/input";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -42,23 +41,36 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+
+  // Fallback internal pagination when prop is not provided
+  const [internalPagination, setInternalPagination] =
+    React.useState<PaginationState>({
+      pageIndex: 0,
+      pageSize: 10,
+    });
+
+  const effectivePagination = pagination ?? internalPagination;
+  const handlePaginationChange = onPaginationChange ?? setInternalPagination;
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    manualPagination: true,
-    pageCount: pageCount ?? -1,
+    // Only use manual pagination when caller controls it (or provides a pageCount)
+    manualPagination: Boolean(pagination) || typeof pageCount === "number",
+    pageCount: typeof pageCount === "number" ? pageCount : undefined,
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     state: {
-      pagination,
+      // Only pass defined state slices
+      pagination: effectivePagination,
       sorting,
       columnFilters,
     },
-    onPaginationChange,
+    onPaginationChange: handlePaginationChange,
   });
 
   return (
@@ -69,18 +81,16 @@ export function DataTable<TData, TValue>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>

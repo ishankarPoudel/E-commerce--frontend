@@ -9,12 +9,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/shadcn/dropdown-menu";
-import { MoreHorizontal, Mail, Calendar, Eye, ArrowUpDown } from "lucide-react";
+import {
+  MoreHorizontal,
+  Mail,
+  Calendar,
+  Eye,
+  ArrowUpDown,
+  LucideBox,
+} from "lucide-react";
 import { Badge } from "@/ui/shadcn/badge";
 
 export const orderColumn = (
   onViewDetails: (order: OrderEntity) => void,
-  handleOrderStatusUpdate: (orderId: string) => void
+  handleOrderStatusUpdate?: (orderId: string) => void,
+  navigate?: (options: {
+    to: string;
+    params?: Record<string, unknown>;
+    search?: Record<string, unknown>;
+  }) => void
 ): ColumnDef<OrderEntity>[] => [
   {
     header: "SN",
@@ -122,10 +134,23 @@ export const orderColumn = (
 
             <DropdownMenuItem
               className="text-yellow-600"
-              onClick={() => handleOrderStatusUpdate(order?.id)}
+              onClick={() => handleOrderStatusUpdate?.(order?.id)}
             >
               <ArrowUpDown className="mr-2 h-4 w-4" />
               Update status
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              onClick={() => {
+                navigate?.({
+                  to: "/admin-dashboard/orders/$id",
+                  params: { id: order.user.id },
+                });
+              }}
+            >
+              <LucideBox className="mr-2 h-4 w-4" />
+              View all Orders of {order.user.fullName.split(" ")[0]}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

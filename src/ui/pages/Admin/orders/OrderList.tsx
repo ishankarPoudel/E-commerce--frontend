@@ -1,7 +1,6 @@
 import { OrderEntity } from "@/api";
 import { getAllOrdersForAdminOptions } from "@/api/@tanstack/react-query.gen";
-import { orderColumn } from "@/ui/molecules/columns/orderColumn";
-import { DataTable } from "@/ui/organisms/table/DataTable";
+
 import { Button } from "@/ui/shadcn/button";
 import { Badge } from "@/ui/shadcn/badge";
 import { Card, CardContent } from "@/ui/shadcn/card";
@@ -22,11 +21,13 @@ import {
 import { useState } from "react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { cn } from "@/lib/utils";
-
+import { useNavigate } from "@tanstack/react-router";
 import { OrderDetails } from "./OrderDetails";
 import { UpdateOrderStatus } from "./OrderStatusUpdate";
+import { OrdersTableView } from "./OrdersTableView";
 
 const OrderList = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<
     "delivery" | "pickup" | null
@@ -70,19 +71,6 @@ const OrderList = () => {
     ? Math.ceil(orders.data.total / pagination.pageSize)
     : 0;
 
-  // Handle view details
-  const handleViewDetails = (order: OrderEntity) => {
-    setSelectedOrder(order);
-    setIsDrawerOpen(true);
-  };
-  // Handle order status update
-  const handleOrderStatusUpdate = (orderId: string) => {
-    setIsStatusUpdateOpen(true);
-    setSelectedOrder(
-      orders?.data?.data.find((order) => order.id === orderId) || null
-    );
-  };
-
   const isFiltered =
     deliveryMethod || status || searchQuery || sortBy !== "date";
 
@@ -93,7 +81,6 @@ const OrderList = () => {
     setSearchQuery("");
     setActiveTab("all");
   };
-
   // --- REUSABLE FACETED FILTER COMPONENT ---
   const FacetedFilter = ({
     title,
@@ -193,6 +180,95 @@ const OrderList = () => {
     );
   };
 
+  const toolbar = (
+    <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-center bg-background/50 border-t">
+      <div className="flex flex-1 items-between space-x-2">
+        <div className="relative w-full md:w-[300px]">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search orders by name, email or product..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 pl-8 w-full"
+          />
+        </div>
+        {activeTab === "all" && (
+          <FacetedFilter
+            title="Status"
+            icon={PlusCircle}
+            value={status}
+            onChange={(val) => setStatus(val as any)}
+            options={[
+              { label: "New", value: "new", icon: Circle },
+              { label: "Processing", value: "processing", icon: Circle },
+              { label: "Completed", value: "completed", icon: Circle },
+              { label: "Cancelled", value: "cancelled", icon: Circle },
+            ]}
+          />
+        )}
+        <FacetedFilter
+          title="Delivery"
+          icon={Truck}
+          value={deliveryMethod}
+          onChange={(val) => setDeliveryMethod(val as any)}
+          options={[
+            { label: "Delivery", value: "delivery" },
+            { label: "Pickup", value: "pickup" },
+          ]}
+        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 border-dashed">
+              <ArrowUpDown className="mr-2 h-4 w-4" />
+              Sort
+              {sortBy !== "date" && (
+                <>
+                  <Separator orientation="vertical" className="mx-2 h-4" />
+                  <Badge
+                    variant="secondary"
+                    className="rounded-sm px-1 font-normal bg-background"
+                  >
+                    {sortBy === "newest" ? "Newest" : "Oldest"}
+                  </Badge>
+                </>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[180px] p-1" align="start">
+            <div
+              className={cn(
+                "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                (sortBy === "date" || sortBy === "newest") && "bg-accent"
+              )}
+              onClick={() => setSortBy("newest")}
+            >
+              Newest First
+            </div>
+            <div
+              className={cn(
+                "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                sortBy === "oldest" && "bg-accent"
+              )}
+              onClick={() => setSortBy("oldest")}
+            >
+              Oldest First
+            </div>
+          </PopoverContent>
+        </Popover>
+        {isFiltered && (
+          <Button
+            variant="ghost"
+            onClick={clearAll}
+            className="h-8 px-2 lg:px-3"
+          >
+            Reset
+            <X className="ml-2 h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* HEADER SECTION */}
@@ -215,110 +291,6 @@ const OrderList = () => {
 
       <Card className="border shadow-sm">
         <CardContent className="p-0">
-          {/* TOOLBAR */}
-          <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-center bg-background/50">
-            <div className="flex flex-1 items-between space-x-2">
-              <div className="relative w-full md:w-[300px]">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search orders by name, email or product..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-9 pl-8 w-full"
-                />
-              </div>
-
-              {/* STATUS FILTER (Only show if "All" tab is active to avoid conflict) */}
-              {activeTab === "all" && (
-                <FacetedFilter
-                  title="Status"
-                  icon={PlusCircle}
-                  value={status}
-                  onChange={(val) => setStatus(val as any)}
-                  options={[
-                    { label: "New", value: "new", icon: Circle },
-                    { label: "Processing", value: "processing", icon: Circle },
-                    { label: "Completed", value: "completed", icon: Circle },
-                    { label: "Cancelled", value: "cancelled", icon: Circle },
-                  ]}
-                />
-              )}
-
-              {/* DELIVERY FILTER */}
-              <FacetedFilter
-                title="Delivery"
-                icon={Truck}
-                value={deliveryMethod}
-                onChange={(val) => setDeliveryMethod(val as any)}
-                options={[
-                  { label: "Delivery", value: "delivery" },
-                  { label: "Pickup", value: "pickup" },
-                ]}
-              />
-
-              {/* SORT FILTER */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 border-dashed"
-                  >
-                    <ArrowUpDown className="mr-2 h-4 w-4" />
-                    Sort
-                    {sortBy !== "date" && (
-                      <>
-                        <Separator
-                          orientation="vertical"
-                          className="mx-2 h-4"
-                        />
-                        <Badge
-                          variant="secondary"
-                          className="rounded-sm px-1 font-normal bg-background"
-                        >
-                          {sortBy === "newest" ? "Newest" : "Oldest"}
-                        </Badge>
-                      </>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[180px] p-1" align="start">
-                  <div
-                    className={cn(
-                      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                      (sortBy === "date" || sortBy === "newest") && "bg-accent"
-                    )}
-                    onClick={() => setSortBy("newest")}
-                  >
-                    Newest First
-                  </div>
-                  <div
-                    className={cn(
-                      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                      sortBy === "oldest" && "bg-accent"
-                    )}
-                    onClick={() => setSortBy("oldest")}
-                  >
-                    Oldest First
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {/* RESET BUTTON */}
-              {isFiltered && (
-                <Button
-                  variant="ghost"
-                  onClick={clearAll}
-                  className="h-8 px-2 lg:px-3"
-                >
-                  Reset
-                  <X className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* TABLE */}
           <div className="border-t">
             {isOrdersLoading && (
               <div className="flex items-center justify-center py-24">
@@ -343,12 +315,10 @@ const OrderList = () => {
             )}
 
             {!isOrdersLoading && !error && (
-              <DataTable
-                columns={orderColumn(
-                  handleViewDetails,
-                  handleOrderStatusUpdate
-                )}
-                data={(orders?.data?.data as OrderEntity[]) || []}
+              <OrdersTableView
+                orders={(orders?.data?.data as OrderEntity[]) || []}
+                navigate={navigate}
+                toolbar={toolbar}
                 pagination={pagination}
                 onPaginationChange={setPagination}
                 pageCount={pageCount}
