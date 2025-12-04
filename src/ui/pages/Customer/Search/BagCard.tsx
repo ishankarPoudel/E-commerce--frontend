@@ -14,7 +14,7 @@ interface BagProduct {
   category?: string;
   brand?: string;
   color?: string;
-  image?: string;
+  images?: Array<{ image: string; altText?: string | null }>;
   bagImages?: Array<{ image: string; altText?: string }>;
   inStock?: boolean;
   description?: string;
@@ -42,14 +42,28 @@ export function BagCard({
 
   // Normalize image handling for both data formats
   const getProductImage = () => {
-    if (product.image) return product.image;
+    if (product.images && product.images.length > 0) {
+      return product.images[0].image;
+    }
     if (product.bagImages && product.bagImages.length > 0) {
       return product.bagImages[0].image;
     }
     return "/placeholder.svg?height=200&width=200";
   };
 
+  console.log("Product ", product);
+
   const getAltText = () => {
+    // Check images array first
+    if (
+      product.images &&
+      product.images.length > 0 &&
+      product.images[0].altText
+    ) {
+      return product.images[0].altText;
+    }
+
+    // Fallback to bagImages
     if (
       product.bagImages &&
       product.bagImages.length > 0 &&
@@ -57,6 +71,7 @@ export function BagCard({
     ) {
       return product.bagImages[0].altText;
     }
+
     return product.name;
   };
 
@@ -135,7 +150,8 @@ export function BagCard({
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = "/placeholder.svg?height=200&width=200";
+                target.src =
+                  "https://images.unsplash.com/photo-1614179689702-355944cd0918?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
               }}
             />
 

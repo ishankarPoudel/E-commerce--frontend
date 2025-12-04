@@ -46,7 +46,7 @@ interface Bag {
   name: string;
   price: number;
   description: string;
-  bagImages: BagImage[];
+  bagImages?: BagImage[];
   categories: Category[];
   createdAt: string;
   updatedAt: string;
@@ -95,6 +95,11 @@ const BagList = () => {
       },
     }),
   });
+
+  const bagImages = bagListResponse?.data?.data.map((bag) =>
+    bag.images.map((img) => img.image)
+  );
+  console.log("Bag Images:", bagImages);
 
   useEffect(() => {
     refetch();
@@ -289,10 +294,7 @@ const BagList = () => {
                 <div className="relative aspect-square overflow-hidden bg-muted">
                   <img
                     // Use getImageUrl and access the 'image' property from bagImages
-                    src={
-                      getImageUrl(bag.bagImages?.[0]?.image) ||
-                      "/placeholder.svg?height=400&width=300" // Fallback placeholder
-                    }
+                    src={getImageUrl(bagImages)}
                     alt={bag.name} // Use bag.name for alt text
                     className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                   />

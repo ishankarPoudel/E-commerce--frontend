@@ -82,6 +82,11 @@ export function OrderDetails({
 
   const statusStyle = getStatusStyles(order.orderStatus);
 
+  console.log(
+    "snapshot[0]",
+    Array.isArray(data?.itemsSnapShot) ? data.itemsSnapShot[0] : null
+  );
+
   return (
     <Drawer direction="right" open={open} onOpenChange={onOpenChange}>
       <DrawerContent

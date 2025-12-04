@@ -46,7 +46,7 @@ const VerifyOtp = () => {
     mutate(
       {
         body: {
-          otp: data.otp,
+          otp: data.otp as string,
           email: email as string,
         },
       },
@@ -84,43 +84,45 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-gray-100'>
-      <h2 className='text-2xl font-semibold text-gray-800 mb-6'>
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-6">
         Enter Verification Code
       </h2>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className='flex flex-col items-center space-y-4'>
+        className="flex flex-col items-center space-y-4"
+      >
         <Controller
           control={control}
-          name='otp'
+          name="otp"
           render={({ field }) => (
             <InputOTP
               maxLength={MAX_LENGTH}
               value={field.value}
               onChange={field.onChange}
-              className='flex space-x-2'>
-              <InputOTPGroup className='flex space-x-2'>
+              className="flex space-x-2"
+            >
+              <InputOTPGroup className="flex space-x-2">
                 {Array.from({ length: 3 }).map((_, index) => (
                   <InputOTPSlot
                     key={index}
                     index={index}
-                    className='w-12 h-14 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500'
+                    className="w-12 h-14 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
                   />
                 ))}
               </InputOTPGroup>
 
-              <InputOTPSeparator className='mx-2 text-gray-400 text-xl font-medium'>
+              <InputOTPSeparator className="mx-2 text-gray-400 text-xl font-medium">
                 -
               </InputOTPSeparator>
 
-              <InputOTPGroup className='flex space-x-2'>
+              <InputOTPGroup className="flex space-x-2">
                 {Array.from({ length: 3 }).map((_, index) => (
                   <InputOTPSlot
                     key={index + 3}
                     index={index + 3}
-                    className='w-12 h-14 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500'
+                    className="w-12 h-14 text-center text-xl border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
                   />
                 ))}
               </InputOTPGroup>
@@ -128,12 +130,13 @@ const VerifyOtp = () => {
           )}
         />
       </form>
-      <p className='text-gray-500 text-sm'>
+      <p className="text-gray-500 text-sm">
         Didn’t receive the code?{" "}
         <Button
           onClick={handleOTPResendClick}
-          variant='link'
-          className='text-blue-500 hover:underline'>
+          variant="link"
+          className="text-blue-500 hover:underline"
+        >
           Resend
         </Button>
       </p>
