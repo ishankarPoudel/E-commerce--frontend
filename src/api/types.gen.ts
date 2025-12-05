@@ -101,6 +101,8 @@ export type CartItemEntity = {
     cart: CartEntity;
     product: BagEntity;
     quantity: number;
+    colors: Array<string>;
+    sizes: Array<string>;
 };
 
 export type OrderEntity = {
@@ -138,6 +140,8 @@ export type CreateCategoryValidator = {
 export type AddToCartValidator = {
     bagId: string;
     quantity: number;
+    colors?: Array<string>;
+    sizes?: Array<string>;
 };
 
 export type AddBagValidator = {

@@ -1,5 +1,4 @@
 import { getCategoriesWithBagsOptions } from "@/api/@tanstack/react-query.gen";
-import { BagCard } from "@/ui/pages/Customer/Search/BagCard";
 import { Badge } from "@/ui/shadcn/badge";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/ui/shadcn/dialog";
@@ -7,15 +6,15 @@ import { Separator } from "@/ui/shadcn/separator";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Grid3X3, Loader2, X } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
-import DetailProduct from "./DetailProduct";
+import { ProductDetailPanel } from "./DetailProduct";
+import { Product, ProductCard } from "@/ui/pages/Customer/Search/ProductCard";
 
 export default function CategoryBasedBags() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [openDialog, setOpenDialog] = useState<string | null>(null);
-  const [detailProductWindow, setDetailProductWindow] = useState(false);
-  const [selectedBagId, setSelectedBagId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const { data: listOfBag, isPending: isBagListPending } = useQuery({
     ...getCategoriesWithBagsOptions({
@@ -58,9 +57,8 @@ export default function CategoryBasedBags() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleBagClick = (bagId: string) => {
-    setDetailProductWindow(true);
-    setSelectedBagId(bagId);
+  const handleBagClick = (bag: Product) => {
+    setSelectedProduct(bag);
     setOpenDialog(null); // Close any open category dialog
   };
   const bagsList = listOfBag;
@@ -152,11 +150,9 @@ export default function CategoryBasedBags() {
                                 onClick={() => handleBagClick(bag.id)}
                                 className="cursor-pointer"
                               >
-                                <BagCard
+                                <ProductCard
                                   product={bag}
-                                  variant="compact"
-                                  showBrand={false}
-                                  showCategory={false}
+                                  onClick={() => handleBagClick(bag.id)}
                                 />
                               </div>
                             ))}
@@ -205,14 +201,11 @@ export default function CategoryBasedBags() {
                       <div
                         key={bag.id}
                         className="flex-shrink-0 w-52 cursor-pointer"
-                        onClick={() => handleBagClick(bag.id)}
+                        onClick={() => handleBagClick(bag)}
                       >
-                        <BagCard
+                        <ProductCard
                           product={bag}
-                          variant="compact"
-                          showBrand={false}
-                          showCategory={true}
-                          showWishlist={true}
+                          onClick={() => handleBagClick(bag)}
                         />
                       </div>
                     ))}
@@ -223,11 +216,11 @@ export default function CategoryBasedBags() {
           }
         )}
       </div>
-      {selectedBagId && (
-        <DetailProduct
-          bagId={selectedBagId}
-          openWindow={true}
-          onClose={() => setSelectedBagId(null)}
+      {selectedProduct && (
+        <ProductDetailPanel
+          product={selectedProduct}
+          isOpen={!!selectedProduct}
+          onClose={() => setSelectedProduct(null)}
         />
       )}
     </div>

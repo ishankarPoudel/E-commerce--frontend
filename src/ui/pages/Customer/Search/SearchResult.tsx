@@ -4,7 +4,7 @@ import { Input } from "@/ui/shadcn/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { BagCard } from "./BagCard";
+import { BagCard } from "./ProductCard";
 import { BagFilter } from "./BagFilter";
 import { useQuery } from "@tanstack/react-query";
 import {

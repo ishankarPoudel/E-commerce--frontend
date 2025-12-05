@@ -1,13 +1,16 @@
 import FloatingAIChat from "@/components/Floating-AI-chatbot";
+import { CartProvider } from "@/hooks/use-cart";
 import Header from "@/ui/organisms/header/Header";
 import CategoryBasedBags from "@/ui/organisms/products/CategoryBasedBags";
 
 const HomePage = () => {
   return (
     <div>
-      <Header />
-      <CategoryBasedBags />
-      <FloatingAIChat />
+      <CartProvider>
+        <Header />
+        <CategoryBasedBags />
+        <FloatingAIChat />
+      </CartProvider>
     </div>
   );
 };

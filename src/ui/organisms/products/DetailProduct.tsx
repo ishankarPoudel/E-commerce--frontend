@@ -1,340 +1,467 @@
+import { useCart } from "@/hooks/use-cart";
+import { cn } from "@/lib/utils";
+import AddToCartButton from "@/ui/molecules/Buttons/AddToCart";
+import { Product } from "@/ui/pages/Customer/Search/ProductCard";
+import { Badge } from "@/ui/shadcn/badge";
+import { Image } from "@/ui/shadcn/image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/shadcn/select";
 import { getImageUrl } from "@/utils/urlHelpers";
 import {
-  Truck,
+  Award,
+  Clock,
+  Droplet,
+  Maximize2,
+  Package,
+  Ruler,
   Shield,
-  RotateCcw,
-  ChevronLeft,
-  ChevronRight,
+  Tag,
+  Truck,
+  Weight,
+  X,
+  ZoomIn,
 } from "lucide-react";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import { getBagByIdOptions } from "@/api/@tanstack/react-query.gen";
+import { useEffect, useState } from "react";
 
-import { Dialog, DialogContent } from "@/ui/shadcn/dialog";
-import { Button } from "@/ui/shadcn/button";
-import { Badge } from "@/ui/shadcn/badge";
-import { useQuery } from "@tanstack/react-query";
-import AddToCart from "@/ui/molecules/Buttons/AddToCart";
-
-const DetailProduct = ({
-  bagId,
-  openWindow,
-  onClose,
-}: {
-  bagId: string;
-  openWindow: boolean;
+interface ProductDetailPanelProps {
+  product: Product;
+  isOpen: boolean;
   onClose: () => void;
-}) => {
+}
+
+const featureIcons: Record<string, any> = {
+  waterproof: Droplet,
+  waterResistant: Droplet,
+  laptopCompartment: Package,
+  usbCharging: Package,
+  antiTheft: Shield,
+  warranty: Award,
+  freeShipping: Truck,
+  quickDry: Clock,
+  ergonomic: Package,
+  expandable: Ruler,
+};
+
+export function ProductDetailPanel({
+  product,
+  isOpen,
+  onClose,
+}: ProductDetailPanelProps) {
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const { data: bagData, isLoading } = useQuery({
-    ...getBagByIdOptions({
-      path: {
-        id: bagId,
-      },
-    }),
-    enabled: openWindow && !!bagId,
-  });
-
-  const bag = bagData?.data;
-  const images = bag?.bagImages || [];
-
-  const handleImageNavigation = (direction: "prev" | "next") => {
-    if (direction === "prev") {
-      setSelectedImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-    } else {
-      setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-    }
+  const getFirstColor = () => {
+    if (!product?.colors || product.colors.length === 0) return "";
+    const firstColor = product.colors[0];
+    return typeof firstColor === "string" ? firstColor : firstColor?.name || "";
   };
 
+  const [selectedColor, setSelectedColor] = useState(getFirstColor());
+  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || "");
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const { addItem } = useCart();
+
+  // Reset state when product changes
+  useEffect(() => {
+    setSelectedImage(0);
+    setSelectedColor(getFirstColor());
+    setSelectedSize(product?.sizes?.[0] || "");
+  }, [product]);
+
+  const trueFeatures = product?.features
+    ? Object.entries(product.features)
+        .filter(([, value]) => value)
+        .map(([key]) => key)
+    : [];
+
+  if (!isOpen || !product) return null;
+
   return (
-    <Dialog open={openWindow} onOpenChange={onClose}>
-      <DialogContent className="max-w-[98vw] min-w-[75vw] max-h-[90vh] overflow-scroll p-0 border-0 rounded-2xl">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="flex flex-col items-center gap-3">
-              <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full" />
-              <p className="text-sm text-muted-foreground">
-                Loading product...
-              </p>
-            </div>
-          </div>
-        ) : bag ? (
-          <div className="grid md:grid-cols-2 gap-0 h-full bg-background">
-            {/* Left Side - Image Gallery */}
-            <div className="relative bg-gradient-to-br from-muted/20 to-muted/40 p-8 flex flex-col group">
-              {/* Main Image */}
-              <div className="relative flex-1 flex items-center justify-center mb-4">
-                {images.length > 0 ? (
-                  <>
-                    <img
-                      src={
-                        getImageUrl(images[selectedImage].image) ||
-                        "/placeholder.svg"
-                      }
-                      alt={bag.name}
-                      className="max-h-[550px] w-full object-contain rounded-xl"
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "https://via.placeholder.com/500x500?text=No+Image";
-                      }}
-                    />
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 animate-in fade-in duration-300"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-                    {/* Navigation Arrows */}
-                    {images.length > 1 && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all rounded-full bg-background/80 backdrop-blur-sm border-0 hover:bg-background shadow-lg"
-                          onClick={() => handleImageNavigation("prev")}
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all rounded-full bg-background/80 backdrop-blur-sm border-0 hover:bg-background shadow-lg"
-                          onClick={() => handleImageNavigation("next")}
-                        >
-                          <ChevronRight className="h-5 w-5" />
-                        </Button>
-                      </>
-                    )}
+      {/* Panel */}
+      <div
+        className="fixed inset-y-0 right-0 z-50 w-full md:w-[600px] lg:w-[800px] bg-card border-l border-border overflow-y-auto animate-in slide-in-from-right duration-300"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-title"
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="fixed top-4 right-4 z-10 p-2 rounded-sm bg-card/80 backdrop-blur-sm hover:bg-accent transition-colors border border-border"
+          aria-label="Close product details"
+        >
+          <X className="h-5 w-5" />
+        </button>
 
-                    {/* Image Counter */}
-                    {images.length > 1 && (
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-md px-4 py-2 rounded-full text-xs font-medium text-foreground shadow-lg">
-                        {selectedImage + 1} / {images.length}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center h-[500px] bg-muted rounded-lg">
-                    <p className="text-muted-foreground text-sm">
-                      No images available
-                    </p>
-                  </div>
+        <div className="flex flex-col lg:flex-row gap-0 lg:gap-8">
+          {/* Gallery Section */}
+          <div className="lg:w-1/2 sticky top-0 bg-muted/30">
+            {/* Main Image */}
+            <div className="relative aspect-square bg-muted">
+              <Image
+                src={
+                  getImageUrl(
+                    typeof product.images?.[selectedImage] === "string"
+                      ? (product.images[selectedImage] as string)
+                      : (product.images?.[selectedImage] as any)?.image
+                  ) || "/placeholder.svg"
+                }
+                alt={`${product.name} - Image ${selectedImage + 1}`}
+                fill
+                className={cn(
+                  "object-cover transition-transform duration-300",
+                  isZoomed && "scale-150 cursor-zoom-out"
                 )}
+                onClick={() => setIsZoomed(!isZoomed)}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+              />
+
+              {/* Image Controls */}
+              <div className="absolute top-4 left-4 flex gap-2">
+                <button
+                  onClick={() => setIsZoomed(!isZoomed)}
+                  className="p-2 rounded-sm bg-card/80 backdrop-blur-sm hover:bg-accent transition-colors border border-border"
+                  aria-label={isZoomed ? "Zoom out" : "Zoom in"}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="p-2 rounded-sm bg-card/80 backdrop-blur-sm hover:bg-accent transition-colors border border-border"
+                  aria-label="View fullscreen"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </button>
               </div>
 
-              {/* Thumbnail Gallery */}
-              {images.length > 1 && (
-                <div className="flex gap-2 justify-center overflow-x-auto pb-2 mt-auto scrollbar-hide">
-                  {images.map((img: any, idx: number) => (
-                    <button
-                      key={img.id}
-                      onClick={() => setSelectedImage(idx)}
-                      className={cn(
-                        "flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all hover:scale-105",
-                        selectedImage === idx
-                          ? "border-primary ring-2 ring-primary/20"
-                          : "border-transparent hover:border-muted-foreground/30"
-                      )}
-                    >
-                      <img
-                        src={getImageUrl(img.image) || "/placeholder.svg"}
-                        alt={`${bag.name} ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "https://via.placeholder.com/80x80?text=No+Image";
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
+              {product.isFeatured && (
+                <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground">
+                  Featured
+                </Badge>
               )}
             </div>
 
-            {/* Right Side - Product Details */}
-            <div className="flex flex-col bg-background">
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto p-8 space-y-6">
-                {/* Product Header */}
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h2 className="text-4xl font-bold text-foreground leading-tight tracking-tight">
-                        {bag.name}
-                      </h2>
+            {/* Thumbnail Gallery */}
+            {product.images && product.images.length > 0 && (
+              <div className="flex gap-2 p-4 overflow-x-auto">
+                {product.images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={cn(
+                      "relative w-20 h-20 flex-shrink-0 rounded-sm overflow-hidden border-2 transition-all",
+                      selectedImage === index
+                        ? "border-primary ring-2 ring-primary ring-offset-2"
+                        : "border-border hover:border-accent"
+                    )}
+                    aria-label={`View image ${index + 1}`}
+                    aria-pressed={selectedImage === index}
+                  >
+                    <Image
+                      src={
+                        getImageUrl(
+                          typeof image === "string"
+                            ? image
+                            : (image as any)?.image
+                        ) || "/placeholder.svg"
+                      }
+                      alt={`${product.name} thumbnail ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Details Section */}
+          <div className="lg:w-1/2 p-6 lg:p-8 flex flex-col">
+            <div className="flex-1">
+              <h1
+                id="product-title"
+                className="text-3xl font-semibold mb-2 text-balance"
+              >
+                {product.name}
+              </h1>
+              <p className="text-sm text-muted-foreground mb-4">
+                {product.type || "Product"}
+              </p>
+              <div className="text-2xl font-bold mb-6">${product.price}</div>
+
+              <div className="sticky top-0 bg-card/95 backdrop-blur-sm border border-border rounded-sm p-4 mb-6 space-y-4 z-10">
+                {product.colors && product.colors.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Color:{" "}
+                      <span className="text-muted-foreground capitalize">
+                        {selectedColor}
+                      </span>
+                    </label>
+                    <div
+                      className="flex gap-2 flex-wrap"
+                      role="radiogroup"
+                      aria-label="Select color"
+                    >
+                      {product.colors.map((color) => {
+                        // ✅ Handle both string and object formats
+                        const colorName =
+                          typeof color === "string" ? color : color.name;
+                        const colorHex =
+                          typeof color === "string"
+                            ? getColorHex(color)
+                            : color.hex;
+
+                        return (
+                          <button
+                            key={colorName}
+                            onClick={() => setSelectedColor(colorName)}
+                            className={cn(
+                              "w-10 h-10 rounded-full border-2 transition-all capitalize",
+                              selectedColor === colorName
+                                ? "border-primary ring-2 ring-primary ring-offset-2 scale-110"
+                                : "border-border hover:border-accent hover:scale-105"
+                            )}
+                            style={{ backgroundColor: colorHex }}
+                            aria-label={colorName}
+                            role="radio"
+                            aria-checked={selectedColor === colorName}
+                            title={colorName}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
+                )}
 
-                  {/* Categories*/}
-                  {bag.categories && bag.categories.length > 0 && (
-                    <div className="flex gap-2 flex-wrap pt-2">
-                      {bag.categories.map((cat: any) => (
-                        <Badge
-                          key={cat.id}
-                          variant="secondary"
-                          className="text-xs font-medium px-3 py-1"
-                        >
-                          {cat.categoryName}
-                        </Badge>
-                      ))}
+                {/* Size Selector */}
+                {product.sizes && product.sizes.length > 0 && (
+                  <div>
+                    <label
+                      htmlFor="size-select"
+                      className="text-sm font-medium mb-2 block"
+                    >
+                      Size
+                    </label>
+                    <Select
+                      value={selectedSize}
+                      onValueChange={setSelectedSize}
+                    >
+                      <SelectTrigger id="size-select" aria-label="Select size">
+                        <SelectValue placeholder="Select a size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {product.sizes.map((size) => (
+                          <SelectItem key={size} value={size}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <AddToCartButton
+                  product={product}
+                  fullWidth
+                  showQuantity
+                  defaultColor={selectedColor}
+                  defaultSize={selectedSize}
+                  className="h-12"
+                />
+              </div>
+
+              {/* Description */}
+              {product.description && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold mb-2">Description</h2>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {product.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Specifications */}
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-3">Specifications</h2>
+                <dl className="grid grid-cols-1 gap-3">
+                  {product.material && (
+                    <div className="flex items-start gap-3 p-3 rounded-sm bg-muted/50">
+                      <Tag
+                        className="h-5 w-5 text-muted-foreground mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <dt className="text-sm font-medium">Material</dt>
+                        <dd className="text-sm text-muted-foreground">
+                          {product.material}
+                        </dd>
+                      </div>
                     </div>
                   )}
-                </div>
+                  {product.weightKg && (
+                    <div className="flex items-start gap-3 p-3 rounded-sm bg-muted/50">
+                      <Weight
+                        className="h-5 w-5 text-muted-foreground mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <dt className="text-sm font-medium">Weight</dt>
+                        <dd className="text-sm text-muted-foreground">
+                          {product.weightKg} kg
+                        </dd>
+                      </div>
+                    </div>
+                  )}
+                  {product.capacityLiters && (
+                    <div className="flex items-start gap-3 p-3 rounded-sm bg-muted/50">
+                      <Ruler
+                        className="h-5 w-5 text-muted-foreground mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <dt className="text-sm font-medium">Capacity</dt>
+                        <dd className="text-sm text-muted-foreground">
+                          {product.capacityLiters}L
+                        </dd>
+                      </div>
+                    </div>
+                  )}
+                  {product.type && (
+                    <div className="flex items-start gap-3 p-3 rounded-sm bg-muted/50">
+                      <Package
+                        className="h-5 w-5 text-muted-foreground mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <dt className="text-sm font-medium">Type</dt>
+                        <dd className="text-sm text-muted-foreground">
+                          {product.type}
+                        </dd>
+                      </div>
+                    </div>
+                  )}
+                  {product.brand && (
+                    <div className="flex items-start gap-3 p-3 rounded-sm bg-muted/50">
+                      <Award
+                        className="h-5 w-5 text-muted-foreground mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <dt className="text-sm font-medium">Brand</dt>
+                        <dd className="text-sm text-muted-foreground">
+                          {product.brand}
+                        </dd>
+                      </div>
+                    </div>
+                  )}
+                </dl>
+              </div>
 
-                {/* Price Section */}
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-baseline gap-3 flex-wrap">
-                    <span className="text-5xl font-bold text-foreground">
-                      ${bag.price?.toFixed(2)}
-                    </span>
-                    {bag.price && (
-                      <>
-                        <span className="text-lg text-muted-foreground line-through opacity-60">
-                          ${(bag.price * 1.2).toFixed(2)}
-                        </span>
-                        <Badge
-                          variant="destructive"
-                          className="text-xs font-semibold px-3 py-1.5"
+              {/* Features Grid */}
+              {trueFeatures.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-semibold mb-3">Features</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {trueFeatures.map((feature) => {
+                      const Icon = featureIcons[feature] || Package;
+                      const displayName = feature
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())
+                        .trim();
+
+                      return (
+                        <div
+                          key={feature}
+                          className="flex items-center gap-2 p-3 rounded-sm bg-muted/50"
                         >
-                          20% OFF
-                        </Badge>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                      In Stock • Ships within 24 hours
-                    </p>
-                  </div>
-                </div>
-
-                {/* Description */}
-                {bag.description && (
-                  <div className="space-y-3 pt-2">
-                    <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                      About This Product
-                    </h3>
-                    <p className="text-foreground leading-relaxed text-sm">
-                      {bag.description}
-                    </p>
-                  </div>
-                )}
-
-                {/* Specifications */}
-                {bag.description && (
-                  <div className="space-y-4 pt-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                      Specifications
-                    </h3>
-                    <div className="space-y-3 bg-muted/20 rounded-lg p-4 border border-border/50">
-                      <div className="flex justify-between items-center py-2 border-b border-border/50">
-                        <span className="text-xs uppercase font-medium text-muted-foreground">
-                          Material
-                        </span>
-                        <span className="text-sm font-semibold text-foreground">
-                          Premium Leather
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-border/50">
-                        <span className="text-xs uppercase font-medium text-muted-foreground">
-                          Dimensions
-                        </span>
-                        <span className="text-sm font-semibold text-foreground">
-                          15" × 12" × 5"
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-border/50">
-                        <span className="text-xs uppercase font-medium text-muted-foreground">
-                          Weight
-                        </span>
-                        <span className="text-sm font-semibold text-foreground">
-                          1.2 kg
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-xs uppercase font-medium text-muted-foreground">
-                          Color
-                        </span>
-                        <span className="text-sm font-semibold text-foreground">
-                          Black
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* Key Features Grid */}
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-                    <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Premium Quality
-                      </p>
-                      <p className="text-sm text-foreground">
-                        Crafted with care
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-                    <Truck className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Free Shipping
-                      </p>
-                      <p className="text-sm text-foreground">On all orders</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-                    <RotateCcw className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        30-Day Returns
-                      </p>
-                      <p className="text-sm text-foreground">
-                        No questions asked
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-                    <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Warranty
-                      </p>
-                      <p className="text-sm text-foreground">
-                        1-year guarantee
-                      </p>
-                    </div>
+                          <Icon
+                            className="h-5 w-5 text-muted-foreground flex-shrink-0"
+                            aria-hidden="true"
+                          />
+                          <span className="text-sm font-medium">
+                            {displayName}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
-
-              {/* Sticky Bottom - Add to Cart Section */}
-              <div className="border-t border-border/50 bg-background/95 backdrop-blur-lg p-6 space-y-5 shadow-2xl">
-                <div className="space-y-3">
-                  {/* Render AddToCart in a full-width container */}
-                  <div className="relative w-full">
-                    <AddToCart bagId={bagId} className="w-full" />
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
-        ) : (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center space-y-3">
-              <p className="text-lg font-semibold text-foreground">
-                Product not found
-              </p>
-              <p className="text-sm text-muted-foreground">
-                This product may have been removed or is no longer available.
-              </p>
-              <Button onClick={onClose} variant="outline">
-                Close
-              </Button>
-            </div>
+        </div>
+      </div>
+
+      {/* Fullscreen Image Modal */}
+      {isFullscreen && (
+        <div
+          className="fixed inset-0 z-[60] bg-background flex items-center justify-center p-4"
+          onClick={() => setIsFullscreen(false)}
+        >
+          <button
+            onClick={() => setIsFullscreen(false)}
+            className="absolute top-4 right-4 p-2 rounded-sm bg-card/80 backdrop-blur-sm hover:bg-accent transition-colors border border-border"
+            aria-label="Close fullscreen"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="relative w-full h-full max-w-6xl max-h-[90vh]">
+            <Image
+              src={
+                getImageUrl(
+                  typeof product.images?.[selectedImage] === "string"
+                    ? (product.images[selectedImage] as string)
+                    : (product.images?.[selectedImage] as any)?.image
+                ) || "/placeholder.svg"
+              }
+              alt={`${product.name} - Fullscreen`}
+              fill
+              className="object-contain"
+              sizes="100vw"
+            />
           </div>
-        )}
-      </DialogContent>
-    </Dialog>
+        </div>
+      )}
+    </>
   );
-};
+}
 
-export default DetailProduct;
+// ✅ Add helper function to map color names to hex codes
+function getColorHex(colorName: string): string {
+  const colorMap: Record<string, string> = {
+    red: "#ef4444",
+    yellow: "#eab308",
+    green: "#22c55e",
+    blue: "#3b82f6",
+    black: "#1f2937",
+    white: "#f9fafb",
+    brown: "#92400e",
+    gray: "#6b7280",
+    pink: "#ec4899",
+    purple: "#a855f7",
+    orange: "#f97316",
+    navy: "#1e3a8a",
+    beige: "#d4b5a0",
+    tan: "#d2b48c",
+  };
+  return colorMap[colorName.toLowerCase()] || "#9ca3af";
+}
+
+export default ProductDetailPanel;
