@@ -101,8 +101,8 @@ export type CartItemEntity = {
     cart: CartEntity;
     product: BagEntity;
     quantity: number;
-    colors: Array<string>;
-    sizes: Array<string>;
+    color: string;
+    size: string;
 };
 
 export type OrderEntity = {
@@ -120,6 +120,7 @@ export type OrderEntity = {
     stripePaymentIntentId?: string;
     stripeChargeId?: string;
     itemsSnapShot?: unknown;
+    shippingAddress?: unknown;
 };
 
 export type OrderItemEntity = {
@@ -140,8 +141,8 @@ export type CreateCategoryValidator = {
 export type AddToCartValidator = {
     bagId: string;
     quantity: number;
-    colors?: Array<string>;
-    sizes?: Array<string>;
+    color?: string;
+    size?: string;
 };
 
 export type AddBagValidator = {
@@ -321,6 +322,7 @@ export type GetAllOrdersResponses = {
                 updatedAt: string;
                 createdAt: string;
                 id: string;
+                shippingAddress?: unknown;
                 itemsSnapShot?: unknown;
                 amount: number;
                 currency: string;

@@ -4,7 +4,7 @@ import { Input } from "@/ui/shadcn/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { BagCard } from "./ProductCard";
+
 import { BagFilter } from "./BagFilter";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,6 +12,7 @@ import {
   searchBagsOptions,
 } from "@/api/@tanstack/react-query.gen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { ProductCard } from "./ProductCard";
 
 const SearchResult = ({
   q,
@@ -503,7 +504,11 @@ const SearchResult = ({
         {!isLoading && !isError && filteredProducts.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product) => (
-              <BagCard key={product.id} product={product} variant="default" />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onClick={() => {}}
+              />
             ))}
           </div>
         )}

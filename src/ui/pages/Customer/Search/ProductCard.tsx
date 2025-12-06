@@ -1,11 +1,7 @@
 import type React from "react";
 import { useState, useRef } from "react";
-import { ShoppingCart, Check } from "lucide-react";
-import { Button } from "@/ui/shadcn/button";
 import { Badge } from "@/ui/shadcn/badge";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
 import { useCart } from "@/hooks/use-cart";
 import { Image } from "@/ui/shadcn/image";
 import { getImageUrl } from "@/utils/urlHelpers";

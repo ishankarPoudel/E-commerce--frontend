@@ -1,7 +1,7 @@
 import type React from "react";
 import { useState } from "react";
 
-import { ShoppingCart, Check, Plus, Minus } from "lucide-react";
+import { ShoppingCart, Check, Plus, Minus, X } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import {
   Dialog,
@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 import { getImageUrl } from "@/utils/urlHelpers";
+import { useMutation } from "@tanstack/react-query";
+import { addToCartMutation } from "@/api/@tanstack/react-query.gen";
 
 interface Product {
   id: string;
@@ -45,6 +47,26 @@ interface AddToCartButtonProps {
   onSuccess?: () => void;
 }
 
+function getColorHex(colorName: string): string {
+  const colorMap: Record<string, string> = {
+    red: "#ef4444",
+    yellow: "#eab308",
+    green: "#22c55e",
+    blue: "#3b82f6",
+    black: "#1f2937",
+    white: "#f9fafb",
+    brown: "#92400e",
+    gray: "#6b7280",
+    pink: "#ec4899",
+    purple: "#a855f7",
+    orange: "#f97316",
+    navy: "#1e3a8a",
+    beige: "#d4b5a0",
+    tan: "#d2b48c",
+  };
+  return colorMap[colorName.toLowerCase()] || "#9ca3af";
+}
+
 export function AddToCartButton({
   product,
   size = "default",
@@ -71,67 +93,68 @@ export function AddToCartButton({
     (product.sizes && product.sizes.length > 1) ||
     (product.colors && product.colors.length > 1);
 
-  // ✅ Add useEffect to debug quantity changes
-  console.log("Current quantity:", quantity);
+  const { mutate: addToCart, isPending: isAddingToCart } = useMutation({
+    ...addToCartMutation(),
+  });
 
   const handleAddToCart = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
-
     if (product.stock === 0) {
       toast.error("This item is currently unavailable");
       return;
     }
-
-    // If product has multiple options and not pre-selected, show modal
     if (needsOptions && !defaultColor && !defaultSize && !isModalOpen) {
       setIsModalOpen(true);
       return;
     }
-
     setIsAdding(true);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    addItem({
-      productId: product.id,
-      quantity: showQuantity ? quantity : 1,
-      color: selectedColor,
-      size: selectedSize,
-    });
-
-    setIsAdding(false);
-    setShowSuccess(true);
-
-    toast.success(
-      `${showQuantity ? quantity : 1}x ${product.name} added to your cart`
+    addToCart(
+      {
+        body: {
+          bagId: product.id,
+          quantity: showQuantity ? quantity : 1,
+          color: selectedColor,
+          size: selectedSize,
+        },
+      },
+      {
+        onSuccess: () => {
+          addItem({
+            productId: product.id,
+            quantity: showQuantity ? quantity : 1,
+            color: selectedColor,
+            size: selectedSize,
+          });
+          setIsAdding(false);
+          setShowSuccess(true);
+          toast.success(
+            `${showQuantity ? quantity : 1}x ${product.name} added to your cart`
+          );
+          setTimeout(() => {
+            setShowSuccess(false);
+            setIsModalOpen(false);
+            setQuantity(1);
+          }, 1500);
+          onSuccess?.();
+        },
+        onError: () => {
+          setIsAdding(false);
+          toast.error("Failed to add item to cart. Please try again.");
+        },
+      }
     );
-
-    setTimeout(() => {
-      setShowSuccess(false);
-      setIsModalOpen(false);
-      setQuantity(1); // Reset quantity
-    }, 1500);
-
-    onSuccess?.();
   };
 
   const incrementQuantity = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log("Increment clicked - Before:", quantity);
-    const newQty = Math.min(quantity + 1);
-    console.log("Increment clicked - After:", newQty);
-    setQuantity(newQty);
+    setQuantity((prev) => Math.min(prev + 1));
   };
 
   const decrementQuantity = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log("Decrement clicked - Before:", quantity);
-    const newQty = Math.max(quantity - 1, 1);
-    console.log("Decrement clicked - After:", newQty);
-    setQuantity(newQty);
+    setQuantity((prev) => Math.max(prev - 1, 1));
   };
 
   return (
@@ -161,106 +184,115 @@ export function AddToCartButton({
         )}
       </Button>
 
-      {/* Quick Shop Modal */}
+      {/* Modern Quick Shop Modal */}
       <Dialog
         open={isModalOpen}
         onOpenChange={(open) => {
-          console.log("Dialog open changed:", open);
           setIsModalOpen(open);
-          // ✅ Reset quantity when closing
-          if (!open) {
-            setQuantity(1);
-          }
+          if (!open) setQuantity(1);
         }}
-        modal={true} // ✅ Ensure it's modal
+        modal={true}
       >
-        <DialogContent
-          className="sm:max-w-[500px] max-h-[90vh] overflow-hidden p-0 gap-0"
-          onPointerDownOutside={(e) => e.preventDefault()} // ✅ Prevent accidental closes
-          onInteractOutside={(e) => {
-            // ✅ Only close on explicit outside click, not on internal interactions
-            if (e.target instanceof Element && !e.target.closest("button")) {
-              e.preventDefault();
-            }
-          }}
-        >
-          {/* Product Image Header */}
-          <div className="relative w-full h-64 sm:h-80 bg-muted flex-shrink-0">
+        <DialogContent className="sm:max-w-[450px] p-0 gap-0 overflow-hidden">
+          {/* Modern Product Image with Gradient Overlay */}
+          <div className="relative w-full h-56 bg-gradient-to-br from-muted/50 to-muted overflow-hidden group">
             <img
               src={getImageUrl(product.images[0])}
               alt={product.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="eager"
             />
+            {/* Gradient Overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+            {/* Featured Badge */}
+            {product.isFeatured && (
+              <div className="absolute top-3 left-3 px-2.5 py-1 bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-semibold rounded-full shadow-lg">
+                Featured
+              </div>
+            )}
+
+            {/* Price Tag - Modern floating design */}
+            <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-background/95 backdrop-blur-md rounded-full shadow-xl border border-border/50">
+              <span className="text-lg font-bold text-primary">
+                ${product.price}
+              </span>
+            </div>
           </div>
 
-          {/* Product Details */}
-          <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-20rem)]">
-            <DialogHeader className="space-y-2">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <DialogTitle className="text-xl font-semibold leading-tight">
-                    {product.name}
-                  </DialogTitle>
-                  {product.brand && (
-                    <DialogDescription className="text-sm text-muted-foreground mt-1">
-                      {product.brand}
-                    </DialogDescription>
-                  )}
-                </div>
-                <div className="text-xl font-bold text-primary flex-shrink-0">
-                  ${product.price}
-                </div>
-              </div>
-            </DialogHeader>
+          {/* Product Details with Card-like Design */}
+          <div className="p-5 space-y-4 bg-gradient-to-b from-background to-muted/20">
+            {/* Header Section */}
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold leading-tight line-clamp-2">
+                {product.name}
+              </h3>
+              {product.brand && (
+                <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">
+                  {product.brand}
+                </p>
+              )}
+            </div>
 
-            {/* Color Selection */}
-            {product.colors && product.colors.length > 1 && (
-              <div className="space-y-2.5">
-                <label className="text-sm font-medium text-foreground block">
+            <div className="h-px bg-border/50" />
+
+            {/* Color Selection - Modern Pills */}
+            {product.colors && product.colors.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-xs font-semibold tracking-wide uppercase text-muted-foreground block">
                   Color:{" "}
-                  <span className="text-primary font-semibold capitalize">
+                  <span className="text-foreground capitalize font-bold">
                     {selectedColor}
                   </span>
                 </label>
-                <div className="flex flex-wrap gap-2.5">
-                  {product.colors.map((color) => (
-                    <button
-                      key={color.name}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedColor(color.name);
-                      }}
-                      className={cn(
-                        "relative w-12 h-12 rounded-full border-2 transition-all duration-200",
-                        "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                        selectedColor === color.name
-                          ? "border-primary ring-2 ring-ring ring-offset-2 ring-offset-background scale-110 shadow-md"
-                          : "border-border hover:border-primary/50"
-                      )}
-                      style={{ backgroundColor: color.hex }}
-                      aria-label={`Select ${color.name} color`}
-                      title={color.name}
-                    >
-                      {selectedColor === color.name && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Check
-                            className="h-6 w-6 text-white drop-shadow-lg"
-                            strokeWidth={3}
-                          />
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.map((color) => {
+                    const colorName =
+                      typeof color === "string" ? color : color.name;
+                    const colorHex =
+                      typeof color === "string"
+                        ? getColorHex(color)
+                        : color.hex;
+
+                    return (
+                      <button
+                        key={colorName}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedColor(colorName);
+                        }}
+                        className={cn(
+                          "relative w-10 h-10 rounded-lg border-2 transition-all shadow-sm hover:shadow-md",
+                          selectedColor === colorName
+                            ? "border-primary ring-2 ring-primary/30 ring-offset-2 scale-110 shadow-lg"
+                            : "border-border/50 hover:border-primary/50 hover:scale-105"
+                        )}
+                        style={{ backgroundColor: colorHex }}
+                        aria-label={colorName}
+                        title={colorName}
+                      >
+                        {selectedColor === colorName && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md">
+                              <Check
+                                className="h-3 w-3 text-primary"
+                                strokeWidth={3}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Size Selection */}
-            {product.sizes && product.sizes.length > 1 && (
-              <div className="space-y-2.5">
-                <label className="text-sm font-medium text-foreground block">
+            {/* Size Selection - Modern Chips */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-xs font-semibold tracking-wide uppercase text-muted-foreground block">
                   Size
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -273,14 +305,11 @@ export function AddToCartButton({
                         setSelectedSize(sizeOption);
                       }}
                       className={cn(
-                        "px-5 py-3 text-sm font-medium rounded-lg border-2 transition-all duration-200 uppercase",
-                        "ring-2 ring-offset-2 ring-offset-background",
-                        "hover:scale-105 focus-visible:outline-none focus-visible:ring-ring",
+                        "px-4 py-2 text-xs font-bold rounded-lg border-2 transition-all uppercase tracking-wide shadow-sm hover:shadow-md",
                         selectedSize === sizeOption
-                          ? "bg-primary text-primary-foreground border-primary ring-ring shadow-md scale-105"
-                          : "bg-card border-border text-foreground ring-transparent hover:border-primary/50 hover:bg-muted"
+                          ? "bg-primary text-primary-foreground border-primary scale-105 shadow-md"
+                          : "bg-background border-border hover:border-primary/50 hover:bg-muted/50"
                       )}
-                      aria-label={`Select size ${sizeOption}`}
                     >
                       {sizeOption}
                     </button>
@@ -289,85 +318,68 @@ export function AddToCartButton({
               </div>
             )}
 
-            {/* Quantity Selection */}
+            {/* Quantity Selection - Modern Counter */}
             {showQuantity && (
-              <div className="space-y-2.5">
-                <label className="text-sm font-medium text-foreground block">
-                  Quantity: <strong>{quantity}</strong>{" "}
-                  {/* ✅ Show quantity in label too */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold tracking-wide uppercase text-muted-foreground block">
+                  Quantity
                 </label>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 border-2 border-border rounded-lg p-1 bg-card">
+                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <div className="flex items-center gap-3 bg-background rounded-lg border border-border shadow-sm">
                     <button
                       type="button"
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                      }}
                       onClick={decrementQuantity}
                       disabled={quantity <= 1}
-                      className={cn(
-                        "h-10 w-10 flex items-center justify-center",
-                        "hover:bg-muted rounded-md transition-colors",
-                        "disabled:opacity-50 disabled:cursor-not-allowed"
-                      )}
-                      aria-label="Decrease quantity"
+                      className="h-9 w-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="w-12 text-center font-semibold text-lg tabular-nums">
+                    <span className="min-w-[2.5rem] text-center text-base font-bold tabular-nums">
                       {quantity}
                     </span>
                     <button
                       type="button"
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                      }}
                       onClick={incrementQuantity}
                       disabled={quantity >= product.stock}
-                      className={cn(
-                        "h-10 w-10 flex items-center justify-center",
-                        "hover:bg-muted rounded-md transition-colors",
-                        "disabled:opacity-50 disabled:cursor-not-allowed"
-                      )}
-                      aria-label="Increase quantity"
+                      className="h-9 w-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {product.stock} in stock
-                  </span>
                 </div>
               </div>
             )}
 
-            {/* Add to Cart Button */}
+            {/* Modern Add to Cart Button with Animation */}
             <Button
               onClick={handleAddToCart}
               disabled={isAdding || showSuccess || product.stock === 0}
               className={cn(
-                "w-full h-12 text-base font-semibold shadow-sm",
-                "btn-accent hover:shadow-md active:scale-[0.98] transition-all",
+                "w-full h-11 text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300",
+                "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary",
+                "active:scale-[0.98]",
                 showSuccess &&
-                  "bg-success text-success-foreground hover:bg-success/90"
+                  "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-500 hover:to-green-600"
               )}
-              size="lg"
-              aria-label={`Add ${product.name} to cart`}
             >
               {showSuccess ? (
-                <>
-                  <Check className="mr-2 h-5 w-5" />
-                  Added to Cart
-                </>
+                <div className="flex items-center gap-2 animate-in fade-in zoom-in duration-300">
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </div>
+                  <span>Added to Cart!</span>
+                </div>
               ) : (
-                <>
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  {isAdding
-                    ? "Adding..."
-                    : `Add to Cart • $${(product.price * quantity).toFixed(2)}`}
-                </>
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="h-4 w-4" />
+                  <span>
+                    {isAdding
+                      ? "Adding..."
+                      : `Add to Cart • $${(product.price * quantity).toFixed(
+                          2
+                        )}`}
+                  </span>
+                </div>
               )}
             </Button>
           </div>

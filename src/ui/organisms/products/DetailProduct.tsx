@@ -278,6 +278,7 @@ export function ProductDetailPanel({
                 )}
 
                 <AddToCartButton
+                  variant="minimal"
                   product={product}
                   fullWidth
                   showQuantity
