@@ -5,11 +5,15 @@ import {
   ArrowLeft,
   ShoppingBag,
   AlertCircle,
+  MapPin,
+  Globe,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/ui/shadcn/card";
 import { Button } from "@/ui/shadcn/button";
 import { Separator } from "@/ui/shadcn/separator";
+import { Label } from "@/ui/shadcn/label";
+import { Textarea } from "@/ui/shadcn/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createPaymentIntentMutation,
@@ -22,14 +26,23 @@ import { getImageUrl } from "@/utils/urlHelpers";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DeliveryMethodSelector } from "./DeliveryMethod";
+import { getClientInfo } from "@/utils/getClientInfo";
 
 type DeliveryMethod = "delivery" | "pickup";
 
 export default function CartPage() {
   const [deliveryMethod, setDeliveryMethod] =
     useState<DeliveryMethod>("delivery");
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [userLocation, setUserLocation] = useState<{
+    city?: string;
+    region?: string;
+    country?: string;
+    ip?: string;
+  } | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const navigate = useNavigate();
   const {
     data: cartData,
@@ -39,13 +52,27 @@ export default function CartPage() {
     ...getCartOptions(),
   });
 
+  useEffect(() => {
+    const fetchLocation = async () => {
+      try {
+        const clientInfo = await getClientInfo();
+        setUserLocation(clientInfo.location);
+      } catch (error) {
+        console.error("Failed to fetch location:", error);
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    };
+
+    fetchLocation();
+  }, []);
+
   const queryClient = useQueryClient();
-  // mutation to delete the entire cart
+
   const { mutate: removeCart } = useMutation({
     ...removeFromCartMutation(),
   });
 
-  //mutation to update cart item quantity
   const { mutate: updateCart } = useMutation({
     ...updateCartMutation(),
   });
@@ -53,7 +80,7 @@ export default function CartPage() {
   const stripePromise = loadStripe(
     import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!
   );
-  //mutataion to handle checkout
+
   const { mutate: paymentCheckout, isPending: ischeckoutPending } = useMutation(
     {
       ...createPaymentIntentMutation(),
@@ -76,16 +103,26 @@ export default function CartPage() {
             clientSecret: clientSecret || null,
             deliveryMethod: dm,
             message,
+            shippingAddress:
+              deliveryMethod === "delivery" ? shippingAddress : null,
           })
         );
         navigate({ to: "/checkout" });
       },
     }
   );
+
   const handleCheckout = () => {
+    // Validate shipping address if delivery is selected
+    if (deliveryMethod === "delivery" && !shippingAddress.trim()) {
+      toast.error("Please enter your shipping address");
+      return;
+    }
+
     paymentCheckout({
       body: {
         deliveryMethod: deliveryMethod,
+        shippingAddress,
       },
     });
   };
@@ -130,29 +167,17 @@ export default function CartPage() {
     );
   };
 
-  type CartItemType = {
-    id: string;
-    prroduct: {
-      id: string;
-      name: string;
-      price: number;
-      images?: { image: string }[];
-    };
-    quantity: number;
-  };
-
-  const cartItems = cartData?.data?.cartItems
-    ? (cartData.data.cartItems as CartItemType[]).map((item) => ({
-        id: item.id,
-        bagId: item?.product.id,
-        name: item?.product.name,
-        price: item?.product.price,
-        quantity: item?.quantity,
-        image: item?.product.images || [],
-        inStock: true,
-      }))
-    : [];
-  console.log(cartItems);
+  const cartItems =
+    cartData?.data?.cartItems.map((item: any) => ({
+      id: item.id,
+      name: item.product.name,
+      price: item.product.price,
+      quantity: item.quantity,
+      image: item.product.images,
+      size: item.size,
+      color: item.color,
+      inStock: true,
+    })) || [];
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -162,7 +187,17 @@ export default function CartPage() {
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
-  // Render error state
+  const getLocationString = () => {
+    if (!userLocation) return "your area";
+
+    const parts = [];
+    if (userLocation.city) parts.push(userLocation.city);
+    if (userLocation.region) parts.push(userLocation.region);
+    if (userLocation.country) parts.push(userLocation.country);
+
+    return parts.length > 0 ? parts.join(", ") : "your area";
+  };
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
@@ -213,6 +248,65 @@ export default function CartPage() {
               onMethodChange={setDeliveryMethod}
             />
 
+            {/* Shipping Address Section - Only shown for delivery */}
+            {deliveryMethod === "delivery" && (
+              <Card className="border-2 border-primary/20">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <MapPin className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-card-foreground">
+                          Shipping Address
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Where should we deliver your order?
+                        </p>
+                      </div>
+                    </div>
+
+                    {!isLoadingLocation && userLocation && (
+                      <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                        <Globe className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            We detected you're in{" "}
+                            <span className="font-semibold text-foreground">
+                              {getLocationString()}
+                            </span>
+                            . Confirm your delivery address below.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="shipping-address"
+                        className="text-sm font-medium"
+                      >
+                        Full Address <span className="text-destructive">*</span>
+                      </Label>
+                      <Textarea
+                        id="shipping-address"
+                        placeholder="Enter your complete delivery address..."
+                        value={shippingAddress}
+                        onChange={(e) => setShippingAddress(e.target.value)}
+                        className="min-h-[30px] resize-none"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Include street, apartment/unit, city, state, and ZIP
+                        code
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="space-y-4">
               {isPending ? (
                 <Card className="p-12 text-center">
@@ -255,16 +349,44 @@ export default function CartPage() {
                         </div>
 
                         {/* Product Details */}
-                        <div className="flex-1 space-y-3">
+                        <div className="flex-1 flex flex-col justify-between gap-4">
+                          {/* Top Row: Name + Delete */}
                           <div className="flex justify-between items-start">
-                            <div>
+                            <div className="space-y-1">
                               <h3 className="font-playfair font-semibold text-lg text-card-foreground">
                                 {item.name}
                               </h3>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {item.name}
-                              </p>
+
+                              {/* Product Options */}
+                              <div className="space-y-1 mt-2">
+                                {/* Size */}
+                                {item.size && (
+                                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <span className="font-medium text-card-foreground">
+                                      Size:
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded bg-muted text-xs">
+                                      {item.size}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Color */}
+                                {item.color && (
+                                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <span className="font-medium text-card-foreground">
+                                      Color:
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs px-2 py-0.5 bg-muted rounded">
+                                        {item.color.name || "Not specified"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
+
                             <Button
                               variant="ghost"
                               size="sm"
@@ -275,8 +397,8 @@ export default function CartPage() {
                             </Button>
                           </div>
 
+                          {/* Bottom Row: Price + Quantity */}
                           <div className="flex justify-between items-center">
-                            {/* Price */}
                             <div className="flex items-center gap-2">
                               <span className="text-xl font-semibold text-card-foreground">
                                 ${item.price.toFixed(2)}
@@ -298,9 +420,11 @@ export default function CartPage() {
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
+
                               <span className="font-medium min-w-[2rem] text-center">
                                 {item.quantity}
                               </span>
+
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -382,7 +506,8 @@ export default function CartPage() {
                   disabled={
                     cartItems.length === 0 ||
                     cartItems.some((item) => !item.inStock) ||
-                    ischeckoutPending
+                    ischeckoutPending ||
+                    (deliveryMethod === "delivery" && !shippingAddress.trim())
                   }
                 >
                   {ischeckoutPending
@@ -391,11 +516,18 @@ export default function CartPage() {
                     ? "Reserve & Pay in Store"
                     : "Continue to Payment"}
                 </Button>
-                {deliveryMethod === "pickup" && (
+
+                {deliveryMethod === "pickup" ? (
                   <p className="mt-2 text-xs text-muted-foreground text-center">
                     No online payment required. Reserve your items and pay when
                     you pick up in store.
                   </p>
+                ) : (
+                  !shippingAddress.trim() && (
+                    <p className="mt-2 text-xs text-destructive text-center">
+                      Please enter your shipping address to continue
+                    </p>
+                  )
                 )}
 
                 <div className="text-center space-y-2">

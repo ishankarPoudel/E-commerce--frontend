@@ -120,7 +120,7 @@ export type OrderEntity = {
     stripePaymentIntentId?: string;
     stripeChargeId?: string;
     itemsSnapShot?: unknown;
-    shippingAddress?: unknown;
+    shippingAddress?: string;
 };
 
 export type OrderItemEntity = {
@@ -322,7 +322,7 @@ export type GetAllOrdersResponses = {
                 updatedAt: string;
                 createdAt: string;
                 id: string;
-                shippingAddress?: unknown;
+                shippingAddress?: string;
                 itemsSnapShot?: unknown;
                 amount: number;
                 currency: string;
@@ -509,6 +509,7 @@ export type SearchResponses = {
 
 export type CreatePaymentIntentData = {
     body: {
+        shippingAddress?: string;
         deliveryMethod?: 'delivery' | 'pickup';
     };
     path?: never;

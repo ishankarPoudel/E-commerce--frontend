@@ -1,14 +1,4 @@
-import { useState, useEffect } from "react";
-
-interface NativeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  src: string;
-  alt: string;
-  fill?: boolean;
-  priority?: boolean;
-  sizes?: string;
-  fallbackSrc?: string;
-  blurDataURL?: string; // base64 tiny image
-}
+import { useEffect, useState } from "react";
 
 export function Image({
   src,
@@ -20,20 +10,25 @@ export function Image({
   blurDataURL,
   className = "",
   ...rest
-}: NativeImageProps) {
+}: {
+  src: string;
+  alt: string;
+  fill?: boolean;
+  priority?: boolean;
+  sizes?: string;
+  fallbackSrc?: string;
+  blurDataURL?: string;
+  className?: string;
+  [key: string]: any;
+}) {
   const [loaded, setLoaded] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
 
-  // Preload if priority=true (same behavior as Next.js)
+  //  Sync internal state whenever src changes
   useEffect(() => {
-    if (!priority) return;
-
-    const link = document.createElement("link");
-    link.rel = "preload";
-    link.as = "image";
-    link.href = src;
-    document.head.appendChild(link);
-  }, [priority, src]);
+    setCurrentSrc(src);
+    setLoaded(false); // reset so the fade animation happens again
+  }, [src]);
 
   const handleError = () => setCurrentSrc(fallbackSrc);
   const handleLoad = () => setLoaded(true);
@@ -45,7 +40,6 @@ export function Image({
         " overflow-hidden"
       }
     >
-      {/* BLUR BACKGROUND */}
       {blurDataURL && !loaded && (
         <img
           src={blurDataURL}
@@ -57,7 +51,6 @@ export function Image({
         />
       )}
 
-      {/* MAIN IMAGE */}
       <img
         src={currentSrc}
         alt={alt}
@@ -68,7 +61,6 @@ export function Image({
         className={
           (fill ? "absolute inset-0 w-full h-full" : "w-full") +
           " object-cover transition-transform duration-500 group-hover:scale-105 " +
-          // Fade-in effect when loaded
           (loaded ? "opacity-100" : "opacity-0") +
           " transition-opacity duration-700 " +
           className

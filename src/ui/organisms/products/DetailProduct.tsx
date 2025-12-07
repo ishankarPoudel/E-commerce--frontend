@@ -47,6 +47,22 @@ const featureIcons: Record<string, any> = {
   expandable: Ruler,
 };
 
+function getProductImageUrl(image: any): string {
+  if (!image) return "/placeholder.svg";
+
+  // If it's a string, use it directly
+  if (typeof image === "string") {
+    return getImageUrl(image) || "/placeholder.svg";
+  }
+
+  // If it's an object with 'image' property
+  if (image.image) {
+    return getImageUrl(image.image) || "/placeholder.svg";
+  }
+
+  return "/placeholder.svg";
+}
+
 export function ProductDetailPanel({
   product,
   isOpen,
@@ -113,13 +129,7 @@ export function ProductDetailPanel({
             {/* Main Image */}
             <div className="relative aspect-square bg-muted">
               <Image
-                src={
-                  getImageUrl(
-                    typeof product.images?.[selectedImage] === "string"
-                      ? (product.images[selectedImage] as string)
-                      : (product.images?.[selectedImage] as any)?.image
-                  ) || "/placeholder.svg"
-                }
+                src={getProductImageUrl(product.images?.[selectedImage])}
                 alt={`${product.name} - Image ${selectedImage + 1}`}
                 fill
                 className={cn(
@@ -156,7 +166,6 @@ export function ProductDetailPanel({
               )}
             </div>
 
-            {/* Thumbnail Gallery */}
             {product.images && product.images.length > 0 && (
               <div className="flex gap-2 p-4 overflow-x-auto">
                 {product.images.map((image, index) => (
@@ -173,15 +182,9 @@ export function ProductDetailPanel({
                     aria-pressed={selectedImage === index}
                   >
                     <Image
-                      src={
-                        getImageUrl(
-                          typeof image === "string"
-                            ? image
-                            : (image as any)?.image
-                        ) || "/placeholder.svg"
-                      }
+                      key={`main-image-${selectedImage}`}
+                      src={getProductImageUrl(image)}
                       alt={`${product.name} thumbnail ${index + 1}`}
-                      fill
                       className="object-cover"
                       sizes="80px"
                     />
@@ -220,7 +223,6 @@ export function ProductDetailPanel({
                       aria-label="Select color"
                     >
                       {product.colors.map((color) => {
-                        // ✅ Handle both string and object formats
                         const colorName =
                           typeof color === "string" ? color : color.name;
                         const colorHex =
@@ -250,7 +252,6 @@ export function ProductDetailPanel({
                   </div>
                 )}
 
-                {/* Size Selector */}
                 {product.sizes && product.sizes.length > 0 && (
                   <div>
                     <label
@@ -288,7 +289,7 @@ export function ProductDetailPanel({
                 />
               </div>
 
-              {/* Description */}
+              {/* Description and specs sections */}
               {product.description && (
                 <div className="mb-6">
                   <h2 className="text-lg font-semibold mb-2">Description</h2>
@@ -298,7 +299,6 @@ export function ProductDetailPanel({
                 </div>
               )}
 
-              {/* Specifications */}
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-3">Specifications</h2>
                 <dl className="grid grid-cols-1 gap-3">
@@ -375,7 +375,6 @@ export function ProductDetailPanel({
                 </dl>
               </div>
 
-              {/* Features Grid */}
               {trueFeatures.length > 0 && (
                 <div>
                   <h2 className="text-lg font-semibold mb-3">Features</h2>
@@ -425,13 +424,7 @@ export function ProductDetailPanel({
           </button>
           <div className="relative w-full h-full max-w-6xl max-h-[90vh]">
             <Image
-              src={
-                getImageUrl(
-                  typeof product.images?.[selectedImage] === "string"
-                    ? (product.images[selectedImage] as string)
-                    : (product.images?.[selectedImage] as any)?.image
-                ) || "/placeholder.svg"
-              }
+              src={getProductImageUrl(product.images?.[selectedImage])}
               alt={`${product.name} - Fullscreen`}
               fill
               className="object-contain"
@@ -444,7 +437,7 @@ export function ProductDetailPanel({
   );
 }
 
-// ✅ Add helper function to map color names to hex codes
+// function to map color names to hex codes
 function getColorHex(colorName: string): string {
   const colorMap: Record<string, string> = {
     red: "#ef4444",
