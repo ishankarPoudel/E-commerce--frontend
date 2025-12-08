@@ -15,8 +15,6 @@ interface ProductFiltersProps {
   colors: string[];
   selectedColors: string[];
   setSelectedColors: (value: string[]) => void;
-  showInStockOnly: boolean;
-  setShowInStockOnly: (value: boolean) => void;
 }
 
 export function BagFilter({
@@ -28,11 +26,6 @@ export function BagFilter({
   brands,
   selectedBrands,
   setSelectedBrands,
-  colors,
-  selectedColors,
-  setSelectedColors,
-  showInStockOnly,
-  setShowInStockOnly,
 }: ProductFiltersProps) {
   const toggleCategory = (category: string) => {
     setSelectedCategories(
@@ -47,14 +40,6 @@ export function BagFilter({
       selectedBrands.includes(brand)
         ? selectedBrands.filter((b) => b !== brand)
         : [...selectedBrands, brand]
-    );
-  };
-
-  const toggleColor = (color: string) => {
-    setSelectedColors(
-      selectedColors.includes(color)
-        ? selectedColors.filter((c) => c !== color)
-        : [...selectedColors, color]
     );
   };
 
@@ -126,52 +111,6 @@ export function BagFilter({
               </Label>
             </div>
           ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Colors */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium text-foreground">Color</h3>
-        <div className="space-y-2">
-          {colors.map((color) => (
-            <div key={color} className="flex items-center space-x-2">
-              <Checkbox
-                id={`color-${color}`}
-                checked={selectedColors.includes(color)}
-                onCheckedChange={() => toggleColor(color)}
-              />
-              <Label
-                htmlFor={`color-${color}`}
-                className="text-sm font-normal text-foreground cursor-pointer"
-              >
-                {color}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Availability */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium text-foreground">Availability</h3>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="in-stock"
-            checked={showInStockOnly}
-            onCheckedChange={(checked) =>
-              setShowInStockOnly(checked as boolean)
-            }
-          />
-          <Label
-            htmlFor="in-stock"
-            className="text-sm font-normal text-foreground cursor-pointer"
-          >
-            In stock only
-          </Label>
         </div>
       </div>
     </div>

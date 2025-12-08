@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, TrendingUp } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Card } from "@/ui/shadcn/card";
 import { Badge } from "@/ui/shadcn/badge";
@@ -46,7 +46,6 @@ export function InstantSearch() {
 
   const categoryData = Array.isArray(categories?.data) ? categories.data : [];
 
-  console.log("category data:", categoryData[0]?.categoryName);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -87,8 +86,8 @@ export function InstantSearch() {
         ? String(item.categories[0]?.categoryName ?? "")
         : "",
       price: Number(item?.price ?? 0),
-      image: Array.isArray(item?.bagImages)
-        ? String(item.bagImages[0]?.image ?? "")
+      image: Array.isArray(item?.images)
+        ? String(item.images[0]?.image ?? "")
         : "",
     }));
 
@@ -143,96 +142,95 @@ export function InstantSearch() {
         <Card className="absolute top-full mt-4 w-full max-h-[600px] overflow-hidden rounded-2xl shadow-2xl z-50 border-2 border-border/50 backdrop-blur-xl bg-card/95 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
           <div className="overflow-y-auto max-h-[600px] p-6 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/40">
             {!searchQuery.trim() ? (
-              // Popular Searches
+              // Popular Categories
               <div className="space-y-5">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <TrendingUp className="h-4 w-4 text-primary" />
                   <h3 className="text-base font-bold text-foreground">
-                    Popular Searches
+                    Popular Categories
                   </h3>
                 </div>
 
-                {/* Scrollable grid container */}
-                <div className="max-h-[300px] overflow-y-auto pr-1">
-                  <div className="grid grid-cols-3 gap-3 auto-rows-auto">
-                    {isCategoriesLoading && (
-                      <div className="flex items-center justify-center col-span-3">
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      </div>
-                    )}
-
-                    {isCategoriesError && (
-                      <div className="flex items-center justify-center col-span-3">
-                        <p className="text-sm font-medium text-destructive">
-                          Error fetching categories. Please try again.
-                        </p>
-                      </div>
-                    )}
-
-                    {categoryData.map((category: any, index: number) => (
-                      <Link
-                        key={category.id || index}
-                        to="/search"
-                        search={{
-                          q: "",
-                          category: category.categoryName,
-                          categoryId: String(category.id),
-                        }}
-                        onClick={() => setIsOpen(false)}
-                        className="
-            group flex items-center gap-3 p-3
-            rounded-xl bg-muted/30 hover:bg-muted/60
-            transition-all duration-200 text-left border border-transparent
-            hover:border-border hover:shadow-md active:scale-[0.98]
-          "
-                      >
-                        <div className="relative flex-shrink-0">
-                          <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <img
-                            src={
-                              getImageUrl(category.image) ||
-                              "/placeholder.svg?height=40&width=40"
-                            }
-                            alt={category.categoryName || "Category"}
-                            className="relative w-10 h-10 object-cover rounded-lg bg-background"
-                          />
-                        </div>
-                        <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {category.categoryName}
-                        </span>
-                      </Link>
-                    ))}
+                {/* Loading State */}
+                {isCategoriesLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   </div>
-                </div>
+                )}
+
+                {/* Error State */}
+                {isCategoriesError && (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-sm font-medium text-destructive">
+                      Error fetching categories. Please try again.
+                    </p>
+                  </div>
+                )}
+
+                {/* Categories Grid */}
+                {/* Categories Grid */}
+                {!isCategoriesLoading && !isCategoriesError && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {categoryData
+                      .slice(0, 9)
+                      .map((category: any, index: number) => (
+                        <Link
+                          key={category.id || index}
+                          to="/search"
+                          search={{
+                            q: "",
+                            category: category.categoryName,
+                            categoryId: String(category.id),
+                          }}
+                          onClick={() => setIsOpen(false)}
+                          className="group relative overflow-hidden rounded-lg border-2 border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]"
+                        >
+                          {/* Hover gradient effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                          {/* Content */}
+                          <div className="relative flex items-center justify-between gap-2">
+                            <span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                              {category.categoryName}
+                            </span>
+                            <div className="flex-shrink-0 w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                              <Sparkles className="h-3 w-3 text-primary" />
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                  </div>
+                )}
               </div>
             ) : (
               // Search Results
               <div className="space-y-5">
                 {filteredResults.length > 0 ? (
                   <>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {filteredResults.length} result
+                        {filteredResults.length !== 1 ? "s" : ""} found
+                      </p>
+                      <Badge
+                        variant="secondary"
+                        className="font-semibold text-xs"
+                      >
+                        {searchQuery}
+                      </Badge>
+                    </div>
+
                     <Link
                       to="/search"
                       search={{ q: searchQuery, category: "", categoryId: "" }}
                       onClick={() => setIsOpen(false)}
+                      className="block"
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-medium text-muted-foreground">
-                          {filteredResults.length} result
-                          {filteredResults.length !== 1 ? "s" : ""} found
-                        </p>
-                        <Badge
-                          variant="secondary"
-                          className="font-semibold text-xs"
-                        >
-                          {searchQuery}
-                        </Badge>
-                      </div>
-
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {filteredResults.map((result) => (
-                          <button
+                          <div
                             key={String(result.id)}
-                            className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-accent/50 transition-all duration-200 text-left border-2 border-transparent hover:border-primary/30 hover:shadow-lg active:scale-[0.98]"
+                            className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-accent/50 transition-all duration-200 text-left border-2 border-transparent hover:border-primary/30 hover:shadow-lg active:scale-[0.98] cursor-pointer"
                           >
                             <div className="relative w-full aspect-square overflow-hidden rounded-lg bg-muted">
                               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -260,7 +258,7 @@ export function InstantSearch() {
                                 ${result.price.toFixed(2)}
                               </p>
                             </div>
-                          </button>
+                          </div>
                         ))}
                       </div>
                     </Link>

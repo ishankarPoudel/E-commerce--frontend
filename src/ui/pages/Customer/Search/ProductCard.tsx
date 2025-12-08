@@ -31,51 +31,39 @@ export interface ProductCardProps {
   priority?: boolean;
 }
 
+// ✅ Add helper function to get color hex
+function getColorHex(colorName: string): string {
+  const colorMap: Record<string, string> = {
+    red: "#ef4444",
+    yellow: "#eab308",
+    green: "#22c55e",
+    blue: "#3b82f6",
+    black: "#1f2937",
+    white: "#f9fafb",
+    brown: "#92400e",
+    gray: "#6b7280",
+    grey: "#6b7280",
+    pink: "#ec4899",
+    purple: "#a855f7",
+    orange: "#f97316",
+    navy: "#1e3a8a",
+    beige: "#d4b5a0",
+    tan: "#d2b48c",
+  };
+  return colorMap[colorName.toLowerCase()] || "#9ca3af";
+}
+
 export function ProductCard({ product, onClick }: ProductCardProps) {
-  const [selectedSize, setSelectedSize] = useState<string | undefined>(
-    product.sizes?.[0]
-  );
-  const [isAdding, setIsAdding] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const { addItem } = useCart();
+  // const { addItem } = useCart();
 
-  const producutImages = product.images.map((img) => {
-    return img;
+  const producutImages = product?.images?.map((img) => {
+    return typeof img === "string" ? img : (img as { image: string })?.image;
   });
-  console.log("Product :", product);
 
   const handleCardClick = () => {
     onClick();
-  };
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    if (product.stock === 0) {
-      toast.error("This item is currently unavailable");
-      return;
-    }
-
-    setIsAdding(true);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    addItem({
-      productId: product.id,
-      quantity: 1,
-      color: product.colors[0].name,
-      size: selectedSize,
-    });
-
-    setIsAdding(false);
-    setShowSuccess(true);
-
-    toast.success(`${product.name} has been added to your cart`);
-
-    setTimeout(() => setShowSuccess(false), 2000);
   };
 
   return (
@@ -95,7 +83,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
       {/* Image Container - 4:5 aspect ratio */}
       <div className="relative aspect-[4/5] overflow-hidden bg-muted rounded-sm mb-3 transition-transform duration-300 group-hover:-translate-y-1">
         <Image
-          src={getImageUrl(producutImages[0])}
+          src={getImageUrl(producutImages?.[0])}
           alt={product.name}
           fill={true}
           priority={true}
@@ -143,23 +131,30 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
         <p className="text-xs text-muted-foreground">{product.type}</p>
 
-        {/* Color Swatches */}
-        {product.colors.length > 0 && (
+        {/* ✅ Fixed Color Swatches */}
+        {product?.colors && product?.colors?.length > 0 && (
           <div
             className="flex items-center gap-1.5 mt-0.5"
             role="list"
             aria-label="Available colors"
           >
-            {product.colors.slice(0, 3).map((color) => (
-              <div
-                key={color.name}
-                className="w-4 h-4 rounded-full border border-border shadow-sm"
-                style={{ backgroundColor: color.hex }}
-                role="listitem"
-                aria-label={color.name}
-                title={color.name}
-              />
-            ))}
+            {product?.colors?.slice(0, 3)?.map((color, index) => {
+              // ✅ Handle both string and object formats
+              const colorName = typeof color === "string" ? color : color.name;
+              const colorHex =
+                typeof color === "string" ? getColorHex(color) : color.hex;
+
+              return (
+                <div
+                  key={colorName || index}
+                  className="w-4 h-4 rounded-full border border-border shadow-sm"
+                  style={{ backgroundColor: colorHex }}
+                  role="listitem"
+                  aria-label={colorName}
+                  title={colorName}
+                />
+              );
+            })}
             {product.colors.length > 3 && (
               <span className="text-xs text-muted-foreground">
                 +{product.colors.length - 3}

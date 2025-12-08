@@ -81,7 +81,7 @@ export function ProductDetailPanel({
   const [isZoomed, setIsZoomed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const { addItem } = useCart();
+  // const { addItem } = useCart();
 
   // Reset state when product changes
   useEffect(() => {

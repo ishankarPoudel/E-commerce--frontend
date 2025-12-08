@@ -4,7 +4,6 @@ import { Input } from "@/ui/shadcn/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-
 import { BagFilter } from "./BagFilter";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,7 +11,8 @@ import {
   searchBagsOptions,
 } from "@/api/@tanstack/react-query.gen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { ProductCard } from "./ProductCard";
+import { Product, ProductCard } from "./ProductCard";
+import ProductDetailPanel from "@/ui/organisms/products/DetailProduct";
 
 const SearchResult = ({
   q,
@@ -29,8 +29,9 @@ const SearchResult = ({
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [showInStockOnly, setShowInStockOnly] = useState(false);
+
   const [sortBy, setSortBy] = useState("featured");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Set initial category if provided from URL
   useEffect(() => {
@@ -67,9 +68,6 @@ const SearchResult = ({
     enabled: Boolean(categoryId),
   });
 
-  console.log("Search Data:", searchData?.data);
-  console.log("Bags by Category Data:", bagsByCategoryData?.data);
-
   // Transform and combine API data
   const apiProducts = useMemo(() => {
     const transformBagData = (bagData: any[]) => {
@@ -77,18 +75,35 @@ const SearchResult = ({
         id: item.id,
         name: item.name || "Unknown Product",
         price: item.price || 0,
+        type: item.type || "Bag",
         description: item.description || "",
+
+        images: Array.isArray(item.images)
+          ? item.images.map((img: any) => img.image || img)
+          : [],
+
+        colors: Array.isArray(item.colors)
+          ? item.colors.map((color: string) => ({
+              name: color,
+              hex: getColorHex(color),
+            }))
+          : [],
+
+        sizes: item.sizes || [],
+        isFeatured: item.isFeatured || false,
+        material: item.material || "Mixed Materials",
+        weightKg: item.weightKg || 0,
+        capacityLiters: item.capacityLiters,
+        brand: item.brand || "Various",
+        features: item.features || {},
+        stock: true,
+
+        // Keep these for filtering
         category:
           Array.isArray(item.categories) && item.categories.length > 0
             ? item.categories[0].categoryName
             : "Uncategorized",
-        brand: item.brand || "Various", // Default since API doesn't provide brand
-        color: item.color || "Mixed", // Default since API doesn't provide color
-        image:
-          Array.isArray(item.bagImages) && item.bagImages.length > 0
-            ? item.bagImages[0].image
-            : "/placeholder-bag.jpg",
-        inStock: item.inStock !== false, // Default to true
+        inStock: item.inStock !== false,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
       }));
@@ -96,7 +111,6 @@ const SearchResult = ({
 
     let combinedProducts: any[] = [];
 
-    // Add search results if available
     if (searchData?.data && Array.isArray(searchData.data)) {
       combinedProducts = [
         ...combinedProducts,
@@ -104,21 +118,38 @@ const SearchResult = ({
       ];
     }
 
-    // Add category-based results if available
     if (bagsByCategoryData?.data && Array.isArray(bagsByCategoryData.data)) {
       const categoryProducts = transformBagData(bagsByCategoryData.data);
-
-      // Avoid duplicates by checking if product ID already exists
       const existingIds = new Set(combinedProducts.map((p) => p.id));
       const uniqueCategoryProducts = categoryProducts.filter(
         (p) => !existingIds.has(p.id)
       );
-
       combinedProducts = [...combinedProducts, ...uniqueCategoryProducts];
     }
 
     return combinedProducts;
   }, [searchData?.data, bagsByCategoryData?.data]);
+
+  function getColorHex(colorName: string): string {
+    const colorMap: Record<string, string> = {
+      red: "#ef4444",
+      yellow: "#eab308",
+      green: "#22c55e",
+      blue: "#3b82f6",
+      black: "#1f2937",
+      white: "#f9fafb",
+      brown: "#92400e",
+      gray: "#6b7280",
+      grey: "#6b7280",
+      pink: "#ec4899",
+      purple: "#a855f7",
+      orange: "#f97316",
+      navy: "#1e3a8a",
+      beige: "#d4b5a0",
+      tan: "#d2b48c",
+    };
+    return colorMap[colorName.toLowerCase()] || "#9ca3af";
+  }
 
   // Extract filter options from combined data
   const categories = useMemo(() => {
@@ -159,16 +190,12 @@ const SearchResult = ({
       const matchesColor =
         selectedColors.length === 0 || selectedColors.includes(product.color);
 
-      // Stock matching
-      const matchesStock = !showInStockOnly || product.inStock;
-
       return (
         matchesSearch &&
         matchesPrice &&
         matchesCategory &&
         matchesBrand &&
-        matchesColor &&
-        matchesStock
+        matchesColor
       );
     });
 
@@ -195,7 +222,6 @@ const SearchResult = ({
     selectedCategories,
     selectedBrands,
     selectedColors,
-    showInStockOnly,
     sortBy,
   ]);
 
@@ -205,14 +231,10 @@ const SearchResult = ({
     setSelectedCategories([]);
     setSelectedBrands([]);
     setSelectedColors([]);
-    setShowInStockOnly(false);
   };
 
   const activeFilterCount =
-    selectedCategories.length +
-    selectedBrands.length +
-    selectedColors.length +
-    (showInStockOnly ? 1 : 0);
+    selectedCategories.length + selectedBrands.length + selectedColors.length;
 
   const hasActiveFilters =
     searchQuery ||
@@ -314,8 +336,6 @@ const SearchResult = ({
                     colors={colors}
                     selectedColors={selectedColors}
                     setSelectedColors={setSelectedColors}
-                    showInStockOnly={showInStockOnly}
-                    setShowInStockOnly={setShowInStockOnly}
                   />
                 </PopoverContent>
               </Popover>
@@ -364,7 +384,6 @@ const SearchResult = ({
                   onClick={clearFilters}
                   className="gap-2"
                 >
-                  ``
                   <X className="h-4 w-4" />
                   Clear
                 </Button>
@@ -375,8 +394,7 @@ const SearchResult = ({
           {/* Active Filter Tags */}
           {(selectedCategories.length > 0 ||
             selectedBrands.length > 0 ||
-            selectedColors.length > 0 ||
-            showInStockOnly) && (
+            selectedColors.length > 0) && (
             <div className="flex flex-wrap gap-2 mt-3">
               {selectedCategories.map((category) => (
                 <Badge key={category} variant="secondary" className="gap-1">
@@ -408,32 +426,6 @@ const SearchResult = ({
                   </button>
                 </Badge>
               ))}
-              {selectedColors.map((color) => (
-                <Badge key={color} variant="secondary" className="gap-1">
-                  {color}
-                  <button
-                    onClick={() =>
-                      setSelectedColors(
-                        selectedColors.filter((c) => c !== color)
-                      )
-                    }
-                    className="ml-1 hover:text-foreground"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {showInStockOnly && (
-                <Badge variant="secondary" className="gap-1">
-                  In Stock Only
-                  <button
-                    onClick={() => setShowInStockOnly(false)}
-                    className="ml-1 hover:text-foreground"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
             </div>
           )}
         </div>
@@ -507,12 +499,19 @@ const SearchResult = ({
               <ProductCard
                 key={product.id}
                 product={product}
-                onClick={() => {}}
+                onClick={() => setSelectedProduct(product)}
               />
             ))}
           </div>
         )}
       </main>
+      {selectedProduct && (
+        <ProductDetailPanel
+          product={selectedProduct}
+          isOpen={!!selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
     </div>
   );
 };

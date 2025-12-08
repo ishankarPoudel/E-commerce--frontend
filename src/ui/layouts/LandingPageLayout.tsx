@@ -4,14 +4,19 @@ import { SidebarProvider, SidebarTrigger } from "../shadcn/sidebar";
 const LandingPageLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className='flex min-h-screen'>
+      <div className="flex h-screen w-full overflow-hidden">
+        {/* Sidebar */}
         <AppSidebar />
-        <div className='flex flex-1 flex-col'>
-          <header className='flex items-center gap-2 p-2'>
+
+        {/* Main Content Area - Fixed height with overflow */}
+        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+          {/* Header */}
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
             <SidebarTrigger />
-          </header>
-          <main className='flex-1'>{children}</main>
-        </div>
+            {children}
+          </div>
+        </main>
       </div>
     </SidebarProvider>
   );

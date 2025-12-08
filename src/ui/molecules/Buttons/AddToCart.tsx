@@ -3,13 +3,7 @@ import { useState } from "react";
 
 import { ShoppingCart, Check, Plus, Minus, X } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/ui/shadcn/dialog";
+import { Dialog, DialogContent } from "@/ui/shadcn/dialog";
 import { useCart } from "@/hooks/use-cart";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -78,7 +72,7 @@ export function AddToCartButton({
   onSuccess,
 }: AddToCartButtonProps) {
   const [selectedColor, setSelectedColor] = useState(
-    defaultColor || product.colors[0]?.name
+    defaultColor || product?.colors?.[0]?.name
   );
   const [selectedSize, setSelectedSize] = useState(
     defaultSize || product.sizes?.[0]
@@ -88,7 +82,7 @@ export function AddToCartButton({
   const [showSuccess, setShowSuccess] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { addItem } = useCart();
+  // const { addItem } = useCart();
   const needsOptions =
     (product.sizes && product.sizes.length > 1) ||
     (product.colors && product.colors.length > 1);
@@ -119,12 +113,12 @@ export function AddToCartButton({
       },
       {
         onSuccess: () => {
-          addItem({
-            productId: product.id,
-            quantity: showQuantity ? quantity : 1,
-            color: selectedColor,
-            size: selectedSize,
-          });
+          // addItem({
+          //   productId: product.id,
+          //   quantity: showQuantity ? quantity : 1,
+          //   color: selectedColor,
+          //   size: selectedSize,
+          // });
           setIsAdding(false);
           setShowSuccess(true);
           toast.success(
@@ -197,7 +191,7 @@ export function AddToCartButton({
           {/* Modern Product Image with Gradient Overlay */}
           <div className="relative w-full h-56 bg-gradient-to-br from-muted/50 to-muted overflow-hidden group">
             <img
-              src={getImageUrl(product.images[0])}
+              src={getImageUrl(product?.images?.[0])}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="eager"
