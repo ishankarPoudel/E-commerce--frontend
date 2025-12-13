@@ -1,13 +1,13 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
-import { Send, Loader2, Sparkles, ShoppingBag } from "lucide-react";
+import { Send, Loader2, Sparkles, ShoppingBag, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { useMutation } from "@tanstack/react-query";
 import { searchMutation } from "@/api/@tanstack/react-query.gen";
 import { getImageUrl } from "@/utils/urlHelpers";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 interface Message {
   id: string;
@@ -24,6 +24,10 @@ export default function ChatBot() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const [sessionId] = useState(
+    () => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  );
+
   const { mutate, isPending } = useMutation({
     ...searchMutation(),
   });
@@ -32,7 +36,8 @@ export default function ChatBot() {
     "Show me trending backpacks",
     "Find leather tote bags under $100",
     "What are your bestsellers?",
-    "Recommend travel bags for women",
+    "Recommend waterproof bags for travel",
+    "Do you have red messenger bags?",
   ];
 
   const scrollToBottom = () => {
@@ -51,7 +56,16 @@ export default function ChatBot() {
     navigate({ to: `/bags/${bagId}` });
   };
 
-  // Combined function for both manual & suggestion triggers
+  const handleClearChat = () => {
+    setMessages([]);
+    mutate({
+      body: {
+        userMessage: "",
+        sessionId: "",
+      },
+    });
+  };
+
   const sendMessage = async (message: string) => {
     if (!message.trim() || isPending) return;
 
@@ -68,30 +82,26 @@ export default function ChatBot() {
       {
         body: {
           userMessage: message.trim(),
+          sessionId,
         },
       },
       {
         onSuccess: (response: any) => {
           console.log("AI Response:", response);
 
-          // Handle different query types
           const queryType = response.intent?.queryType || "product_search";
 
-          // Always add the AI text response
+          // AI text response
           const aiTextMessage: Message = {
             id: Date.now().toString(),
             role: "assistant",
-            content:
-              response.reply ||
-              (queryType === "greeting"
-                ? "Hello! 👋 How can I help you today?"
-                : "Here's what I found for you:"),
+            content: response.reply || "Here's what I found for you:",
             queryType,
           };
 
           setMessages((prev) => [...prev, aiTextMessage]);
 
-          // Add bags if available (for all query types)
+          // Add bags if available
           if (response.bags && response.bags.length > 0) {
             const bagMessage: Message = {
               id: (Date.now() + 1).toString(),
@@ -102,17 +112,6 @@ export default function ChatBot() {
             };
 
             setMessages((prev) => [...prev, bagMessage]);
-          } else if (
-            queryType === "product_search" &&
-            (!response.bags || response.bags.length === 0)
-          ) {
-            // Only show "no results" for product searches
-            const noResultsMessage: Message = {
-              id: (Date.now() + 2).toString(),
-              role: "assistant",
-            };
-
-            setMessages((prev) => [...prev, noResultsMessage]);
           }
         },
 
@@ -122,7 +121,7 @@ export default function ChatBot() {
             id: Date.now().toString(),
             role: "assistant",
             content:
-              "Sorry, something went wrong. Please try again or rephrase your question.",
+              "Sorry, something went wrong on my end! 😅 Could you try asking that again?",
           };
 
           setMessages((prev) => [...prev, errorMessage]);
@@ -142,11 +141,31 @@ export default function ChatBot() {
 
   return (
     <div className="w-full h-full flex flex-col bg-background">
+      {messages.length > 0 && (
+        <div className="border-b border-border px-8 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-muted-foreground">
+              Chat with Emma
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearChat}
+            className="text-xs"
+          >
+            <RotateCcw className="w-3 h-3 mr-1" />
+            Clear Chat
+          </Button>
+        </div>
+      )}
+
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto px-8 py-6 space-y-6 scroll-smooth"
       >
-        {/* Empty state with suggestions */}
+        {/* Empty state */}
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center gap-6 pb-12">
             <div className="p-6 bg-gradient-to-br from-primary/20 to-primary/10 rounded-3xl">
@@ -154,11 +173,11 @@ export default function ChatBot() {
             </div>
             <div className="max-w-md">
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                Welcome to AI Shopping Assistant
+                Hi! I'm Emma, Your Shopping Assistant 👋
               </h2>
               <p className="text-muted-foreground text-base leading-relaxed mb-4">
-                Ask me anything! I can help you find bags, show you bestsellers,
-                recommend products, or answer your questions.
+                Ask me anything about bags - from recommendations to product
+                searches. Here are some ideas to get you started:
               </p>
 
               <div className="flex flex-wrap justify-center gap-3 mt-4">
@@ -178,7 +197,7 @@ export default function ChatBot() {
           </div>
         )}
 
-        {/* Render messages */}
+        {/* Messages */}
         {messages.map((m) => (
           <div
             key={m.id}
@@ -195,7 +214,6 @@ export default function ChatBot() {
             >
               {m.language === "bags" ? (
                 <div className="w-full">
-                  {/* Section header based on query type */}
                   {m.queryType && (
                     <div className="flex items-center gap-2 mb-3">
                       <ShoppingBag className="w-4 h-4 text-primary" />
@@ -204,10 +222,12 @@ export default function ChatBot() {
                         {m.queryType === "recommendation" &&
                           "Recommended for You"}
                         {m.queryType === "product_search" && "Search Results"}
+                        {m.queryType === "follow_up" && "More Options"}
                         {![
                           "general_question",
                           "recommendation",
                           "product_search",
+                          "follow_up",
                         ].includes(m.queryType) && "Available Options"}
                       </span>
                     </div>
@@ -223,23 +243,19 @@ export default function ChatBot() {
                         <div className="relative overflow-hidden rounded-xl mb-3">
                           <img
                             src={
-                              bag.bagImages?.[0]?.image
-                                ? getImageUrl(bag.bagImages[0].image)
+                              bag.images?.[0]?.image
+                                ? getImageUrl(bag.images[0].image)
                                 : "https://via.placeholder.com/300x200?text=No+Image"
                             }
                             alt={bag.name}
                             className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                              e.currentTarget.src =
-                                "https://via.placeholder.com/300x200?text=No+Image";
-                            }}
                           />
                         </div>
                         <h3 className="text-base font-semibold text-foreground line-clamp-1 mb-1">
                           {bag.name}
                         </h3>
                         <p className="text-xs text-muted-foreground mb-2">
-                          {bag.categories?.[0]?.categoryName || "Uncategorized"}
+                          {bag.categories?.[0]?.categoryName || "General"}
                         </p>
                         <div className="flex items-center justify-between">
                           <p className="text-lg font-bold text-primary">
@@ -253,11 +269,6 @@ export default function ChatBot() {
                             View Details
                           </Button>
                         </div>
-                        {bag.description && (
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                            {bag.description}
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -280,27 +291,10 @@ export default function ChatBot() {
           </div>
         ))}
 
-        {/* Loading indicator */}
         {isPending && (
           <div className="flex justify-start">
             <div className="bg-muted/50 border border-border px-6 py-4 rounded-2xl rounded-tl-none w-full max-w-md">
-              <div className="space-y-4">
-                {/* Progressive AI status updates */}
-                <DynamicStatusMessages />
-
-                {/* Shimmer text placeholder */}
-                <div className="space-y-2 mt-3">
-                  <div className="h-3 bg-gradient-to-r from-muted via-muted-foreground/10 to-muted rounded-md animate-pulse"></div>
-                  <div
-                    className="h-3 bg-gradient-to-r from-muted via-muted-foreground/10 to-muted rounded-md animate-pulse w-5/6"
-                    style={{ animationDelay: "150ms" }}
-                  ></div>
-                  <div
-                    className="h-3 bg-gradient-to-r from-muted via-muted-foreground/10 to-muted rounded-md animate-pulse w-2/3"
-                    style={{ animationDelay: "300ms" }}
-                  ></div>
-                </div>
-              </div>
+              <DynamicStatusMessages />
             </div>
           </div>
         )}
@@ -310,21 +304,40 @@ export default function ChatBot() {
 
       {/* Input */}
       <div className="border-t border-border/50 bg-background px-8 py-6">
-        <div className="mb-4 px-4 py-3 bg-yellow-100 dark:bg-black-900/20  dark:border-black-800 rounded-lg">
-          <div className="space-y-2">
-            <p className="text-xs text-yellow-700 dark:text-yellow-300 opacity-70">
-              We're still training our AI on our database. Some responses might
-              not be suitable for you. Consider browsing our catalog directly
-              for the best experience. All messages will be lost when you close
-              this chat
-            </p>
+        <div className="mb-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-0.5">
+              <svg
+                className="w-4 h-4 text-blue-600 dark:text-blue-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="flex-1 space-y-2">
+              <p className="text-xs font-medium text-blue-800 dark:text-blue-300">
+                AI Assistant Beta
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                Emma is currently in training mode and may occasionally provide
+                inaccurate recommendations or product information. Responses are
+                AI-generated and should be verified before making purchase
+                decisions. For the most accurate and complete product details,
+                please browse our catalog directly.
+              </p>
+            </div>
           </div>
         </div>
         <form onSubmit={handleSubmit} className="flex gap-4">
           <Input
             value={input}
             onChange={handleInputChange}
-            placeholder="Ask me about bags, bestsellers, or get recommendations..."
+            placeholder="Ask me anything about bags..."
             className="flex-1 h-12 rounded-full bg-muted border-border focus-visible:ring-2 focus-visible:ring-primary text-base px-6"
             disabled={isPending}
             autoFocus
@@ -334,7 +347,6 @@ export default function ChatBot() {
             disabled={isPending || !input.trim()}
             size="icon"
             className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-md"
-            aria-label="Send message"
           >
             {isPending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -350,35 +362,27 @@ export default function ChatBot() {
 
 function DynamicStatusMessages() {
   const messages = [
-    "Analyzing your request...",
-    "Searching our database...",
-    "Finding the best matches...",
-    "Almost ready with your results...",
+    "Reading your message...",
+    "Searching our catalog...",
+    "Finding perfect matches...",
+    "Preparing recommendations...",
   ];
 
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    // Progress through each message, stop at the last one
     if (current < messages.length - 1) {
       const interval = setInterval(() => {
-        setCurrent((prev) => {
-          if (prev < messages.length - 1) {
-            return prev + 1;
-          } else {
-            clearInterval(interval);
-            return prev;
-          }
-        });
-      }, 1500); // switch every 1.5 seconds
+        setCurrent((prev) => Math.min(prev + 1, messages.length - 1));
+      }, 1200);
       return () => clearInterval(interval);
     }
   }, [current]);
 
   return (
-    <div className="flex items-center gap-2 transition-all">
+    <div className="flex items-center gap-2">
       <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-      <span className="text-sm text-muted-foreground font-medium animate-pulse">
+      <span className="text-sm text-muted-foreground animate-pulse">
         {messages[current]}
       </span>
     </div>

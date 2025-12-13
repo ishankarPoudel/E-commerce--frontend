@@ -132,6 +132,8 @@ export type OrderItemEntity = {
     product: BagEntity;
     quantity: number;
     unitPrice: number;
+    color: string;
+    size: string;
 };
 
 export type CreateCategoryValidator = {
@@ -322,7 +324,6 @@ export type GetAllOrdersResponses = {
                 updatedAt: string;
                 createdAt: string;
                 id: string;
-                shippingAddress?: string;
                 itemsSnapShot?: unknown;
                 amount: number;
                 currency: string;
@@ -340,10 +341,13 @@ export type GetAllOrdersResponses = {
                         name: string;
                         id: string;
                     };
+                    size: string;
+                    color: string;
                     unitPrice: number;
                     quantity: number;
                     id: string;
                 }>;
+                shippingAddress: string;
             }>;
         };
         message: string;
@@ -485,6 +489,7 @@ export type UploadMediaResponse = UploadMediaResponses[keyof UploadMediaResponse
 
 export type SearchData = {
     body: {
+        sessionId?: string;
         userMessage: string;
     };
     path?: never;
