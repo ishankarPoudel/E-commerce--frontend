@@ -18,6 +18,7 @@ import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as AdminDashboardIndexRouteImport } from './routes/admin-dashboard/index'
 import { Route as SearchIdRouteImport } from './routes/search/$id'
 import { Route as CheckoutResultRouteImport } from './routes/checkout/result'
+import { Route as CheckoutEsewaCheckoutRouteImport } from './routes/checkout/esewa-checkout'
 import { Route as AuthResetPasswordIndexRouteImport } from './routes/auth/reset-password/index'
 import { Route as AuthRegisterIndexRouteImport } from './routes/auth/register/index'
 import { Route as AuthProtectedIndexRouteImport } from './routes/auth/protected/index'
@@ -76,6 +77,11 @@ const SearchIdRoute = SearchIdRouteImport.update({
 const CheckoutResultRoute = CheckoutResultRouteImport.update({
   id: '/checkout/result',
   path: '/checkout/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutEsewaCheckoutRoute = CheckoutEsewaCheckoutRouteImport.update({
+  id: '/checkout/esewa-checkout',
+  path: '/checkout/esewa-checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetPasswordIndexRoute = AuthResetPasswordIndexRouteImport.update({
@@ -155,6 +161,7 @@ const AdminDashboardBagsIdRoute = AdminDashboardBagsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/search/$id': typeof SearchIdRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/search/$id': typeof SearchIdRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
@@ -206,6 +214,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/search/$id': typeof SearchIdRoute
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
@@ -233,6 +242,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/search/$id'
     | '/admin-dashboard'
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/search/$id'
     | '/admin-dashboard'
@@ -283,6 +294,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/search/$id'
     | '/admin-dashboard/'
@@ -309,6 +321,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CheckoutEsewaCheckoutRoute: typeof CheckoutEsewaCheckoutRoute
   CheckoutResultRoute: typeof CheckoutResultRoute
   SearchIdRoute: typeof SearchIdRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
@@ -396,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout/result'
       fullPath: '/checkout/result'
       preLoaderRoute: typeof CheckoutResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/esewa-checkout': {
+      id: '/checkout/esewa-checkout'
+      path: '/checkout/esewa-checkout'
+      fullPath: '/checkout/esewa-checkout'
+      preLoaderRoute: typeof CheckoutEsewaCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset-password/': {
@@ -501,6 +521,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CheckoutEsewaCheckoutRoute: CheckoutEsewaCheckoutRoute,
   CheckoutResultRoute: CheckoutResultRoute,
   SearchIdRoute: SearchIdRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,

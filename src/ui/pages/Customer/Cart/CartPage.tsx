@@ -19,6 +19,7 @@ import {
   createPaymentIntentMutation,
   getCartOptions,
   getCartQueryKey,
+  initiateEsewaPaymentMutation,
   removeFromCartMutation,
   updateCartMutation,
 } from "@/api/@tanstack/react-query.gen";
@@ -29,6 +30,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { DeliveryMethodSelector } from "./DeliveryMethod";
 import { getClientInfo } from "@/utils/getClientInfo";
+import { cn } from "@/lib/utils";
 
 type DeliveryMethod = "delivery" | "pickup";
 
@@ -81,6 +83,7 @@ export default function CartPage() {
     import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!
   );
 
+  //mutation for stripe payment intent creation
   const { mutate: paymentCheckout, isPending: ischeckoutPending } = useMutation(
     {
       ...createPaymentIntentMutation(),
@@ -125,6 +128,48 @@ export default function CartPage() {
         shippingAddress,
       },
     });
+  };
+
+  //mutation for esewa initiate payment
+  const { mutate: esewaCheckout, isPending: isEsewaPending } = useMutation({
+    ...initiateEsewaPaymentMutation(),
+  });
+
+  const handleEsewaCheckout = () => {
+    // Validate shipping address if delivery is selected
+    if (deliveryMethod === "delivery" && !shippingAddress.trim()) {
+      toast.error("Please enter your shipping address");
+      return;
+    }
+
+    esewaCheckout(
+      {
+        body: {
+          deliveryMethod: deliveryMethod,
+          shippingAddress,
+        },
+      },
+      {
+        onSuccess: async (response) => {
+          toast.success(response?.message || "eSewa payment initiated");
+          console.log("eSewa Payment Data:", response?.data);
+          const responseData = response?.data as {
+            params?: { productId?: string };
+            formUrl?: string;
+          };
+          sessionStorage.setItem(
+            "checkout",
+            JSON.stringify({
+              provider: "esewa",
+              formUrl: responseData?.formUrl as string,
+              orderId: responseData?.params?.productId,
+              params: responseData?.params,
+            })
+          );
+          navigate({ to: "/checkout/esewa-checkout" });
+        },
+      }
+    );
   };
 
   const handleCartDeletion = (itemId: string) => {
@@ -320,7 +365,7 @@ export default function CartPage() {
                       Your cart is empty
                     </h2>
                     <p className="text-muted-foreground">
-                      Add some beautiful bags to get started
+                      Add some bags to get started
                     </p>
                     <Button asChild className="mt-4">
                       <Link to="/">Start Shopping</Link>
@@ -500,46 +545,87 @@ export default function CartPage() {
                   <span className="text-primary">${total.toFixed(2)}</span>
                 </div>
 
-                <Button
-                  onClick={handleCheckout}
-                  className="w-full h-12 text-base font-medium"
-                  disabled={
-                    cartItems.length === 0 ||
-                    cartItems.some((item) => !item.inStock) ||
-                    ischeckoutPending ||
-                    (deliveryMethod === "delivery" && !shippingAddress.trim())
-                  }
-                >
-                  {ischeckoutPending
-                    ? "Processing..."
-                    : deliveryMethod === "pickup"
-                    ? "Reserve & Pay in Store"
-                    : "Continue to Payment"}
-                </Button>
+                {/* Payment Buttons */}
+                <div className="space-y-3">
+                  {/* eSewa Button - Highlighted */}
+                  <Button
+                    className={cn(
+                      "w-full h-12 text-base font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                    )}
+                    onClick={handleEsewaCheckout}
+                    disabled={
+                      cartItems.length === 0 ||
+                      cartItems.some((item) => !item.inStock) ||
+                      ischeckoutPending ||
+                      (deliveryMethod === "delivery" && !shippingAddress.trim())
+                    }
+                  >
+                    {ischeckoutPending
+                      ? "Processing..."
+                      : deliveryMethod === "pickup"
+                      ? "Reserve & Pay in Store"
+                      : "Pay with eSewa"}
+                  </Button>
+                  {deliveryMethod === "delivery" && (
+                    <>
+                      {/* Divider with "OR" */}
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <Separator />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-card px-2 text-muted-foreground">
+                            or
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Card Payment Button */}
+                      <Button
+                        onClick={handleCheckout}
+                        variant="outline"
+                        className="w-full h-12 text-base font-medium border-2 hover:bg-accent hover:border-primary transition-all duration-200"
+                        disabled={
+                          cartItems.length === 0 ||
+                          cartItems.some((item) => !item.inStock) ||
+                          ischeckoutPending ||
+                          !shippingAddress.trim()
+                        }
+                      >
+                        {ischeckoutPending ? "Processing..." : "Pay with Card"}
+                      </Button>
+                    </>
+                  )}
+
+                  {/* International Payment Notice */}
+                  {deliveryMethod === "delivery" && (
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900">
+                      <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                        International customers can pay with card in USD. We
+                        accept Visa, Mastercard, and other major cards.
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 {deliveryMethod === "pickup" ? (
-                  <p className="mt-2 text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-muted-foreground text-center">
                     No online payment required. Reserve your items and pay when
                     you pick up in store.
                   </p>
                 ) : (
                   !shippingAddress.trim() && (
-                    <p className="mt-2 text-xs text-destructive text-center">
+                    <p className="text-xs text-destructive text-center">
                       Please enter your shipping address to continue
                     </p>
                   )
                 )}
 
-                <div className="text-center space-y-2">
+                <div className="text-center space-y-2 pt-2">
                   <p className="text-xs text-muted-foreground">
-                    Secure checkout with 256-bit SSL encryption
+                    🔒 Secure checkout with 256-bit SSL encryption
                   </p>
-                  <div className="flex justify-center gap-2 text-xs text-muted-foreground">
-                    <span>We accept:</span>
-                    <span className="font-medium">
-                      Visa, Mastercard, PayPal, Apple Pay
-                    </span>
-                  </div>
                 </div>
               </CardContent>
             </Card>

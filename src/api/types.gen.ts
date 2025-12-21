@@ -121,6 +121,10 @@ export type OrderEntity = {
     currency: string;
     amount: number;
     items?: Array<OrderItemEntity>;
+    paymentProvider?: 'stripe' | 'esewa';
+    esewaTransactionUuid?: string;
+    esewaRefId?: string;
+    esewaStatus?: 'PENDING' | 'COMPLETE' | 'FAILED';
     stripePaymentIntentId?: string;
     stripeChargeId?: string;
     itemsSnapShot?: unknown;
@@ -330,6 +334,10 @@ export type GetAllOrdersResponses = {
                 createdAt: string;
                 id: string;
                 itemsSnapShot?: unknown;
+                esewaStatus?: 'PENDING' | 'COMPLETE' | 'FAILED';
+                esewaRefId?: string;
+                esewaTransactionUuid?: string;
+                paymentProvider?: 'stripe' | 'esewa';
                 amount: number;
                 currency: string;
                 deliveryMethod: 'delivery' | 'pickup';
@@ -516,6 +524,69 @@ export type SearchResponses = {
      */
     200: unknown;
 };
+
+export type InitiateEsewaPaymentData = {
+    body: {
+        shippingAddress?: string;
+        deliveryMethod?: 'delivery' | 'pickup';
+    };
+    path?: never;
+    query?: never;
+    url: '/payment/esewa/initiate';
+};
+
+export type InitiateEsewaPaymentResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data?: unknown;
+        message: string;
+    } | {
+        data: {
+            params: {
+                signature: unknown;
+                signed_field_names: string;
+                failure_url: string;
+                success_url: string;
+                product_delivery_charge: number;
+                product_service_charge: number;
+                product_code: string;
+                transaction_uuid: string;
+                total_amount: unknown;
+                tax_amount: number;
+                amount: unknown;
+            };
+            formUrl: string;
+        };
+        message: string;
+    };
+};
+
+export type InitiateEsewaPaymentResponse = InitiateEsewaPaymentResponses[keyof InitiateEsewaPaymentResponses];
+
+export type VerifyEsewaPaymentData = {
+    body: string;
+    path?: never;
+    query?: never;
+    url: '/payment/esewa/payment-verify';
+};
+
+export type VerifyEsewaPaymentResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: {
+            esewaStatus: 'PENDING' | 'COMPLETE' | 'FAILED';
+            ref_id: string;
+            status: 'pending' | 'paid' | 'failed' | 'refunded';
+        };
+        message: string;
+    };
+};
+
+export type VerifyEsewaPaymentResponse = VerifyEsewaPaymentResponses[keyof VerifyEsewaPaymentResponses];
 
 export type CreatePaymentIntentData = {
     body: {
