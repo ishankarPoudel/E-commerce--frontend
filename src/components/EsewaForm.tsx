@@ -3,12 +3,16 @@ import { useEffect, useRef } from "react";
 interface EsewaPaymentFormProps {
   formUrl: string;
   params: {
+    product_delivery_charge: string | number | readonly string[] | undefined;
+    product_service_charge: string | number | readonly string[] | undefined;
+    product_code: string | number | readonly string[] | undefined;
+    total_amount: string | number | readonly string[] | undefined;
     amount: number;
-    taxAmount: number;
+    tax_amount: number;
     transaction_uuid: string;
     productCode: string;
-    successUrl: string;
-    failureUrl: string;
+    success_url: string;
+    failure_url: string;
     signed_field_names: string;
     signature: string;
   };
