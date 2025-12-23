@@ -9,15 +9,15 @@ type EsewaCheckoutData = {
   formUrl: string;
   params: {
     amount: number;
-    taxAmount: number;
+    tax_amount: number;
     transaction_uuid: string;
     productCode: string;
     product_code: string | number | readonly string[] | undefined;
     product_delivery_charge: string | number | readonly string[] | undefined;
     product_service_charge: string | number | readonly string[] | undefined;
     total_amount: string | number | readonly string[] | undefined;
-    successUrl: string;
-    failureUrl: string;
+    success_url: string;
+    failure_url: string;
     signed_field_names: string;
     signature: string;
   };

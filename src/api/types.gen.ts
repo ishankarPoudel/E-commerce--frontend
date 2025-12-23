@@ -566,7 +566,9 @@ export type InitiateEsewaPaymentResponses = {
 export type InitiateEsewaPaymentResponse = InitiateEsewaPaymentResponses[keyof InitiateEsewaPaymentResponses];
 
 export type VerifyEsewaPaymentData = {
-    body: string;
+    body: {
+        esewaTransactionUuid: string;
+    };
     path?: never;
     query?: never;
     url: '/payment/esewa/payment-verify';
@@ -578,6 +580,8 @@ export type VerifyEsewaPaymentResponses = {
      */
     200: {
         data: {
+            orderId: string;
+            shouldRetry: boolean;
             esewaStatus: 'PENDING' | 'COMPLETE' | 'FAILED';
             ref_id: string;
             status: 'pending' | 'paid' | 'failed' | 'refunded';
@@ -1164,7 +1168,6 @@ export type AdminLoginResponses = {
     200: {
         data: {
             role: UserRole;
-            fullName: string;
             email: string;
         };
         message: string;
