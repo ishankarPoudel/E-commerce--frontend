@@ -2,7 +2,6 @@ import { getCategoriesWithBagsOptions } from "@/api/@tanstack/react-query.gen";
 import { Badge } from "@/ui/shadcn/badge";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/ui/shadcn/dialog";
-
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Grid3X3, Loader2, X } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
@@ -13,9 +12,10 @@ import {
 } from "@/ui/pages/Customer/Search/ProductCard";
 
 export default function CategoryBasedBags() {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const scrollContainerRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [scrollStates, setScrollStates] = useState<
+    Map<string, { canScrollLeft: boolean; canScrollRight: boolean }>
+  >(new Map());
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -28,48 +28,69 @@ export default function CategoryBasedBags() {
     }),
   });
 
-  const checkScrollButtons = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } =
-        scrollContainerRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  const checkScrollButtons = (categoryId: string) => {
+    const container = scrollContainerRefs.current.get(categoryId);
+    if (container) {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      setScrollStates((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(categoryId, {
+          canScrollLeft: scrollLeft > 0,
+          canScrollRight: scrollLeft < scrollWidth - clientWidth - 10,
+        });
+        return newMap;
+      });
     }
   };
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = scrollContainerRef.current.clientWidth * 0.8;
+  const scroll = (categoryId: string, direction: "left" | "right") => {
+    const container = scrollContainerRefs.current.get(categoryId);
+    if (container) {
+      const scrollAmount = container.clientWidth * 0.8;
       const newScrollLeft =
-        scrollContainerRef.current.scrollLeft +
+        container.scrollLeft +
         (direction === "left" ? -scrollAmount : scrollAmount);
 
-      scrollContainerRef.current.scrollTo({
+      container.scrollTo({
         left: newScrollLeft,
         behavior: "smooth",
       });
 
-      setTimeout(checkScrollButtons, 300);
+      setTimeout(() => checkScrollButtons(categoryId), 300);
     }
   };
 
   useEffect(() => {
-    checkScrollButtons();
-    const handleResize = () => checkScrollButtons();
-    window.addEventListener("resize", handleResize);
+    if (listOfBag?.data?.data) {
+      listOfBag.data.data.forEach((category: { id: string }) => {
+        checkScrollButtons(category.id);
+      });
 
-    const observer = new ResizeObserver(() => {
-      checkScrollButtons();
-    });
+      const handleResize = () => {
+        listOfBag.data.data.forEach((category: { id: string }) => {
+          checkScrollButtons(category.id);
+        });
+      };
 
-    if (scrollContainerRef.current) {
-      observer.observe(scrollContainerRef.current);
+      window.addEventListener("resize", handleResize);
+
+      const observers: ResizeObserver[] = [];
+      listOfBag.data.data.forEach((category: { id: string }) => {
+        const container = scrollContainerRefs.current.get(category.id);
+        if (container) {
+          const observer = new ResizeObserver(() => {
+            checkScrollButtons(category.id);
+          });
+          observer.observe(container);
+          observers.push(observer);
+        }
+      });
+
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        observers.forEach((observer) => observer.disconnect());
+      };
     }
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      observer.disconnect();
-    };
   }, [listOfBag]);
 
   const handleBagClick = (bag: Product) => {
@@ -104,6 +125,10 @@ export default function CategoryBasedBags() {
         {bagsList.data.data.map(
           (category: { id: string; categoryName: string; bags: any[] }) => {
             const hasMoreBags = category.bags.length > 5;
+            const scrollState = scrollStates.get(category.id) || {
+              canScrollLeft: false,
+              canScrollRight: false,
+            };
 
             return (
               <section key={category.id} className="space-y-4">
@@ -175,32 +200,36 @@ export default function CategoryBasedBags() {
                 </div>
 
                 <div className="relative pt-2">
-                  {canScrollLeft && (
+                  {scrollState.canScrollLeft && (
                     <Button
                       variant="outline"
                       size="icon"
                       className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/95 backdrop-blur-sm border-2 shadow-lg hover:bg-background"
-                      onClick={() => scroll("left")}
+                      onClick={() => scroll(category.id, "left")}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                   )}
 
-                  {canScrollRight && (
+                  {scrollState.canScrollRight && (
                     <Button
                       variant="outline"
                       size="icon"
                       className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/95 backdrop-blur-sm border-2 shadow-lg hover:bg-background"
-                      onClick={() => scroll("right")}
+                      onClick={() => scroll(category.id, "right")}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   )}
 
                   <div
-                    ref={scrollContainerRef}
+                    ref={(el) => {
+                      if (el) {
+                        scrollContainerRefs.current.set(category.id, el);
+                      }
+                    }}
                     className="flex gap-6 overflow-x-auto pb-4 w-full scroll-smooth"
-                    onScroll={checkScrollButtons}
+                    onScroll={() => checkScrollButtons(category.id)}
                     style={{
                       scrollbarWidth: "none",
                       msOverflowStyle: "none",

@@ -79,6 +79,31 @@ export default function CartPage() {
     ...updateCartMutation(),
   });
 
+  //mutation for pickup order creation
+  const { mutate: createPickupOrder, isPending: isPickupPending } = useMutation(
+    {
+      ...createPaymentIntentMutation(),
+      onSuccess: async (data) => {
+        const { orderId } = data?.data || {};
+        if (!orderId) {
+          toast.error("Order creation failed");
+          return;
+        }
+        toast.success("Order reserved! Pay when you pick up in store.");
+        navigate({
+          to: "/orders",
+        });
+      },
+    }
+  );
+  const handlePickupOrder = () => {
+    createPickupOrder({
+      body: {
+        deliveryMethod: "pickup",
+      },
+    });
+  };
+
   const stripePromise = loadStripe(
     import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!
   );
@@ -313,16 +338,47 @@ export default function CartPage() {
                     </div>
 
                     {!isLoadingLocation && userLocation && (
-                      <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                        <Globe className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div
+                        className={cn(
+                          "flex items-start gap-2 p-3 rounded-lg border",
+                          userLocation.country?.toLowerCase() !== "nepal"
+                            ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900"
+                            : "bg-primary/5 border-primary/20"
+                        )}
+                      >
+                        <Globe
+                          className={cn(
+                            "h-4 w-4 mt-0.5 flex-shrink-0",
+                            userLocation.country?.toLowerCase() !== "nepal"
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-primary"
+                          )}
+                        />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            We detected you're in{" "}
-                            <span className="font-semibold text-foreground">
-                              {getLocationString()}
-                            </span>
-                            . Confirm your delivery address below.
-                          </p>
+                          {userLocation.country?.toLowerCase() !== "nepal" ? (
+                            <div className="space-y-1">
+                              <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                                International Payment Notice
+                              </p>
+                              <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
+                                We detected you're in{" "}
+                                <span className="font-semibold">
+                                  {getLocationString()}
+                                </span>
+                                . International card payments are temporarily
+                                unavailable. We're working on adding secure
+                                multi-currency payment options soon.
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              We detected you're in{" "}
+                              <span className="font-semibold text-foreground">
+                                {getLocationString()}
+                              </span>
+                              . Confirm your delivery address below.
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -343,8 +399,8 @@ export default function CartPage() {
                         required
                       />
                       <p className="text-xs text-muted-foreground">
-                        Include street, apartment/unit, city, state, and ZIP
-                        code
+                        Include as much details as possible to ensure timely
+                        delivery.
                       </p>
                     </div>
                   </div>
@@ -446,7 +502,7 @@ export default function CartPage() {
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
                               <span className="text-xl font-semibold text-card-foreground">
-                                ${item.price.toFixed(2)}
+                                रू {item.price.toFixed(2)}
                               </span>
                             </div>
 
@@ -507,7 +563,9 @@ export default function CartPage() {
                     <span className="text-muted-foreground">
                       Subtotal ({cartItems.length} items)
                     </span>
-                    <span className="font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium">
+                      रू {subtotal.toFixed(2)}
+                    </span>
                   </div>
 
                   <div className="flex justify-between text-sm">
@@ -518,21 +576,21 @@ export default function CartPage() {
                       {shipping === 0 ? (
                         <span className="text-green-600">Free</span>
                       ) : (
-                        `$${shipping.toFixed(2)}`
+                        ` रू ${shipping.toFixed(2)}`
                       )}
                     </span>
                   </div>
 
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tax</span>
-                    <span className="font-medium">${tax.toFixed(2)}</span>
+                    <span className="font-medium">रू{tax.toFixed(2)}</span>
                   </div>
 
                   {deliveryMethod === "delivery" &&
                     subtotal > 0 &&
                     subtotal < 200 && (
                       <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg">
-                        Add ${(200 - subtotal).toFixed(2)} more for free
+                        Add रू {(200 - subtotal).toFixed(2)} more for free
                         shipping
                       </div>
                     )}
@@ -542,7 +600,7 @@ export default function CartPage() {
 
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total</span>
-                  <span className="text-primary">${total.toFixed(2)}</span>
+                  <span className="text-primary">रू {total.toFixed(2)}</span>
                 </div>
 
                 {/* Payment Buttons */}
@@ -550,17 +608,26 @@ export default function CartPage() {
                   {/* eSewa Button - Highlighted */}
                   <Button
                     className={cn(
-                      "w-full h-12 text-base font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                      "w-full h-12 text-base font-semibold",
+                      deliveryMethod === "pickup"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                        : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800",
+                      "text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     )}
-                    onClick={handleEsewaCheckout}
+                    onClick={
+                      deliveryMethod === "pickup"
+                        ? handlePickupOrder
+                        : handleEsewaCheckout
+                    }
                     disabled={
                       cartItems.length === 0 ||
                       cartItems.some((item) => !item.inStock) ||
                       ischeckoutPending ||
+                      isPickupPending ||
                       (deliveryMethod === "delivery" && !shippingAddress.trim())
                     }
                   >
-                    {ischeckoutPending
+                    {ischeckoutPending || isPickupPending
                       ? "Processing..."
                       : deliveryMethod === "pickup"
                       ? "Reserve & Pay in Store"
@@ -582,17 +649,11 @@ export default function CartPage() {
 
                       {/* Card Payment Button */}
                       <Button
-                        onClick={handleCheckout}
                         variant="outline"
-                        className="w-full h-12 text-base font-medium border-2 hover:bg-accent hover:border-primary transition-all duration-200"
-                        disabled={
-                          cartItems.length === 0 ||
-                          cartItems.some((item) => !item.inStock) ||
-                          ischeckoutPending ||
-                          !shippingAddress.trim()
-                        }
+                        className="w-full h-12 text-sm font-medium border-2 opacity-60 cursor-not-allowed"
+                        disabled
                       >
-                        {ischeckoutPending ? "Processing..." : "Pay with Card"}
+                        International Card Payment (Coming Soon)
                       </Button>
                     </>
                   )}
@@ -602,8 +663,10 @@ export default function CartPage() {
                     <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900">
                       <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                       <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                        International customers can pay with card in USD. We
-                        accept Visa, Mastercard, and other major cards.
+                        International card payments are temporarily unavailable.
+                        We are currently integrating a secure multi-currency
+                        payment system to better support our global customers.
+                        Please check back soon.
                       </p>
                     </div>
                   )}
@@ -621,12 +684,6 @@ export default function CartPage() {
                     </p>
                   )
                 )}
-
-                <div className="text-center space-y-2 pt-2">
-                  <p className="text-xs text-muted-foreground">
-                    🔒 Secure checkout with 256-bit SSL encryption
-                  </p>
-                </div>
               </CardContent>
             </Card>
           </div>

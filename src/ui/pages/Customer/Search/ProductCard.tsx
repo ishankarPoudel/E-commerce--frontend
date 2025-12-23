@@ -1,11 +1,9 @@
-import type React from "react";
 import { useState, useRef } from "react";
 import { Badge } from "@/ui/shadcn/badge";
-import { toast } from "sonner";
-import { useCart } from "@/hooks/use-cart";
 import { Image } from "@/ui/shadcn/image";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { AddToCartButton } from "@/ui/molecules/Buttons/AddToCart";
+import { cn } from "@/lib/utils";
 
 export interface Product {
   id: string;
@@ -31,7 +29,6 @@ export interface ProductCardProps {
   priority?: boolean;
 }
 
-// ✅ Add helper function to get color hex
 function getColorHex(colorName: string): string {
   const colorMap: Record<string, string> = {
     red: "#ef4444",
@@ -49,14 +46,30 @@ function getColorHex(colorName: string): string {
     navy: "#1e3a8a",
     beige: "#d4b5a0",
     tan: "#d2b48c",
+    cream: "#fffdd0",
+    maroon: "#800000",
+    olive: "#808000",
+    teal: "#14b8a6",
+    lavender: "#e9d5ff",
+    coral: "#ff7f50",
+    mint: "#98ff98",
+    gold: "#ffd700",
+    silver: "#c0c0c0",
   };
   return colorMap[colorName.toLowerCase()] || "#9ca3af";
 }
 
+function isLightColor(hex: string): boolean {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 200;
+}
+
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-
-  // const { addItem } = useCart();
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
 
   const producutImages = product?.images?.map((img) => {
     return typeof img === "string" ? img : (img as { image: string })?.image;
@@ -125,38 +138,71 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             {product.name}
           </h3>
           <span className="font-semibold text-sm whitespace-nowrap">
-            ${product.price}
+            रू {product.price}
           </span>
         </div>
 
-        <p className="text-xs text-muted-foreground">{product.type}</p>
+        <p className="text-xs text-muted-foreground">{product.brand}</p>
 
-        {/* ✅ Fixed Color Swatches */}
+        {/*  Clean Color Swatches - No Separator */}
         {product?.colors && product?.colors?.length > 0 && (
           <div
-            className="flex items-center gap-1.5 mt-0.5"
+            className="flex items-center gap-1.5 mt-1"
             role="list"
             aria-label="Available colors"
+            onClick={(e) => e.stopPropagation()}
           >
             {product?.colors?.slice(0, 3)?.map((color, index) => {
-              // ✅ Handle both string and object formats
               const colorName = typeof color === "string" ? color : color.name;
               const colorHex =
                 typeof color === "string" ? getColorHex(color) : color.hex;
 
+              const isHovered = hoveredColor === colorName;
+              const isLight = isLightColor(colorHex);
+
               return (
-                <div
+                <button
                   key={colorName || index}
-                  className="w-4 h-4 rounded-full border border-border shadow-sm"
-                  style={{ backgroundColor: colorHex }}
+                  type="button"
+                  className={cn(
+                    "relative w-4 h-4 rounded-full transition-all duration-200",
+                    "hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
+                    "cursor-pointer group/color",
+                    isHovered ? "scale-110" : "scale-100"
+                  )}
+                  style={{
+                    backgroundColor: colorHex,
+                  }}
                   role="listitem"
                   aria-label={colorName}
-                  title={colorName}
-                />
+                  onMouseEnter={() => setHoveredColor(colorName)}
+                  onMouseLeave={() => setHoveredColor(null)}
+                >
+                  {/* Subtle Ring */}
+                  <span
+                    className={cn(
+                      "absolute inset-0 rounded-full transition-all duration-200",
+                      isHovered
+                        ? "ring-2 ring-foreground/40 ring-offset-1 ring-offset-background"
+                        : "ring-1 ring-black/5"
+                    )}
+                    aria-hidden="true"
+                  />
+
+                  {/* Border for Light Colors */}
+                  {isLight && (
+                    <span
+                      className="absolute inset-0 rounded-full ring-1 ring-inset ring-border/60"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
               );
             })}
+
+            {/* More Colors Text */}
             {product.colors.length > 3 && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[10px] text-muted-foreground font-medium ml-1">
                 +{product.colors.length - 3}
               </span>
             )}
@@ -174,10 +220,10 @@ export function ProductCardSkeleton() {
       <div className="flex flex-col gap-2">
         <div className="h-4 bg-muted rounded w-3/4" />
         <div className="h-3 bg-muted rounded w-1/2" />
-        <div className="flex gap-1.5 mt-0.5">
-          <div className="w-4 h-4 bg-muted rounded-full" />
-          <div className="w-4 h-4 bg-muted rounded-full" />
-          <div className="w-4 h-4 bg-muted rounded-full" />
+        <div className="flex items-center gap-1.5 mt-1">
+          <div className="w-5 h-5 bg-muted rounded-full" />
+          <div className="w-5 h-5 bg-muted rounded-full" />
+          <div className="w-5 h-5 bg-muted rounded-full" />
         </div>
       </div>
     </div>
