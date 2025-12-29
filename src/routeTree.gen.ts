@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ForbiddenRouteImport } from './routes/forbidden'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SearchIndexRouteImport } from './routes/search/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
@@ -35,6 +36,11 @@ import { Route as AdminDashboardOrdersIdRouteImport } from './routes/admin-dashb
 import { Route as AdminDashboardBagsAddBagRouteImport } from './routes/admin-dashboard/bags/addBag'
 import { Route as AdminDashboardBagsIdRouteImport } from './routes/admin-dashboard/bags/$id'
 
+const ForbiddenRoute = ForbiddenRouteImport.update({
+  id: '/forbidden',
+  path: '/forbidden',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -167,6 +173,7 @@ const AdminDashboardBagsIdRoute = AdminDashboardBagsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forbidden': typeof ForbiddenRoute
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forbidden': typeof ForbiddenRoute
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -222,6 +230,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/forbidden': typeof ForbiddenRoute
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forbidden'
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forbidden'
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/forbidden'
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
@@ -333,6 +345,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ForbiddenRoute: typeof ForbiddenRoute
   CheckoutEsewaCheckoutRoute: typeof CheckoutEsewaCheckoutRoute
   CheckoutResultRoute: typeof CheckoutResultRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
@@ -361,6 +374,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/forbidden': {
+      id: '/forbidden'
+      path: '/forbidden'
+      fullPath: '/forbidden'
+      preLoaderRoute: typeof ForbiddenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -541,6 +561,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ForbiddenRoute: ForbiddenRoute,
   CheckoutEsewaCheckoutRoute: CheckoutEsewaCheckoutRoute,
   CheckoutResultRoute: CheckoutResultRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,

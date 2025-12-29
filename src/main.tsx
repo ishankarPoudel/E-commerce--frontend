@@ -26,7 +26,9 @@ window.fetch = async (input, init) => {
     url.includes("/auth/verify-otp") ||
     url.includes("/auth/reset-password") ||
     url.includes("/auth/recover-password") ||
-    url.includes("/auth/google");
+    url.includes("/auth/google") ||
+    url.includes("/refresh-token") ||
+    url.includes("/auth/logout");
 
   // ✅ CRITICAL: Check force logout FIRST (before token refresh)
   if (

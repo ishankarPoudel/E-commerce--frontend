@@ -211,33 +211,33 @@ export type LoginValidator = {
     location: string;
 };
 
-export type GetUserByIdData = {
+export type GetCurrentUserData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/user/me';
 };
 
-export type GetUserByIdResponses = {
+export type GetCurrentUserResponses = {
     /**
      * User retrieved successfully
      */
     200: {
-        data: {
-            updatedAt: string;
-            createdAt: string;
-            provider: string;
-            isOauth: boolean;
-            isEmailVerified: boolean;
-            fullName: string;
-            email: string;
-        };
+        data?: unknown;
         message: string;
+        success: boolean;
+    } | {
+        message?: unknown;
+        data: {
+            tokenVersion: number;
+            role: UserRole;
+            userId: string;
+        };
         success: boolean;
     };
 };
 
-export type GetUserByIdResponse = GetUserByIdResponses[keyof GetUserByIdResponses];
+export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
 
 export type UpdateUserByIdData = {
     body: unknown;

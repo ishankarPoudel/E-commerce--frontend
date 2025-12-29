@@ -33,45 +33,45 @@ const Login = () => {
   });
 
   // Check for error parameters in URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get("error");
+  // useEffect(() => {
+  //   const urlParams = new URLSearchParams(window.location.search);
+  //   const error = urlParams.get("error");
 
-    if (error) {
-      setErrorType(error);
+  //   if (error) {
+  //     setErrorType(error);
 
-      // Show toast notification based on error type
-      switch (error) {
-        case "session_revoked":
-          toast.error("Your session has been revoked by an administrator", {
-            duration: 5000,
-          });
-          break;
-        case "account_banned":
-          toast.error("Your account has been suspended", {
-            duration: 5000,
-          });
-          break;
-        case "session_expired":
-          toast.warning("Your session has expired", {
-            duration: 4000,
-          });
-          break;
-        case "oauth_failed":
-          toast.error("OAuth authentication failed", {
-            duration: 4000,
-          });
-          break;
-        default:
-          toast.error("Authentication error", {
-            duration: 4000,
-          });
-      }
+  //     // Show toast notification based on error type
+  //     switch (error) {
+  //       case "session_revoked":
+  //         toast.error("Your session has been revoked by an administrator", {
+  //           duration: 5000,
+  //         });
+  //         break;
+  //       case "account_banned":
+  //         toast.error("Your account has been suspended", {
+  //           duration: 5000,
+  //         });
+  //         break;
+  //       case "session_expired":
+  //         toast.warning("Your session has expired", {
+  //           duration: 4000,
+  //         });
+  //         break;
+  //       case "oauth_failed":
+  //         toast.error("OAuth authentication failed", {
+  //           duration: 4000,
+  //         });
+  //         break;
+  //       default:
+  //         toast.error("Authentication error", {
+  //           duration: 4000,
+  //         });
+  //     }
 
-      // Clean URL after showing notification
-      window.history.replaceState({}, "", "/auth/login");
-    }
-  }, []);
+  //     // Clean URL after showing notification
+  //     window.history.replaceState({}, "", "/auth/login");
+  //   }
+  // }, []);
 
   // mutation to handle user login
   const { mutate, isPending: isUserLoginPending } = useMutation({
