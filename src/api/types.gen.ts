@@ -211,6 +211,72 @@ export type LoginValidator = {
     location: string;
 };
 
+export type RevenueMetrics = {
+    total: number;
+    previousMonth: number;
+    percentageChange: number;
+    currency: string;
+    averageOrderValue: number;
+};
+
+export type UserMetrics = {
+    total: number;
+    active: number;
+    newThisMonth: number;
+    percentageChange: number;
+    bannedUsers: number;
+};
+
+export type OrderMetrics = {
+    total: number;
+    pending: number;
+    completed: number;
+    cancelled: number;
+    percentageChange: number;
+    conversionRate: number;
+};
+
+export type RecentOrder = {
+    id: string;
+    customerName: string;
+    customerEmail: string;
+    amount: number;
+    status: string;
+    createdAt: string;
+    itemCount: number;
+};
+
+export type TopProduct = {
+    id: string;
+    name: string;
+    category: string;
+    soldCount: number;
+    revenue: number;
+    image: string;
+};
+
+export type SalesChartData = {
+    date: string;
+    revenue: number;
+    orders: number;
+};
+
+export type OrderStatusBreakdown = {
+    status: string;
+    count: number;
+    percentage: number;
+};
+
+export type DashboardAnalyticsResponse = {
+    revenue: RevenueMetrics;
+    users: UserMetrics;
+    orders: OrderMetrics;
+    recentOrders: Array<RecentOrder>;
+    topProducts: Array<TopProduct>;
+    salesChart: Array<SalesChartData>;
+    orderStatusBreakdown: Array<OrderStatusBreakdown>;
+};
+
 export type GetCurrentUserData = {
     body?: never;
     path?: never;
@@ -230,6 +296,8 @@ export type GetCurrentUserResponses = {
         message?: unknown;
         data: {
             tokenVersion: number;
+            email: string;
+            fullName: string;
             role: UserRole;
             userId: string;
         };
@@ -1150,6 +1218,34 @@ export type GoogleCallBackResponses = {
 };
 
 export type GoogleCallBackResponse = GoogleCallBackResponses[keyof GoogleCallBackResponses];
+
+export type GetDashboardAnalyticsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        startDate?: string;
+        endDate?: string;
+        period?: 'week' | 'month' | 'quarter' | 'year';
+    };
+    url: '/auth/admin/analytics/dashboard';
+};
+
+export type GetDashboardAnalyticsResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        message?: unknown;
+        data: DashboardAnalyticsResponse;
+        success: boolean;
+    } | {
+        data?: unknown;
+        message: unknown;
+        success: boolean;
+    };
+};
+
+export type GetDashboardAnalyticsResponse = GetDashboardAnalyticsResponses[keyof GetDashboardAnalyticsResponses];
 
 export type AdminLoginData = {
     body: {

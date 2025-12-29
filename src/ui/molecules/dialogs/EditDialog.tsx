@@ -1,7 +1,4 @@
-import {
-  getUserByIdOptions,
-  updateUserByIdMutation,
-} from "@/api/@tanstack/react-query.gen";
+import { updateUserByIdMutation } from "@/api/@tanstack/react-query.gen";
 import { AlertDialogFooter } from "@/ui/shadcn/alert-dialog";
 import { Button } from "@/ui/shadcn/button";
 import {
@@ -68,13 +65,13 @@ export const EditDialog = ({
                   body: { fullName },
                 },
                 {
-                  onSuccess: (response) => {
-                    toast.success(response.message || "Profile updated");
-                    console.log("Profile updated:", response);
-                    queryClient.invalidateQueries({
-                      queryKey: getUserByIdOptions().queryKey,
-                    });
-                  },
+                  // onSuccess: (response) => {
+                  //   toast.success(response.message || "Profile updated");
+                  //   console.log("Profile updated:", response);
+                  //   queryClient.invalidateQueries({
+                  //     queryKey: getUserByIdOptions().queryKey,
+                  //   });
+                  // },
                   onError: () => {
                     toast.error("Failed to update profile");
                   },
