@@ -37,7 +37,7 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [existingImageIds, setExistingImageIds] = useState<string[]>(
-    bag.bagImages.map((img) => img.id)
+    bag.images.map((img) => img.id)
   );
   console.log("UpdateBag is as follow", bag);
 
@@ -54,10 +54,10 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
   });
 
   useEffect(() => {
-    if (bag.bagImages && bag.bagImages.length > 0) {
-      setPreviewImages(bag.bagImages.map((img) => img.image));
+    if (bag.images && bag.images.length > 0) {
+      setPreviewImages(bag.images.map((img) => img.image));
     }
-  }, [bag.bagImages]);
+  }, [bag.images]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -71,12 +71,12 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
   };
 
   const removeImage = (index: number) => {
-    if (index < bag.bagImages.length) {
+    if (index < bag.images.length) {
       setExistingImageIds((prev) => prev.filter((_, i) => i !== index));
     } else {
       // It's a new upload, remove from images state
       setImages((prev) =>
-        prev.filter((_, i) => i !== index - bag.bagImages.length)
+        prev.filter((_, i) => i !== index - bag.images.length)
       );
     }
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
@@ -105,7 +105,7 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
   const onSubmit = async (data: UpdateBagValidator) => {
     const { images: validatedFormImages, ...bagData } = data;
 
-    await updateBag(
+    updateBag(
       {
         path: { id: bag.id },
         body: {
@@ -154,20 +154,20 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
     );
   };
   return (
-    <div className='max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-sm'>
-      <h1 className='text-3xl font-bold mb-4'>Update Bag</h1>
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-sm">
+      <h1 className="text-3xl font-bold mb-4">Update Bag</h1>
       <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Name & Price */}
-          <div className='grid md:grid-cols-2 gap-6'>
+          <div className="grid md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name='name'
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bag Name</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder='Elegant Leather Tote' />
+                    <Input {...field} placeholder="Elegant Leather Tote" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,15 +175,15 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
             />
             <FormField
               control={form.control}
-              name='price'
+              name="price"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Price ($)</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      type='number'
-                      step='0.01'
+                      type="number"
+                      step="0.01"
                       onChange={(e) =>
                         field.onChange(parseFloat(e.target.value))
                       }
@@ -198,22 +198,24 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
           {/* Categories */}
           <FormField
             control={form.control}
-            name='categories'
+            name="categories"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Categories</FormLabel>
                 <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
                     <Button
-                      variant='outline'
-                      className='w-full justify-start text-left font-normal'>
-                      <span className='truncate flex-1'>
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <span className="truncate flex-1">
                         {field.value && field.value.length > 0
                           ? field.value.map((id) => (
                               <Badge
                                 key={id}
-                                variant='secondary'
-                                className='mr-1 mb-1 align-middle'>
+                                variant="secondary"
+                                className="mr-1 mb-1 align-middle"
+                              >
                                 {categoryLabelMap[id] || id}
                               </Badge>
                             ))
@@ -221,12 +223,13 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
                       </span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className='w-[--radix-popover-trigger-width] p-0'>
-                    <div className='p-1 flex flex-col gap-1 max-h-60 overflow-y-auto'>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <div className="p-1 flex flex-col gap-1 max-h-60 overflow-y-auto">
                       {categoriesData?.data?.map((opt) => (
                         <label
                           key={opt.id}
-                          className='flex items-center gap-2 p-2 hover:bg-accent rounded-md cursor-pointer text-sm'>
+                          className="flex items-center gap-2 p-2 hover:bg-accent rounded-md cursor-pointer text-sm"
+                        >
                           <Checkbox
                             id={`cat-${opt.id}`}
                             checked={field.value?.includes(opt.id)}
@@ -243,12 +246,12 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
                               field.onChange(newValue);
                             }}
                           />
-                          <span className='flex-1'>{opt.categoryName}</span>
+                          <span className="flex-1">{opt.categoryName}</span>
                         </label>
                       ))}
                       {(!categoriesData?.data ||
                         categoriesData.data.length === 0) && (
-                        <span className='p-2 text-sm text-muted-foreground'>
+                        <span className="p-2 text-sm text-muted-foreground">
                           No categories available.
                         </span>
                       )}
@@ -263,7 +266,7 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
           {/* Description */}
           <FormField
             control={form.control}
-            name='description'
+            name="description"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Description</FormLabel>
@@ -271,7 +274,7 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
                   <Textarea
                     {...field}
                     rows={4}
-                    placeholder='Describe the bag...'
+                    placeholder="Describe the bag..."
                   />
                 </FormControl>
                 <FormMessage />
@@ -280,32 +283,34 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
           />
 
           {/* Image Upload Section */}
-          <div className='space-y-2'>
+          <div className="space-y-2">
             <FormLabel>Bag Images</FormLabel>
-            <div className='border-2 border-dashed rounded-lg p-6 bg-slate-50'>
+            <div className="border-2 border-dashed rounded-lg p-6 bg-slate-50">
               {!previewImages.length ? (
-                <div className='flex flex-col items-center justify-center space-y-2 text-slate-400'>
-                  <Upload className='w-12 h-12 animate-pulse' />
-                  <p className='text-sm'>Click below to upload bag images</p>
+                <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
+                  <Upload className="w-12 h-12 animate-pulse" />
+                  <p className="text-sm">Click below to upload bag images</p>
                 </div>
               ) : (
-                <div className='flex flex-wrap gap-4'>
+                <div className="flex flex-wrap gap-4">
                   {previewImages.map((src, idx) => (
                     <div
                       key={idx}
-                      className='relative w-48 h-48 rounded-lg overflow-hidden border'>
+                      className="relative w-48 h-48 rounded-lg overflow-hidden border"
+                    >
                       <img
                         src={getImageUrl(src)}
                         alt={`Preview ${idx}`}
-                        className='object-cover w-full h-full'
+                        className="object-cover w-full h-full"
                       />
                       <Button
-                        type='button'
-                        variant='destructive'
-                        size='icon'
-                        className='absolute top-2 right-2'
-                        onClick={() => removeImage(idx)}>
-                        <X className='h-4 w-4' />
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={() => removeImage(idx)}
+                      >
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
@@ -313,29 +318,31 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
               )}
 
               <Button
-                type='button'
-                variant='outline'
-                size='sm'
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                className='mt-4 justify-center w-full'>
+                className="mt-4 justify-center w-full"
+              >
                 {previewImages.length ? "Add More Images" : "Upload Images"}
               </Button>
               <input
                 ref={fileInputRef}
-                type='file'
-                accept='image/*'
+                type="file"
+                accept="image/*"
                 multiple
                 onChange={handleImageChange}
-                className='hidden'
+                className="hidden"
               />
             </div>
           </div>
 
           {/* Submit Button */}
           <Button
-            type='submit'
-            className='w-full'
-            disabled={isBagUpdating || isImageUploading}>
+            type="submit"
+            className="w-full"
+            disabled={isBagUpdating || isImageUploading}
+          >
             {isBagUpdating || isImageUploading ? "Submitting..." : "Update Bag"}
           </Button>
         </form>
