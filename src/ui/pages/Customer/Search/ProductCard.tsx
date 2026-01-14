@@ -20,7 +20,7 @@ export interface Product {
   capacityLiters?: number;
   brand: string;
   features: Record<string, boolean>;
-  stock: number;
+  stock?: number;
 }
 
 export interface ProductCardProps {
@@ -69,140 +69,130 @@ function isLightColor(hex: string): boolean {
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
 
-  const producutImages = product?.images?.map((img) => {
-    return typeof img === "string" ? img : (img as { image: string })?.image;
-  });
-
-  const handleCardClick = () => {
-    onClick();
-  };
+  const productImages = product?.images?.map((img) =>
+    typeof img === "string" ? img : (img as { image: string })?.image
+  );
 
   return (
     <div
       ref={cardRef}
-      className="group relative flex flex-col cursor-pointer"
-      onClick={handleCardClick}
+      className="
+        group relative flex flex-col cursor-pointer
+        w-full
+      "
+      onClick={onClick}
       role="button"
       tabIndex={0}
       aria-label={`View ${product.name}`}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-        }
-      }}
     >
-      {/* Image Container - 4:5 aspect ratio */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-muted rounded-sm mb-3 transition-transform duration-300 group-hover:-translate-y-1">
+      {/* IMAGE */}
+      <div
+        className="
+          relative aspect-[4/5] overflow-hidden bg-muted
+          rounded-sm mb-2 sm:mb-3
+          md:transition-transform md:duration-300 md:group-hover:-translate-y-1
+        "
+      >
         <Image
-          src={getImageUrl(producutImages?.[0])}
+          src={getImageUrl(productImages?.[0])}
           alt={product.name}
-          fill={true}
-          priority={true}
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          fill
+          priority
+          className="
+            object-cover
+            md:transition-transform md:duration-500
+            md:group-hover:scale-105
+          "
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAAHUlEQVR42mP8z/CfAQgwMjBg+M/AwPCfgQHGBgYGAAAlJQdC1iNn3QAAAABJRU5ErkJggg=="
         />
 
-        {/* Featured Badge */}
+        {/* FEATURED */}
         {product.isFeatured && (
-          <Badge
-            className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs px-2 py-1"
-            aria-label="Featured product"
-          >
+          <Badge className="absolute top-2 left-2 text-[10px] px-2 py-0.5">
             Featured
           </Badge>
         )}
 
-        {/* Quick Add Button */}
+        {/* ADD TO CART */}
         <div
-          className="absolute bottom-0 left-0 right-0 p-3 opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0"
+          className="
+            absolute inset-x-0 bottom-0 p-2 sm:p-3
+            md:opacity-0 md:translate-y-2
+            md:group-hover:opacity-100 md:group-hover:translate-y-0
+            transition-all
+          "
           onClick={(e) => e.stopPropagation()}
         >
           <AddToCartButton
             product={product}
-            variant="outline"
             size="sm"
             fullWidth
             showQuantity
-            className="bg-card/95 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground border-border shadow-lg"
+            className="
+              bg-card/95 backdrop-blur
+              border-border shadow
+              hover:bg-primary hover:text-primary-foreground
+            "
           />
         </div>
       </div>
 
-      {/* Product Info */}
-      <div className="flex flex-col gap-1.5">
+      {/* INFO */}
+      <div className="flex flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-medium text-sm leading-snug line-clamp-2 text-balance">
+          <h3
+            className="
+              text-xs sm:text-sm font-medium
+              leading-snug line-clamp-2
+            "
+          >
             {product.name}
           </h3>
-          <span className="font-semibold text-sm whitespace-nowrap">
+
+          <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
             रू {product.price}
           </span>
         </div>
 
-        <p className="text-xs text-muted-foreground">{product.brand}</p>
+        <p className="text-[10px] sm:text-xs text-muted-foreground">
+          {product.brand}
+        </p>
 
-        {/*  Clean Color Swatches - No Separator */}
-        {product?.colors && product?.colors?.length > 0 && (
+        {/* COLORS */}
+        {product.colors?.length > 0 && (
           <div
             className="flex items-center gap-1.5 mt-1"
-            role="list"
-            aria-label="Available colors"
             onClick={(e) => e.stopPropagation()}
           >
-            {product?.colors?.slice(0, 3)?.map((color, index) => {
+            {product.colors.slice(0, 3).map((color, index) => {
               const colorName = typeof color === "string" ? color : color.name;
               const colorHex =
                 typeof color === "string" ? getColorHex(color) : color.hex;
 
-              const isHovered = hoveredColor === colorName;
               const isLight = isLightColor(colorHex);
 
               return (
-                <button
+                <span
                   key={colorName || index}
-                  type="button"
-                  className={cn(
-                    "relative w-4 h-4 rounded-full transition-all duration-200",
-                    "hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
-                    "cursor-pointer group/color",
-                    isHovered ? "scale-110" : "scale-100"
-                  )}
-                  style={{
-                    backgroundColor: colorHex,
-                  }}
-                  role="listitem"
-                  aria-label={colorName}
-                  onMouseEnter={() => setHoveredColor(colorName)}
-                  onMouseLeave={() => setHoveredColor(null)}
+                  className="
+                    relative w-3.5 h-3.5 sm:w-4 sm:h-4
+                    rounded-full
+                  "
+                  style={{ backgroundColor: colorHex }}
                 >
-                  {/* Subtle Ring */}
                   <span
                     className={cn(
-                      "absolute inset-0 rounded-full transition-all duration-200",
-                      isHovered
-                        ? "ring-2 ring-foreground/40 ring-offset-1 ring-offset-background"
-                        : "ring-1 ring-black/5"
+                      "absolute inset-0 rounded-full",
+                      isLight ? "ring-1 ring-border" : "ring-1 ring-black/10"
                     )}
-                    aria-hidden="true"
                   />
-
-                  {/* Border for Light Colors */}
-                  {isLight && (
-                    <span
-                      className="absolute inset-0 rounded-full ring-1 ring-inset ring-border/60"
-                      aria-hidden="true"
-                    />
-                  )}
-                </button>
+                </span>
               );
             })}
 
-            {/* More Colors Text */}
             {product.colors.length > 3 && (
-              <span className="text-[10px] text-muted-foreground font-medium ml-1">
+              <span className="text-[10px] text-muted-foreground ml-1">
                 +{product.colors.length - 3}
               </span>
             )}

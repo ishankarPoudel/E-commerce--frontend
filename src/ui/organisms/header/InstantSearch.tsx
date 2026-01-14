@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Sparkles, TrendingUp } from "lucide-react";
+import { Search, TrendingUp, X } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Card } from "@/ui/shadcn/card";
 import { Badge } from "@/ui/shadcn/badge";
@@ -12,210 +12,160 @@ import { getImageUrl } from "@/utils/urlHelpers";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Link } from "@tanstack/react-router";
 
-interface SearchResult {
-  id: string | number;
-  name: string;
-  category: string;
-  price: number;
-  image: string;
-}
-
 export function InstantSearch() {
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearch = useDebouncedValue(searchQuery, 500);
   const [isOpen, setIsOpen] = useState(false);
-  const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const debouncedSearch = useDebouncedValue(searchQuery, 400);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data } = useQuery({
     ...searchBagsOptions({
-      query: {
-        query: (debouncedSearch as string) || "",
-      },
+      query: { query: debouncedSearch || "" },
     }),
     enabled: Boolean(debouncedSearch.trim()),
   });
 
-  const {
-    data: categories,
-    isLoading: isCategoriesLoading,
-    isError: isCategoriesError,
-  } = useQuery({
+  const { data: categories } = useQuery({
     ...getCategoriesOptions(),
   });
 
+  const results = Array.isArray(data?.data) ? data.data : [];
   const categoryData = Array.isArray(categories?.data) ? categories.data : [];
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target as Node)
-      ) {
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
   }, []);
 
   useEffect(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) {
-      setFilteredResults([]);
-      return;
-    }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
 
-    const items: any[] = Array.isArray(data?.data) ? data!.data : [];
-
-    const filtered = items.filter((item: any) => {
-      const nameMatch = item?.name?.toLowerCase()?.includes(q);
-      const categoryMatch =
-        Array.isArray(item?.categories) &&
-        item.categories.some((cat: any) =>
-          cat?.categoryName?.toLowerCase()?.includes(q)
-        );
-      return Boolean(nameMatch || categoryMatch);
-    });
-
-    const normalized: SearchResult[] = filtered.map((item: any) => ({
-      id: item?.id,
-      name: String(item?.name ?? ""),
-      category: Array.isArray(item?.categories)
-        ? String(item.categories[0]?.categoryName ?? "")
-        : "",
-      price: Number(item?.price ?? 0),
-      image: Array.isArray(item?.images)
-        ? String(item.images[0]?.image ?? "")
-        : "",
-    }));
-
-    setFilteredResults(normalized);
-  }, [searchQuery, data]);
-
-  const handleFocus = () => {
-    setIsOpen(true);
+  const handleClear = () => {
+    setSearchQuery("");
+    setIsOpen(false);
   };
 
   return (
-    <div ref={searchRef} className="relative max-w-3xl w-full mx-auto">
-      {/* Search Input */}
-      <div className="relative group">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 transition-colors group-focus-within:text-primary" />
-        <Input
-          type="text"
-          placeholder="Search for products..."
-          value={searchQuery}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setSearchQuery(e.target.value)
-          }
-          onFocus={handleFocus}
-          className="relative pl-12 pr-6 w-full h-12 text-sm rounded-full border-2 border-border bg-card shadow-lg transition-all duration-300 focus:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:ring-offset-0 hover:shadow-xl"
-        />
-      </div>
+    <div
+      ref={ref}
+      className="w-full max-w-[calc(100vw-2rem)] sm:max-w-md md:max-w-lg lg:max-w-2xl"
+    >
+      <div className="relative w-full">
+        <div className="relative z-[60]">
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsOpen(true)}
+            placeholder="Search products..."
+            className="
+              h-11
+              w-full
+              pl-11 pr-11
+              text-sm
+              rounded-full
+              border-2
+              border-border/60
+              bg-background
+              shadow-sm
+              focus-visible:ring-2 
+              focus-visible:ring-primary/30
+              focus-visible:border-primary
+              hover:border-border
+              transition-all
+            "
+          />
 
-      {/* Loading State */}
-      {isLoading && (
-        <Card className="absolute top-full mt-4 w-full rounded-2xl shadow-2xl z-50 border-2 border-border/50 backdrop-blur-xl bg-card/95 p-6">
-          <div className="flex items-center justify-center gap-3">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <span className="text-sm font-medium text-muted-foreground">
-              Searching...
-            </span>
-          </div>
-        </Card>
-      )}
+          {searchQuery && (
+            <button
+              onClick={handleClear}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
 
-      {/* Error State */}
-      {isError && (
-        <Card className="absolute top-full mt-4 w-full rounded-2xl shadow-2xl z-50 border-2 border-destructive/50 backdrop-blur-xl bg-card/95 p-6">
-          <p className="text-center text-sm font-medium text-destructive">
-            Error fetching search results. Please try again.
-          </p>
-        </Card>
-      )}
+        {/* DROPDOWN */}
+        {isOpen && (
+          <>
+            {/* Mobile overlay */}
+            <div
+              className="fixed inset-0 bg-black/20 z-40 md:hidden"
+              style={{ top: "56px" }}
+              onClick={() => setIsOpen(false)}
+            />
 
-      {/* Search Results Dropdown */}
-      {isOpen && !isLoading && !isError && (
-        <Card className="absolute top-full mt-4 w-full max-h-[600px] overflow-hidden rounded-2xl shadow-2xl z-50 border-2 border-border/50 backdrop-blur-xl bg-card/95 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
-          <div className="overflow-y-auto max-h-[600px] p-6 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/40">
-            {!searchQuery.trim() ? (
-              // Popular Categories
-              <div className="space-y-5">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  <h3 className="text-base font-bold text-foreground">
-                    Popular Categories
-                  </h3>
-                </div>
+            <Card
+              className="
+                fixed md:absolute
+                left-4 right-4 md:left-0 md:right-0
+                top-[100px] md:top-full
+                bottom-0 md:bottom-auto
+                md:mt-2
+                max-h-[calc(100vh-100px)] md:max-h-[65vh]
+                overflow-hidden
+                rounded-t-3xl md:rounded-xl
+                border-t-2 md:border-2
+                bg-card
+                shadow-2xl md:shadow-xl
+                z-50
+                w-auto
+              "
+            >
+              {/* Mobile drag handle */}
+              <div className="md:hidden flex justify-center pt-3 pb-2 bg-card sticky top-0 z-10">
+                <div className="w-12 h-1.5 bg-muted rounded-full" />
+              </div>
 
-                {/* Loading State */}
-                {isCategoriesLoading && (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  </div>
-                )}
+              {/* Scrollable content */}
+              <div className="max-h-full overflow-y-auto p-4 pb-safe">
+                {!searchQuery.trim() ? (
+                  <>
+                    <div className="mb-3 flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                      <p className="text-sm font-semibold">
+                        Popular Categories
+                      </p>
+                    </div>
 
-                {/* Error State */}
-                {isCategoriesError && (
-                  <div className="flex items-center justify-center py-8">
-                    <p className="text-sm font-medium text-destructive">
-                      Error fetching categories. Please try again.
-                    </p>
-                  </div>
-                )}
-
-                {/* Categories Grid */}
-                {/* Categories Grid */}
-                {!isCategoriesLoading && !isCategoriesError && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {categoryData
-                      .slice(0, 9)
-                      .map((category: any, index: number) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {categoryData.slice(0, 9).map((c: any) => (
                         <Link
-                          key={category.id || index}
+                          key={c.id}
                           to="/search"
                           search={{
                             q: "",
-                            category: category.categoryName,
-                            categoryId: String(category.id),
+                            category: c.categoryName,
+                            categoryId: String(c.id),
                           }}
                           onClick={() => setIsOpen(false)}
-                          className="group relative overflow-hidden rounded-lg border-2 border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-3 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]"
+                          className="rounded-lg border-2 px-3 py-2.5 text-xs font-medium hover:border-primary hover:bg-primary/5 transition-all text-center"
                         >
-                          {/* Hover gradient effect */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                          {/* Content */}
-                          <div className="relative flex items-center justify-between gap-2">
-                            <span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                              {category.categoryName}
-                            </span>
-                            <div className="flex-shrink-0 w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <Sparkles className="h-3 w-3 text-primary" />
-                            </div>
-                          </div>
+                          {c.categoryName}
                         </Link>
                       ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              // Search Results
-              <div className="space-y-5">
-                {filteredResults.length > 0 ? (
+                    </div>
+                  </>
+                ) : results.length > 0 ? (
                   <>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-medium text-muted-foreground">
-                        {filteredResults.length} result
-                        {filteredResults.length !== 1 ? "s" : ""} found
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        {results.length} results
                       </p>
-                      <Badge
-                        variant="secondary"
-                        className="font-semibold text-xs"
-                      >
+                      <Badge variant="secondary" className="text-xs">
                         {searchQuery}
                       </Badge>
                     </div>
@@ -224,65 +174,41 @@ export function InstantSearch() {
                       to="/search"
                       search={{ q: searchQuery, category: "", categoryId: "" }}
                       onClick={() => setIsOpen(false)}
-                      className="block"
                     >
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {filteredResults.map((result) => (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {results.map((item: any) => (
                           <div
-                            key={String(result.id)}
-                            className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-accent/50 transition-all duration-200 text-left border-2 border-transparent hover:border-primary/30 hover:shadow-lg active:scale-[0.98] cursor-pointer"
+                            key={item.id}
+                            className="rounded-lg p-2 hover:bg-accent transition-colors border"
                           >
-                            <div className="relative w-full aspect-square overflow-hidden rounded-lg bg-muted">
-                              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="mb-2 aspect-square rounded-md bg-muted overflow-hidden">
                               <img
-                                src={
-                                  result.image
-                                    ? getImageUrl(result.image)
-                                    : "/placeholder.svg?height=150&width=150"
-                                }
-                                alt={result.name}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                src={getImageUrl(item.images?.[0]?.image)}
+                                alt={item.name}
+                                className="h-full w-full object-cover"
                               />
                             </div>
-                            <div className="space-y-1">
-                              <h4 className="font-semibold text-xs text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                                {result.name}
-                              </h4>
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] font-medium"
-                              >
-                                {result.category}
-                              </Badge>
-                              <p className="text-sm font-bold text-primary">
-                                ${result.price.toFixed(2)}
-                              </p>
-                            </div>
+                            <p className="text-xs font-semibold line-clamp-2 mb-1">
+                              {item.name}
+                            </p>
+                            <p className="text-sm font-bold text-primary">
+                              ${item.price}
+                            </p>
                           </div>
                         ))}
                       </div>
                     </Link>
                   </>
                 ) : (
-                  <div className="text-center py-16 space-y-3">
-                    <div className="w-16 h-16 mx-auto rounded-full bg-muted/50 flex items-center justify-center">
-                      <Search className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-base font-semibold text-foreground">
-                        No results found
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Try searching with different keywords
-                      </p>
-                    </div>
-                  </div>
+                  <p className="py-10 text-center text-sm text-muted-foreground">
+                    No results found for "{searchQuery}"
+                  </p>
                 )}
               </div>
-            )}
-          </div>
-        </Card>
-      )}
+            </Card>
+          </>
+        )}
+      </div>
     </div>
   );
 }

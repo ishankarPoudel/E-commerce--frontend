@@ -18,8 +18,7 @@ export default function ForbiddenPage() {
 
         {/* Description */}
         <p className="text-muted-foreground text-lg">
-          You don't have permission to access this page. This area is restricted
-          to administrators only.
+          You don't have permission to access this page.
         </p>
 
         {/* Error Code */}

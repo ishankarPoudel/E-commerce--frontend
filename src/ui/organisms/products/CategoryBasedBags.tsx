@@ -19,99 +19,71 @@ export default function CategoryBasedBags() {
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const { data: listOfBag, isPending: isBagListPending } = useQuery({
+  const { data: listOfBag, isPending } = useQuery({
     ...getCategoriesWithBagsOptions({
-      query: {
-        page: 1,
-        limit: 10,
-      },
+      query: { page: 1, limit: 10 },
     }),
   });
 
   const checkScrollButtons = (categoryId: string) => {
     const container = scrollContainerRefs.current.get(categoryId);
-    if (container) {
-      const { scrollLeft, scrollWidth, clientWidth } = container;
-      setScrollStates((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(categoryId, {
-          canScrollLeft: scrollLeft > 0,
-          canScrollRight: scrollLeft < scrollWidth - clientWidth - 10,
-        });
-        return newMap;
+    if (!container) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+
+    setScrollStates((prev) => {
+      const map = new Map(prev);
+      map.set(categoryId, {
+        canScrollLeft: scrollLeft > 0,
+        canScrollRight: scrollLeft < scrollWidth - clientWidth - 10,
       });
-    }
+      return map;
+    });
   };
 
   const scroll = (categoryId: string, direction: "left" | "right") => {
     const container = scrollContainerRefs.current.get(categoryId);
-    if (container) {
-      const scrollAmount = container.clientWidth * 0.8;
-      const newScrollLeft =
+    if (!container) return;
+
+    const scrollAmount = container.clientWidth * 0.8;
+
+    container.scrollTo({
+      left:
         container.scrollLeft +
-        (direction === "left" ? -scrollAmount : scrollAmount);
+        (direction === "left" ? -scrollAmount : scrollAmount),
+      behavior: "smooth",
+    });
 
-      container.scrollTo({
-        left: newScrollLeft,
-        behavior: "smooth",
-      });
-
-      setTimeout(() => checkScrollButtons(categoryId), 300);
-    }
+    setTimeout(() => checkScrollButtons(categoryId), 300);
   };
 
   useEffect(() => {
-    if (listOfBag?.data?.data) {
-      listOfBag.data.data.forEach((category: { id: string }) => {
-        checkScrollButtons(category.id);
-      });
+    if (!listOfBag?.data?.data) return;
 
-      const handleResize = () => {
-        listOfBag.data.data.forEach((category: { id: string }) => {
-          checkScrollButtons(category.id);
-        });
-      };
+    listOfBag.data.data.forEach((c: { id: string }) =>
+      checkScrollButtons(c.id)
+    );
 
-      window.addEventListener("resize", handleResize);
+    const onResize = () => {
+      listOfBag.data.data.forEach((c: { id: string }) =>
+        checkScrollButtons(c.id)
+      );
+    };
 
-      const observers: ResizeObserver[] = [];
-      listOfBag.data.data.forEach((category: { id: string }) => {
-        const container = scrollContainerRefs.current.get(category.id);
-        if (container) {
-          const observer = new ResizeObserver(() => {
-            checkScrollButtons(category.id);
-          });
-          observer.observe(container);
-          observers.push(observer);
-        }
-      });
+    window.addEventListener("resize", onResize);
 
-      return () => {
-        window.removeEventListener("resize", handleResize);
-        observers.forEach((observer) => observer.disconnect());
-      };
-    }
+    return () => window.removeEventListener("resize", onResize);
   }, [listOfBag]);
 
-  const handleBagClick = (bag: Product) => {
-    setSelectedProduct(bag);
-    setOpenDialog(null);
-  };
-
-  const bagsList = listOfBag;
-
-  if (isBagListPending) {
+  if (isPending) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Loading bags...</span>
-        </div>
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
-  if (!bagsList?.data?.data || bagsList.data.data.length === 0) {
+  if (!listOfBag?.data?.data?.length) {
     return (
       <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">
         No categories found
@@ -121,10 +93,10 @@ export default function CategoryBasedBags() {
 
   return (
     <div className="w-full overflow-hidden">
-      <div className="max-w-7xl mx-auto p-6 bg-background space-y-12">
-        {bagsList.data.data.map(
-          (category: { id: string; categoryName: string; bags: any[] }) => {
-            const hasMoreBags = category.bags.length > 5;
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-12">
+        {listOfBag.data.data.map(
+          //@ts-expect-error
+          (category: { id: string; categoryName: string; bags: Product[] }) => {
             const scrollState = scrollStates.get(category.id) || {
               canScrollLeft: false,
               canScrollRight: false,
@@ -132,65 +104,60 @@ export default function CategoryBasedBags() {
 
             return (
               <section key={category.id} className="space-y-4">
-                <div className="flex items-center justify-between sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-transparent py-3 -mx-6 px-6">
-                  <h2 className="text-2xl font-playfair font-semibold text-foreground">
+                {/* HEADER */}
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-playfair font-semibold">
                     {category.categoryName}
                   </h2>
 
-                  {hasMoreBags && (
+                  {category.bags.length > 5 && (
                     <Dialog
                       open={openDialog === category.id}
-                      onOpenChange={(open) =>
-                        setOpenDialog(open ? category.id : null)
+                      onOpenChange={(o) =>
+                        setOpenDialog(o ? category.id : null)
                       }
                     >
                       <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="text-muted-foreground hover:text-foreground hover:bg-transparent px-2 group"
-                        >
-                          <span>View all ({category.bags.length})</span>
-                          <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        <Button variant="ghost" className="px-2">
+                          View all ({category.bags.length})
+                          <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </DialogTrigger>
 
-                      <DialogContent
-                        className="max-w-[95vw] min-w-[90vw] h-[85vh] p-0"
-                        onPointerDownOutside={(e) => e.preventDefault()}
-                      >
-                        <div className="sticky top-0 z-50 flex items-center justify-between border-b bg-background p-6">
+                      <DialogContent className="max-w-[95vw] h-[85vh] p-0">
+                        {/* Dialog Header */}
+                        <div className="flex items-center justify-between border-b p-4 sm:p-6">
                           <div className="flex items-center gap-3">
-                            <Grid3X3 className="h-6 w-6 text-primary" />
-                            <h2 className="text-xl font-semibold">
+                            <Grid3X3 className="h-5 w-5 text-primary" />
+                            <h3 className="text-lg font-semibold">
                               {category.categoryName}
-                            </h2>
-                            <Badge variant="secondary" className="text-sm">
-                              {category.bags.length} items
+                            </h3>
+                            <Badge variant="secondary">
+                              {category.bags.length}
                             </Badge>
                           </div>
+
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10 rounded-full hover:bg-muted/60"
                             onClick={() => setOpenDialog(null)}
                           >
                             <X className="h-5 w-5" />
                           </Button>
                         </div>
 
-                        <div className="p-8 overflow-y-auto h-[calc(85vh-80px)]">
-                          <div className="grid grid-cols-5 gap-8">
+                        {/* Dialog Grid */}
+                        <div className="p-4 sm:p-6 overflow-y-auto h-[calc(85vh-70px)]">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                             {category.bags.map((bag) => (
-                              <div
+                              <ProductCard
                                 key={bag.id}
-                                onClick={() => handleBagClick(bag)}
-                                className="cursor-pointer"
-                              >
-                                <ProductCard
-                                  product={bag}
-                                  onClick={() => handleBagClick(bag)}
-                                />
-                              </div>
+                                product={bag}
+                                onClick={() => {
+                                  setSelectedProduct(bag);
+                                  setOpenDialog(null);
+                                }}
+                              />
                             ))}
                           </div>
                         </div>
@@ -199,12 +166,13 @@ export default function CategoryBasedBags() {
                   )}
                 </div>
 
-                <div className="relative pt-2">
+                {/* SCROLL AREA */}
+                <div className="relative">
                   {scrollState.canScrollLeft && (
                     <Button
-                      variant="outline"
                       size="icon"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/95 backdrop-blur-sm border-2 shadow-lg hover:bg-background"
+                      variant="outline"
+                      className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10"
                       onClick={() => scroll(category.id, "left")}
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -213,9 +181,9 @@ export default function CategoryBasedBags() {
 
                   {scrollState.canScrollRight && (
                     <Button
-                      variant="outline"
                       size="icon"
-                      className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/95 backdrop-blur-sm border-2 shadow-lg hover:bg-background"
+                      variant="outline"
+                      className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10"
                       onClick={() => scroll(category.id, "right")}
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -224,26 +192,29 @@ export default function CategoryBasedBags() {
 
                   <div
                     ref={(el) => {
-                      if (el) {
-                        scrollContainerRefs.current.set(category.id, el);
-                      }
+                      if (el) scrollContainerRefs.current.set(category.id, el);
                     }}
-                    className="flex gap-6 overflow-x-auto pb-4 w-full scroll-smooth"
                     onScroll={() => checkScrollButtons(category.id)}
-                    style={{
-                      scrollbarWidth: "none",
-                      msOverflowStyle: "none",
-                    }}
+                    className="
+                      flex gap-3 sm:gap-4 md:gap-6
+                      overflow-x-auto pb-4
+                      scroll-smooth
+                      snap-x snap-mandatory
+                    "
+                    style={{ scrollbarWidth: "none" }}
                   >
                     {category.bags.map((bag) => (
                       <div
                         key={bag.id}
-                        className="flex-shrink-0 w-52 cursor-pointer"
-                        onClick={() => handleBagClick(bag)}
+                        className="
+                          flex-shrink-0
+                          w-[150px] sm:w-[180px] md:w-52
+                          snap-start
+                        "
                       >
                         <ProductCard
                           product={bag}
-                          onClick={() => handleBagClick(bag)}
+                          onClick={() => setSelectedProduct(bag)}
                         />
                       </div>
                     ))}
@@ -254,10 +225,11 @@ export default function CategoryBasedBags() {
           }
         )}
       </div>
+
       {selectedProduct && (
         <ProductDetailPanel
           product={selectedProduct}
-          isOpen={!!selectedProduct}
+          isOpen
           onClose={() => setSelectedProduct(null)}
         />
       )}

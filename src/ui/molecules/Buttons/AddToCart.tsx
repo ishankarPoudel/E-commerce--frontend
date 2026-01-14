@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ShoppingCart, Check, Plus, Minus, X } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent } from "@/ui/shadcn/dialog";
-import { useCart } from "@/hooks/use-cart";
+
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -27,7 +27,7 @@ interface Product {
   capacityLiters?: number;
   brand: string;
   features: Record<string, boolean>;
-  stock: number;
+  stock?: number;
 }
 interface AddToCartButtonProps {
   product: Product;
@@ -87,7 +87,7 @@ export function AddToCartButton({
     (product.sizes && product.sizes.length > 1) ||
     (product.colors && product.colors.length > 1);
 
-  const { mutate: addToCart, isPending: isAddingToCart } = useMutation({
+  const { mutate: addToCart } = useMutation({
     ...addToCartMutation(),
   });
 
@@ -334,7 +334,7 @@ export function AddToCartButton({
                     <button
                       type="button"
                       onClick={incrementQuantity}
-                      disabled={quantity >= product.stock}
+                      disabled={quantity >= (product.stock ?? Infinity)}
                       className="h-9 w-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg"
                     >
                       <Plus className="h-4 w-4" />
