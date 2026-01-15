@@ -68,6 +68,7 @@ function isLightColor(hex: string): boolean {
 }
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const productImages = product?.images?.map((img) =>
@@ -77,51 +78,49 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   return (
     <div
       ref={cardRef}
-      className="
-        group relative flex flex-col cursor-pointer
-        w-full
-      "
+      className="relative flex flex-col cursor-pointer w-full group"
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       role="button"
       tabIndex={0}
       aria-label={`View ${product.name}`}
     >
-      {/* IMAGE */}
       <div
-        className="
-          relative aspect-[4/5] overflow-hidden bg-muted
-          rounded-sm mb-2 sm:mb-3
-          md:transition-transform md:duration-300 md:group-hover:-translate-y-1
-        "
+        className={cn(
+          "relative aspect-[3/4] overflow-hidden bg-muted rounded-md mb-1.5 sm:mb-2",
+          "transition-transform duration-300 will-change-transform",
+          isHovered && "md:-translate-y-1"
+        )}
       >
         <Image
           src={getImageUrl(productImages?.[0])}
           alt={product.name}
           fill
           priority
-          className="
-            object-cover
-            md:transition-transform md:duration-500
-            md:group-hover:scale-105
-          "
+          className={cn(
+            "object-cover transition-transform duration-500",
+            isHovered && "md:scale-105"
+          )}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
 
-        {/* FEATURED */}
         {product.isFeatured && (
-          <Badge className="absolute top-2 left-2 text-[10px] px-2 py-0.5">
+          <Badge className="absolute top-1.5 left-1.5 text-[9px] sm:text-[10px] px-1.5 py-0.5 sm:px-2">
             Featured
           </Badge>
         )}
 
-        {/* ADD TO CART */}
         <div
-          className="
-            absolute inset-x-0 bottom-0 p-2 sm:p-3
-            md:opacity-0 md:translate-y-2
-            md:group-hover:opacity-100 md:group-hover:translate-y-0
-            transition-all
-          "
+          className={cn(
+            "absolute inset-x-0 bottom-0 p-1.5 sm:p-2 md:p-2.5 transition-all duration-300",
+
+            "opacity-100 translate-y-0",
+
+            isHovered
+              ? "md:opacity-100 md:translate-y-0"
+              : "md:opacity-0 md:translate-y-2"
+          )}
           onClick={(e) => e.stopPropagation()}
         >
           <AddToCartButton
@@ -130,39 +129,34 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             fullWidth
             showQuantity
             className="
-              bg-card/95 backdrop-blur
-              border-border shadow
+              bg-card/95 backdrop-blur-sm
+              border border-border shadow-sm
               hover:bg-primary hover:text-primary-foreground
+              transition-colors duration-200
+              h-7 sm:h-8 text-[10px] sm:text-xs
             "
           />
         </div>
       </div>
 
-      {/* INFO */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3
-            className="
-              text-xs sm:text-sm font-medium
-              leading-snug line-clamp-2
-            "
-          >
+      <div className="flex flex-col gap-0.5 sm:gap-1 px-0.5">
+        <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+          <h3 className="text-[11px] sm:text-xs md:text-sm font-medium leading-tight line-clamp-2 flex-1">
             {product.name}
           </h3>
 
-          <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
-            रू {product.price}
+          <span className="text-[11px] sm:text-xs md:text-sm font-semibold whitespace-nowrap shrink-0">
+            रू{product.price}
           </span>
         </div>
 
-        <p className="text-[10px] sm:text-xs text-muted-foreground">
+        <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground truncate">
           {product.brand}
         </p>
 
-        {/* COLORS */}
         {product.colors?.length > 0 && (
           <div
-            className="flex items-center gap-1.5 mt-1"
+            className="flex items-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1"
             onClick={(e) => e.stopPropagation()}
           >
             {product.colors.slice(0, 3).map((color, index) => {
@@ -175,11 +169,9 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
               return (
                 <span
                   key={colorName || index}
-                  className="
-                    relative w-3.5 h-3.5 sm:w-4 sm:h-4
-                    rounded-full
-                  "
+                  className="relative w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded-full transition-transform hover:scale-110"
                   style={{ backgroundColor: colorHex }}
+                  title={colorName}
                 >
                   <span
                     className={cn(
@@ -192,7 +184,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             })}
 
             {product.colors.length > 3 && (
-              <span className="text-[10px] text-muted-foreground ml-1">
+              <span className="text-[9px] sm:text-[10px] text-muted-foreground ml-0.5">
                 +{product.colors.length - 3}
               </span>
             )}
@@ -206,14 +198,14 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 export function ProductCardSkeleton() {
   return (
     <div className="flex flex-col animate-pulse">
-      <div className="aspect-[4/5] bg-muted rounded-sm mb-3" />
-      <div className="flex flex-col gap-2">
-        <div className="h-4 bg-muted rounded w-3/4" />
-        <div className="h-3 bg-muted rounded w-1/2" />
-        <div className="flex items-center gap-1.5 mt-1">
-          <div className="w-5 h-5 bg-muted rounded-full" />
-          <div className="w-5 h-5 bg-muted rounded-full" />
-          <div className="w-5 h-5 bg-muted rounded-full" />
+      <div className="aspect-[3/4] bg-muted rounded-md mb-2" />
+      <div className="flex flex-col gap-1.5 px-0.5">
+        <div className="h-3 sm:h-4 bg-muted rounded w-3/4" />
+        <div className="h-2.5 sm:h-3 bg-muted rounded w-1/2" />
+        <div className="flex items-center gap-1 sm:gap-1.5 mt-0.5">
+          <div className="w-3 h-3 sm:w-4 sm:h-4 bg-muted rounded-full" />
+          <div className="w-3 h-3 sm:w-4 sm:h-4 bg-muted rounded-full" />
+          <div className="w-3 h-3 sm:w-4 sm:h-4 bg-muted rounded-full" />
         </div>
       </div>
     </div>

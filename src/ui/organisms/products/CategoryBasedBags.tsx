@@ -3,7 +3,13 @@ import { Badge } from "@/ui/shadcn/badge";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/ui/shadcn/dialog";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Grid3X3, Loader2, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  ChevronDown,
+  Package,
+} from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { ProductDetailPanel } from "./DetailProduct";
 import {
@@ -18,6 +24,9 @@ export default function CategoryBasedBags() {
   >(new Map());
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [visibleItems, setVisibleItems] = useState<Map<string, number>>(
+    new Map()
+  );
 
   const { data: listOfBag, isPending } = useQuery({
     ...getCategoriesWithBagsOptions({
@@ -57,22 +66,39 @@ export default function CategoryBasedBags() {
     setTimeout(() => checkScrollButtons(categoryId), 300);
   };
 
+  const loadMoreItems = (categoryId: string, increment: number = 8) => {
+    setVisibleItems((prev) => {
+      const map = new Map(prev);
+      const currentCount = map.get(categoryId) || 4;
+      map.set(categoryId, currentCount + increment);
+      return map;
+    });
+  };
+
+  const showLessItems = (categoryId: string) => {
+    setVisibleItems((prev) => {
+      const map = new Map(prev);
+      map.set(categoryId, 4);
+      return map;
+    });
+  };
+
   useEffect(() => {
     if (!listOfBag?.data?.data) return;
 
-    listOfBag.data.data.forEach((c: { id: string }) =>
-      checkScrollButtons(c.id)
-    );
-
-    const onResize = () => {
-      listOfBag.data.data.forEach((c: { id: string }) =>
-        checkScrollButtons(c.id)
-      );
+    const checkAllScrollButtons = () => {
+      if (window.innerWidth >= 768) {
+        listOfBag.data.data.forEach((c: { id: string }) =>
+          checkScrollButtons(c.id)
+        );
+      }
     };
 
-    window.addEventListener("resize", onResize);
+    checkAllScrollButtons();
 
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener("resize", checkAllScrollButtons);
+
+    return () => window.removeEventListener("resize", checkAllScrollButtons);
   }, [listOfBag]);
 
   if (isPending) {
@@ -93,7 +119,7 @@ export default function CategoryBasedBags() {
 
   return (
     <div className="w-full overflow-hidden">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-12">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-8 sm:space-y-12">
         {listOfBag.data.data.map(
           //@ts-expect-error
           (category: { id: string; categoryName: string; bags: Product[] }) => {
@@ -102,93 +128,190 @@ export default function CategoryBasedBags() {
               canScrollRight: false,
             };
 
-            return (
-              <section key={category.id} className="space-y-4">
-                {/* HEADER */}
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg sm:text-xl lg:text-2xl font-playfair font-semibold">
-                    {category.categoryName}
-                  </h2>
+            const INITIAL_ITEMS = 4;
+            const LOAD_MORE_CHUNK = 8;
+            const currentVisible =
+              visibleItems.get(category.id) || INITIAL_ITEMS;
+            const totalBags = category.bags.length;
 
-                  {category.bags.length > 5 && (
-                    <Dialog
-                      open={openDialog === category.id}
-                      onOpenChange={(o) =>
-                        setOpenDialog(o ? category.id : null)
+            const mobileDisplayBags = category.bags.slice(0, currentVisible);
+            const hasMore = currentVisible < totalBags;
+            const remainingCount = totalBags - currentVisible;
+
+            return (
+              <section key={category.id} className="space-y-3 sm:space-y-4">
+                {/* HEADER */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-playfair font-semibold line-clamp-1">
+                      {category.categoryName}
+                    </h2>
+
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 text-xs shrink-0"
+                    >
+                      <Package className="h-3 w-3" />
+                      {totalBags}
+                    </Badge>
+                  </div>
+
+                  <Dialog
+                    open={openDialog === category.id}
+                    onOpenChange={(o) => setOpenDialog(o ? category.id : null)}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="hidden md:flex items-center gap-2 ml-auto shrink-0 whitespace-nowrap"
+                      >
+                        View all
+                        <ChevronRight className="h-4 w-4 " />
+                      </Button>
+                    </DialogTrigger>
+
+                    <DialogContent className="max-w-[98vw] sm:max-w-[95vw] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl h-[92vh] sm:h-[88vh] md:h-[85vh] p-0 gap-0">
+                      <div className="header">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-playfair font-semibold px-4 sm:px-5 py-3 border-b">
+                          {category.categoryName}
+                        </h2>
+                      </div>
+                      <div className=" overflow-y-auto px-4 sm:px-5  pb-4 sm:pb-5 h-[calc(88vh-56px)] md:h-[calc(85vh-56px)]">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-4 lg:gap-5">
+                          {category.bags.map((bag) => (
+                            <div
+                              key={bag.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedProduct(bag);
+                                setOpenDialog(null);
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <ProductCard
+                                product={bag}
+                                onClick={() => setSelectedProduct(bag)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                {/* MOBILE: Grid Layout */}
+                <div className="md:hidden">
+                  <div className="grid grid-cols-2 gap-3">
+                    {mobileDisplayBags.map((bag) => (
+                      <div
+                        key={bag.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProduct(bag);
+                        }}
+                      >
+                        <ProductCard
+                          product={bag}
+                          onClick={() => setSelectedProduct(bag)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {hasMore && (
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4"
+                      onClick={() =>
+                        loadMoreItems(category.id, LOAD_MORE_CHUNK)
                       }
                     >
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" className="px-2">
-                          View all ({category.bags.length})
-                          <ChevronRight className="ml-1 h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
+                      Show {Math.min(remainingCount, LOAD_MORE_CHUNK)} More
+                      {remainingCount > LOAD_MORE_CHUNK &&
+                        ` (${remainingCount} remaining)`}
+                      <ChevronDown className="ml-2 h-4 w-4 transition-transform" />
+                    </Button>
+                  )}
 
-                      <DialogContent className="max-w-[95vw] h-[85vh] p-0">
-                        {/* Dialog Header */}
-                        <div className="flex items-center justify-between border-b p-4 sm:p-6">
-                          <div className="flex items-center gap-3">
-                            <Grid3X3 className="h-5 w-5 text-primary" />
-                            <h3 className="text-lg font-semibold">
-                              {category.categoryName}
-                            </h3>
-                            <Badge variant="secondary">
-                              {category.bags.length}
-                            </Badge>
-                          </div>
+                  {!hasMore && currentVisible > INITIAL_ITEMS && (
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4"
+                      onClick={() => showLessItems(category.id)}
+                    >
+                      Show Less
+                      <ChevronDown className="ml-2 h-4 w-4 rotate-180 transition-transform" />
+                    </Button>
+                  )}
 
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setOpenDialog(null)}
-                          >
-                            <X className="h-5 w-5" />
-                          </Button>
-                        </div>
-
-                        {/* Dialog Grid */}
-                        <div className="p-4 sm:p-6 overflow-y-auto h-[calc(85vh-70px)]">
-                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                            {category.bags.map((bag) => (
-                              <ProductCard
-                                key={bag.id}
-                                product={bag}
-                                onClick={() => {
-                                  setSelectedProduct(bag);
-                                  setOpenDialog(null);
-                                }}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                  {totalBags > INITIAL_ITEMS && (
+                    <div className="mt-3 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        Showing {mobileDisplayBags.length} of {totalBags}{" "}
+                        products
+                      </p>
+                      <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary transition-all duration-300"
+                          style={{
+                            width: `${
+                              (mobileDisplayBags.length / totalBags) * 100
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                {/* SCROLL AREA */}
-                <div className="relative">
-                  {scrollState.canScrollLeft && (
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10"
-                      onClick={() => scroll(category.id, "left")}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
+                <div className="hidden md:block relative group">
+                  {totalBags > 3 && scrollState.canScrollRight && (
+                    <div className="absolute right-0 top-0 bottom-4 w-20 bg-gradient-to-l from-background via-background/80 to-transparent pointer-events-none z-0" />
                   )}
 
-                  {scrollState.canScrollRight && (
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10"
-                      onClick={() => scroll(category.id, "right")}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className={`
+                      absolute left-0 top-1/2 -translate-y-1/2 z-20 
+                      transition-opacity shadow-lg bg-background
+                      ${
+                        scrollState.canScrollLeft
+                          ? "opacity-0 group-hover:opacity-100"
+                          : "opacity-0 pointer-events-none"
+                      }
+                    `}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      scroll(category.id, "left");
+                    }}
+                    disabled={!scrollState.canScrollLeft}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className={`
+                      absolute right-0 top-1/2 -translate-y-1/2 z-20 
+                      transition-opacity shadow-lg bg-background
+                      ${
+                        scrollState.canScrollRight
+                          ? "opacity-0 group-hover:opacity-100"
+                          : "opacity-0 pointer-events-none"
+                      }
+                    `}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      scroll(category.id, "right");
+                    }}
+                    disabled={!scrollState.canScrollRight}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
 
                   <div
                     ref={(el) => {
@@ -196,21 +319,26 @@ export default function CategoryBasedBags() {
                     }}
                     onScroll={() => checkScrollButtons(category.id)}
                     className="
-                      flex gap-3 sm:gap-4 md:gap-6
-                      overflow-x-auto pb-4
+                      flex gap-4 lg:gap-6
+                      overflow-x-auto 
+                      pb-4
+                      pr-4
                       scroll-smooth
-                      snap-x snap-mandatory
+                      scrollbar-hide
                     "
-                    style={{ scrollbarWidth: "none" }}
+                    style={{
+                      scrollbarWidth: "none",
+                      WebkitOverflowScrolling: "touch",
+                    }}
                   >
                     {category.bags.map((bag) => (
                       <div
                         key={bag.id}
-                        className="
-                          flex-shrink-0
-                          w-[150px] sm:w-[180px] md:w-52
-                          snap-start
-                        "
+                        className="flex-shrink-0 w-52 lg:w-56"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProduct(bag);
+                        }}
                       >
                         <ProductCard
                           product={bag}
