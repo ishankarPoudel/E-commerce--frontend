@@ -1,4 +1,3 @@
-import { useCart } from "@/hooks/use-cart";
 import { cn } from "@/lib/utils";
 import AddToCartButton from "@/ui/molecules/Buttons/AddToCart";
 import { Product } from "@/ui/pages/Customer/Search/ProductCard";
@@ -136,7 +135,6 @@ export function ProductDetailPanel({
         aria-hidden="true"
       />
 
-      {/* ✅ SHEET - Smaller widths for large screens */}
       <div
         className="fixed inset-0 
                    md:inset-y-0 md:right-0 md:left-auto
@@ -164,10 +162,8 @@ export function ProductDetailPanel({
           <X className="h-4 w-4" />
         </Button>
 
-        {/* ✅ Scrollable Container - Compact spacing */}
         <ScrollArea className="h-full">
           <div className="flex flex-col">
-            {/* ✅ Gallery Section - Smaller image */}
             <div className="w-full bg-muted/30">
               {/* Main Image Container */}
               <div className="relative aspect-square bg-muted">
@@ -266,7 +262,6 @@ export function ProductDetailPanel({
                 )}
               </div>
 
-              {/* ✅ Thumbnail Gallery - Smaller thumbnails */}
               {hasMultipleImages && (
                 <div className="border-t border-border bg-card">
                   <ScrollArea className="w-full">
@@ -299,7 +294,6 @@ export function ProductDetailPanel({
               )}
             </div>
 
-            {/* ✅ Details Section - Compact spacing */}
             <div className="w-full">
               <div className="p-3 md:p-4 lg:p-5 space-y-3 md:space-y-4">
                 {/* Header - Smaller fonts */}
@@ -314,11 +308,10 @@ export function ProductDetailPanel({
                     {product.brand || product.type || "Product"}
                   </p>
                   <div className="text-xl sm:text-2xl md:text-2xl font-bold text-primary">
-                    रू {product.price.toLocaleString()}
+                    रु {product.price.toLocaleString()}
                   </div>
                 </div>
 
-                {/* ✅ Selection Options - Compact */}
                 <div className="bg-muted/50 border border-border rounded-lg p-2.5 md:p-3 space-y-2.5 md:space-y-3">
                   {/* Color Selection */}
                   {product.colors && product.colors.length > 0 && (

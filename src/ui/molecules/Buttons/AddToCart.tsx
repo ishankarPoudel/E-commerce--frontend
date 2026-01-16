@@ -1,13 +1,10 @@
 import type React from "react";
 import { useState } from "react";
-
 import { ShoppingCart, Check, Plus, Minus, X } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent } from "@/ui/shadcn/dialog";
-
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
 import { getImageUrl } from "@/utils/urlHelpers";
 import { useMutation } from "@tanstack/react-query";
 import { addToCartMutation } from "@/api/@tanstack/react-query.gen";
@@ -113,12 +110,6 @@ export function AddToCartButton({
       },
       {
         onSuccess: () => {
-          // addItem({
-          //   productId: product.id,
-          //   quantity: showQuantity ? quantity : 1,
-          //   color: selectedColor,
-          //   size: selectedSize,
-          // });
           setIsAdding(false);
           setShowSuccess(true);
           toast.success(
@@ -188,7 +179,6 @@ export function AddToCartButton({
         modal={true}
       >
         <DialogContent className="sm:max-w-[450px] p-0 gap-0 overflow-hidden">
-          {/* Modern Product Image with Gradient Overlay */}
           <div className="relative w-full h-56 bg-gradient-to-br from-muted/50 to-muted overflow-hidden group">
             <img
               src={getImageUrl(product?.images?.[0])}
@@ -196,7 +186,7 @@ export function AddToCartButton({
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="eager"
             />
-            {/* Gradient Overlay for better text readability */}
+
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
             {/* Featured Badge */}
@@ -205,13 +195,6 @@ export function AddToCartButton({
                 Featured
               </div>
             )}
-
-            {/* Price Tag - Modern floating design */}
-            <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-background/95 backdrop-blur-md rounded-full shadow-xl border border-border/50">
-              <span className="text-lg font-bold text-primary">
-                ${product.price}
-              </span>
-            </div>
           </div>
 
           {/* Product Details with Card-like Design */}
@@ -349,11 +332,11 @@ export function AddToCartButton({
               onClick={handleAddToCart}
               disabled={isAdding || showSuccess || product.stock === 0}
               className={cn(
-                "w-full h-11 text-sm font-bold shadow-lg hover:shadow-xl transition-all duration-300",
-                "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary",
-                "active:scale-[0.98]",
-                showSuccess &&
-                  "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-500 hover:to-green-600"
+                "w-full h-11 text-sm font-bold   transition-all duration-300",
+                "bg-gradient-to-r from-primary to-primary/90 hover:cursor-pointer ",
+                "",
+                isAdding && "opacity-70 cursor-not-allowed",
+                showSuccess && "hover:cursor-default"
               )}
             >
               {showSuccess ? (
@@ -361,7 +344,7 @@ export function AddToCartButton({
                   <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
                     <Check className="h-3 w-3" strokeWidth={3} />
                   </div>
-                  <span>Added to Cart!</span>
+                  <span>Added to Cart</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -369,7 +352,7 @@ export function AddToCartButton({
                   <span>
                     {isAdding
                       ? "Adding..."
-                      : `Add to Cart • $${(product.price * quantity).toFixed(
+                      : `Add to Cart • रु ${(product.price * quantity).toFixed(
                           2
                         )}`}
                   </span>

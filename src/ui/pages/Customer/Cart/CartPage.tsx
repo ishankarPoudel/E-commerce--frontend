@@ -270,12 +270,12 @@ export default function CartPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <AlertCircle className="h-16 w-16 text-destructive" />
-        <h2 className="mt-4 text-2xl font-playfair font-semibold">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <AlertCircle className="h-12 w-12 md:h-16 md:w-16 text-destructive" />
+        <h2 className="mt-4 text-xl md:text-2xl font-playfair font-semibold">
           Could not load your cart
         </h2>
-        <p className="mt-2 text-muted-foreground">
+        <p className="mt-2 text-sm md:text-base text-muted-foreground">
           There was an error fetching your cart data. Please try again later.
         </p>
         <Button asChild className="mt-6">
@@ -286,53 +286,62 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
+      {/* ✅ Header - Mobile Optimized */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2">
+            {/* Back Button - Mobile */}
             <Link
               to="/"
-              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+              className="flex items-center gap-1.5 md:gap-2 text-primary hover:text-primary/80 transition-colors min-w-0"
             >
-              <ArrowLeft className="h-5 w-5" />
-              <span className="font-medium">Continue Shopping</span>
+              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+              <span className="font-medium text-xs sm:text-sm md:text-base truncate">
+                Continue
+              </span>
             </Link>
-            <h1 className="text-2xl font-playfair font-bold text-card-foreground">
-              Shopping Cart
+
+            {/* Title - Responsive */}
+            <h1 className="text-base sm:text-lg md:text-2xl font-playfair font-bold text-card-foreground truncate">
+              Cart
             </h1>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="font-medium">{cartItems.length} items</span>
+
+            {/* Items Count */}
+            <div className="flex items-center gap-1.5 md:gap-2 text-muted-foreground min-w-0">
+              <ShoppingBag className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+              <span className="font-medium text-xs sm:text-sm md:text-base whitespace-nowrap">
+                {cartItems.length}
+              </span>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-6">
+      <div className="container mx-auto px-3 sm:px-4 py-4 md:py-8">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
+          {/* ✅ Cart Items - Mobile Optimized */}
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             <DeliveryMethodSelector
               selectedMethod={deliveryMethod}
               onMethodChange={setDeliveryMethod}
             />
 
-            {/* Shipping Address Section - Only shown for delivery */}
+            {/* ✅ Shipping Address - Mobile Optimized */}
             {deliveryMethod === "delivery" && (
               <Card className="border-2 border-primary/20">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <MapPin className="h-5 w-5 text-primary" />
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="p-1.5 md:p-2 rounded-lg bg-primary/10">
+                        <MapPin className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-card-foreground">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-sm md:text-base text-card-foreground">
                           Shipping Address
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Where should we deliver your order?
+                        <p className="text-xs md:text-sm text-muted-foreground">
+                          Where should we deliver?
                         </p>
                       </div>
                     </div>
@@ -340,7 +349,7 @@ export default function CartPage() {
                     {!isLoadingLocation && userLocation && (
                       <div
                         className={cn(
-                          "flex items-start gap-2 p-3 rounded-lg border",
+                          "flex items-start gap-2 p-2.5 md:p-3 rounded-lg border",
                           userLocation.country?.toLowerCase() !== "nepal"
                             ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900"
                             : "bg-primary/5 border-primary/20"
@@ -348,7 +357,7 @@ export default function CartPage() {
                       >
                         <Globe
                           className={cn(
-                            "h-4 w-4 mt-0.5 flex-shrink-0",
+                            "h-3.5 w-3.5 md:h-4 md:w-4 mt-0.5 flex-shrink-0",
                             userLocation.country?.toLowerCase() !== "nepal"
                               ? "text-amber-600 dark:text-amber-400"
                               : "text-primary"
@@ -357,36 +366,35 @@ export default function CartPage() {
                         <div className="flex-1 min-w-0">
                           {userLocation.country?.toLowerCase() !== "nepal" ? (
                             <div className="space-y-1">
-                              <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                              <p className="text-[10px] sm:text-xs font-semibold text-amber-700 dark:text-amber-300">
                                 International Payment Notice
                               </p>
-                              <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
+                              <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
                                 We detected you're in{" "}
                                 <span className="font-semibold">
                                   {getLocationString()}
                                 </span>
                                 . International card payments are temporarily
-                                unavailable. We're working on adding secure
-                                multi-currency payment options soon.
+                                unavailable.
                               </p>
                             </div>
                           ) : (
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                              We detected you're in{" "}
+                            <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
+                              You're in{" "}
                               <span className="font-semibold text-foreground">
                                 {getLocationString()}
                               </span>
-                              . Confirm your delivery address below.
+                              . Confirm your address below.
                             </p>
                           )}
                         </div>
                       </div>
                     )}
 
-                    <div className="space-y-2">
+                    <div className="space-y-1.5 md:space-y-2">
                       <Label
                         htmlFor="shipping-address"
-                        className="text-sm font-medium"
+                        className="text-xs md:text-sm font-medium"
                       >
                         Full Address <span className="text-destructive">*</span>
                       </Label>
@@ -395,12 +403,11 @@ export default function CartPage() {
                         placeholder="Enter your complete delivery address..."
                         value={shippingAddress}
                         onChange={(e) => setShippingAddress(e.target.value)}
-                        className="min-h-[30px] resize-none"
+                        className="min-h-[80px] md:min-h-[100px] resize-none text-xs md:text-sm"
                         required
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Include as much details as possible to ensure timely
-                        delivery.
+                      <p className="text-[10px] md:text-xs text-muted-foreground">
+                        Include details for timely delivery.
                       </p>
                     </div>
                   </div>
@@ -408,22 +415,23 @@ export default function CartPage() {
               </Card>
             )}
 
-            <div className="space-y-4">
+            {/* ✅ Cart Items List - Mobile Optimized */}
+            <div className="space-y-3 md:space-y-4">
               {isPending ? (
-                <Card className="p-12 text-center">
-                  <p>Loading your cart...</p>
+                <Card className="p-8 md:p-12 text-center">
+                  <p className="text-sm md:text-base">Loading your cart...</p>
                 </Card>
               ) : cartItems.length === 0 ? (
-                <Card className="p-12 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <ShoppingBag className="h-16 w-16 text-muted-foreground" />
-                    <h2 className="text-xl font-playfair font-semibold text-muted-foreground">
+                <Card className="p-8 md:p-12 text-center">
+                  <div className="flex flex-col items-center gap-3 md:gap-4">
+                    <ShoppingBag className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground" />
+                    <h2 className="text-lg md:text-xl font-playfair font-semibold text-muted-foreground">
                       Your cart is empty
                     </h2>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm md:text-base text-muted-foreground">
                       Add some bags to get started
                     </p>
-                    <Button asChild className="mt-4">
+                    <Button asChild className="mt-2 md:mt-4">
                       <Link to="/">Start Shopping</Link>
                     </Button>
                   </div>
@@ -434,9 +442,9 @@ export default function CartPage() {
                     key={item.id}
                     className="overflow-hidden hover:shadow-md transition-shadow"
                   >
-                    <CardContent className="p-6">
-                      <div className="flex gap-6">
-                        {/* Product Image */}
+                    <CardContent className="p-3 sm:p-4 md:p-6">
+                      <div className="flex gap-3 sm:gap-4 md:gap-6">
+                        {/* ✅ Product Image - Mobile Optimized */}
                         <div className="relative flex-shrink-0">
                           <img
                             src={
@@ -445,28 +453,28 @@ export default function CartPage() {
                                 : "/placeholder.svg?height=120&width=120"
                             }
                             alt={item.name}
-                            className="w-32 h-32 object-cover rounded-lg bg-muted"
+                            className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 object-cover rounded-lg bg-muted"
                           />
                         </div>
 
-                        {/* Product Details */}
-                        <div className="flex-1 flex flex-col justify-between gap-4">
+                        {/* ✅ Product Details - Mobile Optimized */}
+                        <div className="flex-1 flex flex-col justify-between gap-2 md:gap-4 min-w-0">
                           {/* Top Row: Name + Delete */}
-                          <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                              <h3 className="font-playfair font-semibold text-lg text-card-foreground">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <h3 className="font-playfair font-semibold text-sm sm:text-base md:text-lg text-card-foreground line-clamp-2">
                                 {item.name}
                               </h3>
 
-                              {/* Product Options */}
-                              <div className="space-y-1 mt-2">
+                              {/* Product Options - Mobile Optimized */}
+                              <div className="space-y-0.5 md:space-y-1 mt-1 md:mt-2">
                                 {/* Size */}
                                 {item.size && (
-                                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                  <div className="text-xs md:text-sm text-muted-foreground flex items-center gap-1.5 md:gap-2">
                                     <span className="font-medium text-card-foreground">
                                       Size:
                                     </span>
-                                    <span className="px-2 py-0.5 rounded bg-muted text-xs">
+                                    <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] md:text-xs">
                                       {item.size}
                                     </span>
                                   </div>
@@ -474,15 +482,13 @@ export default function CartPage() {
 
                                 {/* Color */}
                                 {item.color && (
-                                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                  <div className="text-xs md:text-sm text-muted-foreground flex items-center gap-1.5 md:gap-2">
                                     <span className="font-medium text-card-foreground">
                                       Color:
                                     </span>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs px-2 py-0.5 bg-muted rounded">
-                                        {item.color.name || "Not specified"}
-                                      </span>
-                                    </div>
+                                    <span className="text-[10px] md:text-xs px-1.5 py-0.5 bg-muted rounded">
+                                      {item.color.name || "Not specified"}
+                                    </span>
                                   </div>
                                 )}
                               </div>
@@ -492,22 +498,22 @@ export default function CartPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCartDeletion(item.id)}
-                              className="text-muted-foreground hover:text-destructive"
+                              className="text-muted-foreground hover:text-destructive h-7 w-7 md:h-8 md:w-8 p-0"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             </Button>
                           </div>
 
-                          {/* Bottom Row: Price + Quantity */}
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl font-semibold text-card-foreground">
-                                रू {item.price.toFixed(2)}
+                          {/* Bottom Row: Price + Quantity - Mobile Optimized */}
+                          <div className="flex justify-between items-center gap-2">
+                            <div className="flex items-center gap-1 md:gap-2">
+                              <span className="text-base sm:text-lg md:text-xl font-semibold text-card-foreground">
+                                रु {item.price.toFixed(2)}
                               </span>
                             </div>
 
-                            {/* Quantity Controls */}
-                            <div className="flex items-center gap-3">
+                            {/* ✅ Quantity Controls - Mobile Optimized */}
+                            <div className="flex items-center gap-2 md:gap-3">
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -517,12 +523,12 @@ export default function CartPage() {
                                     item.quantity - 1
                                   )
                                 }
-                                className="h-8 w-8 p-0"
+                                className="h-7 w-7 md:h-8 md:w-8 p-0"
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
 
-                              <span className="font-medium min-w-[2rem] text-center">
+                              <span className="font-medium min-w-[1.5rem] md:min-w-[2rem] text-center text-sm md:text-base">
                                 {item.quantity}
                               </span>
 
@@ -535,7 +541,7 @@ export default function CartPage() {
                                     item.quantity + 1
                                   )
                                 }
-                                className="h-8 w-8 p-0"
+                                className="h-7 w-7 md:h-8 md:w-8 p-0"
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -550,9 +556,10 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* Order Summary */}
+          {/* ✅ Order Summary - Sticky on Mobile Bottom */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-24">
+            {/* Desktop: Sticky Sidebar */}
+            <Card className="hidden lg:block sticky top-24">
               <CardContent className="p-6 space-y-6">
                 <h2 className="text-xl font-playfair font-semibold text-card-foreground">
                   Order Summary
@@ -564,7 +571,7 @@ export default function CartPage() {
                       Subtotal ({cartItems.length} items)
                     </span>
                     <span className="font-medium">
-                      रू {subtotal.toFixed(2)}
+                      रु {subtotal.toFixed(2)}
                     </span>
                   </div>
 
@@ -576,7 +583,7 @@ export default function CartPage() {
                       {shipping === 0 ? (
                         <span className="text-green-600">Free</span>
                       ) : (
-                        ` रू ${shipping.toFixed(2)}`
+                        ` रु ${shipping.toFixed(2)}`
                       )}
                     </span>
                   </div>
@@ -590,7 +597,7 @@ export default function CartPage() {
                     subtotal > 0 &&
                     subtotal < 200 && (
                       <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg">
-                        Add रू {(200 - subtotal).toFixed(2)} more for free
+                        Add रु {(200 - subtotal).toFixed(2)} more for free
                         shipping
                       </div>
                     )}
@@ -600,7 +607,7 @@ export default function CartPage() {
 
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total</span>
-                  <span className="text-primary">रू {total.toFixed(2)}</span>
+                  <span className="text-primary">रु {total.toFixed(2)}</span>
                 </div>
 
                 {/* Payment Buttons */}
@@ -686,6 +693,79 @@ export default function CartPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* ✅ Mobile: Fixed Bottom Summary */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg">
+              <div className="container mx-auto px-3 sm:px-4 py-3">
+                <div className="space-y-2.5">
+                  {/* Summary Details */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        Subtotal ({cartItems.length})
+                      </span>
+                      <span className="font-medium">
+                        रु{subtotal.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {deliveryMethod === "pickup" ? "Pickup" : "Shipping"}
+                      </span>
+                      <span className="font-medium">
+                        {shipping === 0 ? (
+                          <span className="text-green-600">Free</span>
+                        ) : (
+                          `रु ${shipping.toFixed(2)}`
+                        )}
+                      </span>
+                    </div>
+                    <Separator className="my-1.5" />
+                    <div className="flex justify-between text-sm font-semibold">
+                      <span>Total</span>
+                      <span className="text-primary">
+                        रू {total.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Payment Button */}
+                  <Button
+                    className={cn(
+                      "w-full h-11 text-sm font-semibold",
+                      deliveryMethod === "pickup"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700"
+                        : "bg-gradient-to-r from-green-600 to-green-700",
+                      "text-white shadow-lg"
+                    )}
+                    onClick={
+                      deliveryMethod === "pickup"
+                        ? handlePickupOrder
+                        : handleEsewaCheckout
+                    }
+                    disabled={
+                      cartItems.length === 0 ||
+                      cartItems.some((item) => !item.inStock) ||
+                      ischeckoutPending ||
+                      isPickupPending ||
+                      (deliveryMethod === "delivery" && !shippingAddress.trim())
+                    }
+                  >
+                    {ischeckoutPending || isPickupPending
+                      ? "Processing..."
+                      : deliveryMethod === "pickup"
+                      ? "Reserve & Pay in Store"
+                      : "Pay with eSewa"}
+                  </Button>
+
+                  {!shippingAddress.trim() && deliveryMethod === "delivery" && (
+                    <p className="text-[10px] text-destructive text-center">
+                      Enter shipping address above
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

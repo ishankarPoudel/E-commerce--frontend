@@ -12,7 +12,7 @@ import {
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { getClientInfo } from "@/utils/getClientInfo";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ export const EditDialog = ({
   const { mutate: updateUser, isPending } = useMutation({
     ...updateUserByIdMutation(),
   });
-  const [location, setLocation] = useState<string | null>(null);
+  const [_, setLocation] = useState<string | null>(null);
   useEffect(() => {
     const fetchLocation = async () => {
       const clientInfo = await getClientInfo();
@@ -39,7 +39,7 @@ export const EditDialog = ({
     };
     fetchLocation();
   }, []);
-  const queryClient = useQueryClient();
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[425px]">
@@ -65,13 +65,11 @@ export const EditDialog = ({
                   body: { fullName },
                 },
                 {
-                  // onSuccess: (response) => {
-                  //   toast.success(response.message || "Profile updated");
-                  //   console.log("Profile updated:", response);
-                  //   queryClient.invalidateQueries({
-                  //     queryKey: getUserByIdOptions().queryKey,
-                  //   });
-                  // },
+                  onSuccess: (response) => {
+                    toast.success(
+                      response.message || "Profile updated successfully"
+                    );
+                  },
                   onError: () => {
                     toast.error("Failed to update profile");
                   },
@@ -106,33 +104,6 @@ export const EditDialog = ({
             </p>
           </div>
 
-          <div className="grid gap-3">
-            <Label htmlFor="address"> Delivery Address</Label>
-            <Input
-              id="address"
-              name="address"
-              defaultValue={userInfo?.address || ""}
-            />
-            {/* <p className="text-xs text-muted-foreground">
-              Based on your login activity, we have detected that you are
-              currently in{" "}
-              <strong>
-                {location
-                  ? (() => {
-                      const loc = JSON?.parse(location);
-                      const parts = [loc.city, loc.region, loc.country].filter(
-                        Boolean
-                      );
-                      return parts.length > 0
-                        ? parts.join(", ")
-                        : "your location";
-                    })()
-                  : "your location"}
-              </strong>
-              . Please ensure your delivery address is correct. Add as much
-              detail as possible.
-            </p> */}
-          </div>
           <AlertDialogFooter className="mt-2">
             <DialogClose asChild>
               <Button variant="outline" disabled={isPending}>

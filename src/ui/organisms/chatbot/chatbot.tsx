@@ -121,7 +121,7 @@ export default function ChatBot() {
             id: Date.now().toString(),
             role: "assistant",
             content:
-              "Sorry, something went wrong on my end! 😅 Could you try asking that again?",
+              "Sorry, something went wrong on my end!  Could you try asking that again?",
           };
 
           setMessages((prev) => [...prev, errorMessage]);

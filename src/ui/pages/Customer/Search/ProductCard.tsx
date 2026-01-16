@@ -146,7 +146,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           </h3>
 
           <span className="text-[11px] sm:text-xs md:text-sm font-semibold whitespace-nowrap shrink-0">
-            रू{product.price}
+            रु {product.price}
           </span>
         </div>
 

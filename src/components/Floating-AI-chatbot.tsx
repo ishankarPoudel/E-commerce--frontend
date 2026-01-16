@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Activity, useState } from "react";
 import { MessageCircle, X, Sparkles } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import ChatBot from "@/ui/organisms/chatbot/chatbot";
@@ -43,6 +43,7 @@ export default function FloatingAIChat() {
 
             {/* Chat Content Area - Full height scrollable */}
             <div className="flex-1 overflow-hidden">
+              {" "}
               <ChatBot />
             </div>
           </div>

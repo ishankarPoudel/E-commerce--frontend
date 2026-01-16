@@ -24,6 +24,9 @@ import {
   XCircle,
   Truck,
   Mail,
+  MapPin,
+  Palette,
+  Ruler,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -48,6 +51,7 @@ export function OrderDetails({
   });
 
   const data = orderDetails?.data;
+  console.log("order details data", data);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -82,10 +86,31 @@ export function OrderDetails({
 
   const statusStyle = getStatusStyles(order.orderStatus);
 
-  console.log(
-    "snapshot[0]",
-    Array.isArray(data?.itemsSnapShot) ? data.itemsSnapShot[0] : null
-  );
+  const getPaymentProviderInfo = () => {
+    if (data?.paymentProvider === "esewa") {
+      return {
+        name: "eSewa",
+        logo: "https://esewa.com.np/common/images/esewa_logo.png",
+        color: "bg-green-600",
+        displayText: "eSewa Wallet",
+      };
+    } else if (data?.paymentProvider === "stripe") {
+      return {
+        name: "Stripe",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg",
+        color: "bg-slate-800",
+        displayText: "Card Payment",
+      };
+    }
+    return {
+      name: "Unknown",
+      logo: null,
+      color: "bg-gray-600",
+      displayText: "Payment",
+    };
+  };
+
+  const paymentInfo = getPaymentProviderInfo();
 
   return (
     <Drawer direction="right" open={open} onOpenChange={onOpenChange}>
@@ -99,7 +124,7 @@ export function OrderDetails({
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <DrawerTitle className="text-xl font-bold flex items-center gap-2">
-                  Order #{order.id}
+                  Order #{order.id.slice(-8).toUpperCase()}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -177,7 +202,7 @@ export function OrderDetails({
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-3 flex items-center gap-2">
                     <Truck className="h-3.5 w-3.5" /> Delivery Method
                   </h4>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <p className="font-medium flex items-center gap-2 capitalize">
                       {data?.deliveryMethod === "delivery" ? (
                         <Truck className="h-4 w-4 text-blue-500" />
@@ -186,26 +211,79 @@ export function OrderDetails({
                       )}
                       {data?.deliveryMethod}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Standard Shipping
-                    </p>
+
+                    {data?.deliveryMethod === "delivery" && (
+                      <div className="mt-2 pt-2 border-t">
+                        <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                          <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-blue-500" />
+                          <div>
+                            <p className="font-medium text-foreground mb-0.5">
+                              Shipping Address:
+                            </p>
+                            <p className="leading-relaxed">
+                              {data?.shippingAddress || "Not provided"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {data?.deliveryMethod === "pickup" && (
+                      <p className="text-xs text-muted-foreground">
+                        Customer will pick up from store
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                {/* PAYMENT */}
                 <div className="rounded-xl border p-4 bg-gray-50/30">
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-3 flex items-center gap-2">
                     <CreditCard className="h-3.5 w-3.5" /> Payment
                   </h4>
-                  <div className="space-y-1">
-                    <p className="font-medium flex items-center gap-2">
-                      <span className="bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded">
-                        STRIPE
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`${paymentInfo.color} text-white text-[10px] px-2 py-1 rounded font-medium`}
+                      >
+                        {paymentInfo.name.toUpperCase()}
                       </span>
-                      •••• 4242
-                    </p>
+                      <span className="font-medium text-sm">
+                        {paymentInfo.displayText}
+                      </span>
+                    </div>
+
+                    {/* eSewa Details */}
+                    {data?.paymentProvider === "esewa" && (
+                      <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+                        {data?.esewaRefId && <p>Ref ID: {data.esewaRefId}</p>}
+                        {data?.esewaStatus && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] mt-1"
+                          >
+                            Status: {data.esewaStatus}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Stripe Details */}
+                    {data?.paymentProvider === "stripe" && (
+                      <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+                        {data?.stripeChargeId && (
+                          <p className="truncate">
+                            Charge: {data.stripeChargeId.slice(0, 20)}...
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     <p className="text-xs text-muted-foreground">
-                      Paid on {new Date(order.createdAt).toLocaleDateString()}
+                      {data?.status === "paid"
+                        ? `Paid on ${new Date(
+                            order.createdAt
+                          ).toLocaleDateString()}`
+                        : `Status: ${data?.status}`}
                     </p>
                   </div>
                 </div>
@@ -229,9 +307,9 @@ export function OrderDetails({
                       data.itemsSnapShot.map((item: any, index: number) => (
                         <div
                           key={index}
-                          className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors"
+                          className="flex items-start gap-4 p-4 hover:bg-gray-50 transition-colors"
                         >
-                          <div className="h-16 w-16 rounded-lg border bg-gray-100 overflow-hidden flex-shrink-0">
+                          <div className="h-20 w-20 rounded-lg border bg-gray-100 overflow-hidden flex-shrink-0">
                             <img
                               src={getImageUrl(
                                 item.image || "/placeholder.png"
@@ -241,17 +319,37 @@ export function OrderDetails({
                             />
                           </div>
 
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">
-                              {item.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-0.5">
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <p className="font-medium text-sm">{item.name}</p>
+
+                            <div className="flex flex-wrap gap-2">
+                              {item.size && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                                >
+                                  <Ruler className="h-3 w-3 mr-1" />
+                                  Size: {item.size}
+                                </Badge>
+                              )}
+                              {item.color && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs bg-purple-50 text-purple-700 border-purple-200"
+                                >
+                                  <Palette className="h-3 w-3 mr-1" />
+                                  Color: {item.color}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-muted-foreground">
                               Qty: {item.quantity} × ${item.price}
                             </p>
                           </div>
 
-                          <div className="text-right font-medium text-sm">
-                            ${(item.quantity * item.price).toFixed(2)}
+                          <div className="text-right font-semibold text-sm">
+                            {(item.quantity * item.price).toFixed(2)}
                           </div>
                         </div>
                       ))}
@@ -261,21 +359,21 @@ export function OrderDetails({
                   <div className="bg-gray-50/50 p-4 space-y-2 border-t">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span>${data?.amount}</span>
+                      <span>रु {data?.amount}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
-                      <span>$0.00</span>
+                      <span>रु 0.00</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Tax</span>
-                      <span>$0.00</span>
+                      <span>रु 0.00</span>
                     </div>
                     <Separator className="my-2" />
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-base">Total</span>
                       <span className="font-bold text-xl text-primary">
-                        ${data?.amount}
+                        रु {data?.amount}
                       </span>
                     </div>
                   </div>

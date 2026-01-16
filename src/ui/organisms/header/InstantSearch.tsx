@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Activity } from "react";
 import { Search, TrendingUp, X } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Card } from "@/ui/shadcn/card";
@@ -101,85 +101,88 @@ export function InstantSearch() {
         {/* DROPDOWN */}
         {isOpen && (
           <>
-            {/* Mobile overlay */}
+            {/* ✅ Mobile overlay - Fixed positioning */}
             <div
               className="fixed inset-0 bg-black/20 z-40 md:hidden"
-              style={{ top: "56px" }}
               onClick={() => setIsOpen(false)}
             />
 
             <Card
               className="
                 fixed md:absolute
-                left-4 right-4 md:left-0 md:right-0
-                top-[100px] md:top-full
-                bottom-0 md:bottom-auto
+                inset-x-0 md:left-0 md:right-0
+                top-[60px] md:top-full
                 md:mt-2
-                max-h-[calc(100vh-100px)] md:max-h-[65vh]
+                max-h-[calc(100vh-70px)] md:max-h-[65vh]
                 overflow-hidden
                 rounded-t-3xl md:rounded-xl
                 border-t-2 md:border-2
                 bg-card
                 shadow-2xl md:shadow-xl
                 z-50
-                w-auto
+                mx-2 md:mx-0
               "
             >
               {/* Mobile drag handle */}
-              <div className="md:hidden flex justify-center pt-3 pb-2 bg-card sticky top-0 z-10">
+              <div className="md:hidden flex justify-center pt-3 pb-2 bg-card sticky top-0 z-10 border-b">
                 <div className="w-12 h-1.5 bg-muted rounded-full" />
               </div>
 
-              {/* Scrollable content */}
-              <div className="max-h-full overflow-y-auto p-4 pb-safe">
-                {!searchQuery.trim() ? (
-                  <>
-                    <div className="mb-3 flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-primary" />
-                      <p className="text-sm font-semibold">
-                        Popular Categories
-                      </p>
-                    </div>
+              {/* ✅ Scrollable content with proper overflow */}
+              <div className="h-full overflow-y-auto overscroll-contain">
+                <div className="p-4 pb-safe space-y-4">
+                  {!searchQuery.trim() ? (
+                    <>
+                      {/* Popular Categories */}
+                      <div className="mb-3 flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                        <p className="text-sm font-semibold">
+                          Popular Categories
+                        </p>
+                      </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {categoryData.slice(0, 9).map((c: any) => (
-                        <Link
-                          key={c.id}
-                          to="/search"
-                          search={{
-                            q: "",
-                            category: c.categoryName,
-                            categoryId: String(c.id),
-                          }}
-                          onClick={() => setIsOpen(false)}
-                          className="rounded-lg border-2 px-3 py-2.5 text-xs font-medium hover:border-primary hover:bg-primary/5 transition-all text-center"
-                        >
-                          {c.categoryName}
-                        </Link>
-                      ))}
-                    </div>
-                  </>
-                ) : results.length > 0 ? (
-                  <>
-                    <div className="mb-3 flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground">
-                        {results.length} results
-                      </p>
-                      <Badge variant="secondary" className="text-xs">
-                        {searchQuery}
-                      </Badge>
-                    </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {categoryData.slice(0, 9).map((c: any) => (
+                          <Link
+                            key={c.id}
+                            to="/search"
+                            search={{
+                              q: "",
+                              category: c.categoryName,
+                              categoryId: String(c.id),
+                            }}
+                            onClick={() => setIsOpen(false)}
+                            className="rounded-lg border-2 px-3 py-2.5 text-xs font-medium hover:border-primary hover:bg-primary/5 transition-all text-center"
+                          >
+                            {c.categoryName}
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  ) : results.length > 0 ? (
+                    <>
+                      {/* Search Results Header */}
+                      <div className="mb-3 flex items-center justify-between sticky top-0 bg-card z-10 py-2 border-b">
+                        <p className="text-xs text-muted-foreground">
+                          {results.length} results
+                        </p>
+                        <Badge variant="secondary" className="text-xs">
+                          {searchQuery}
+                        </Badge>
+                      </div>
 
-                    <Link
-                      to="/search"
-                      search={{ q: searchQuery, category: "", categoryId: "" }}
-                      onClick={() => setIsOpen(false)}
-                    >
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {results.map((item: any) => (
-                          <div
+                          <Link
                             key={item.id}
-                            className="rounded-lg p-2 hover:bg-accent transition-colors border"
+                            to="/search"
+                            search={{
+                              q: searchQuery,
+                              category: "",
+                              categoryId: "",
+                            }}
+                            onClick={() => setIsOpen(false)}
+                            className="rounded-lg p-2 hover:bg-accent transition-colors border block"
                           >
                             <div className="mb-2 aspect-square rounded-md bg-muted overflow-hidden">
                               <img
@@ -192,18 +195,20 @@ export function InstantSearch() {
                               {item.name}
                             </p>
                             <p className="text-sm font-bold text-primary">
-                              ${item.price}
+                              रु{item.price}
                             </p>
-                          </div>
+                          </Link>
                         ))}
                       </div>
-                    </Link>
-                  </>
-                ) : (
-                  <p className="py-10 text-center text-sm text-muted-foreground">
-                    No results found for "{searchQuery}"
-                  </p>
-                )}
+                    </>
+                  ) : (
+                    <div className="py-10 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        No results found for "{searchQuery}"
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
           </>
