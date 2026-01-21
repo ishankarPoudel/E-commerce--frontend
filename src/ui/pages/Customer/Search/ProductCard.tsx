@@ -4,8 +4,10 @@ import { Image } from "@/ui/shadcn/image";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { AddToCartButton } from "@/ui/molecules/Buttons/AddToCart";
 import { cn } from "@/lib/utils";
+import { getColorHex } from "@/ui/organisms/products/DetailProduct";
 
 export interface Product {
+  categories: any;
   id: string;
   name: string;
   price: number;
@@ -27,36 +29,6 @@ export interface ProductCardProps {
   product: Product;
   onClick: () => void;
   priority?: boolean;
-}
-
-function getColorHex(colorName: string): string {
-  const colorMap: Record<string, string> = {
-    red: "#ef4444",
-    yellow: "#eab308",
-    green: "#22c55e",
-    blue: "#3b82f6",
-    black: "#1f2937",
-    white: "#f9fafb",
-    brown: "#92400e",
-    gray: "#6b7280",
-    grey: "#6b7280",
-    pink: "#ec4899",
-    purple: "#a855f7",
-    orange: "#f97316",
-    navy: "#1e3a8a",
-    beige: "#d4b5a0",
-    tan: "#d2b48c",
-    cream: "#fffdd0",
-    maroon: "#800000",
-    olive: "#808000",
-    teal: "#14b8a6",
-    lavender: "#e9d5ff",
-    coral: "#ff7f50",
-    mint: "#98ff98",
-    gold: "#ffd700",
-    silver: "#c0c0c0",
-  };
-  return colorMap[colorName.toLowerCase()] || "#9ca3af";
 }
 
 function isLightColor(hex: string): boolean {

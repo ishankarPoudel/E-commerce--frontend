@@ -620,7 +620,7 @@ export function ProductDetailPanel({
   );
 }
 
-function getColorHex(colorName: string): string {
+export function getColorHex(colorName: string): string {
   const colorMap: Record<string, string> = {
     red: "#ef4444",
     yellow: "#eab308",

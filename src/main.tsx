@@ -30,7 +30,7 @@ window.fetch = async (input, init) => {
     url.includes("/refresh-token") ||
     url.includes("/auth/logout");
 
-  // ✅ CRITICAL: Check force logout FIRST (before token refresh)
+  // check force logout FIRST (before token refresh)
   if (
     (response.status === 401 || response.status === 403) &&
     url.includes(import.meta.env.VITE_API_URL) &&
@@ -42,21 +42,13 @@ window.fetch = async (input, init) => {
     try {
       const data = await responseClone.json();
 
-      console.log("🔍 Checking response:", {
-        url,
-        status: response.status,
-        forceLogout: data.forceLogout,
-        errorType: data.errorType,
-        message: data.message,
-      });
-
-      // ✅ Handle force logout scenarios
+      // handle force logout scenarios
       if (data.forceLogout === true) {
         const errorType =
           data.errorType ||
           (response.status === 403 ? "account_banned" : "session_revoked");
 
-        console.log(`🔴 FORCE LOGOUT! Type: ${errorType}`);
+        console.log(` FORCE LOGOUT! Type: ${errorType}`);
 
         // Clear storage
         localStorage.clear();
@@ -73,21 +65,19 @@ window.fetch = async (input, init) => {
         });
 
         // Redirect with appropriate error message
-        console.log(`🔴 Redirecting to: /auth/login?error=${errorType}`);
+        console.log(` Redirecting to: /auth/login?error=${errorType}`);
         window.location.replace(`/auth/login?error=${errorType}`);
 
         // Return response to prevent further processing
         return response;
       }
 
-      // ✅ If not force logout but still 401, try token refresh
+      //  If not force logout but still 401, try token refresh
       if (response.status === 401 && !data.forceLogout) {
         const isRefreshEndpoint = url.includes("/refresh-token");
 
         if (!isRefreshEndpoint) {
-          console.log(
-            "🔄 401 without forceLogout - Attempting token refresh..."
-          );
+          console.log("401 without forceLogout - Attempting token refresh...");
 
           try {
             const refreshResult = await refreshToken({
@@ -95,7 +85,7 @@ window.fetch = async (input, init) => {
               throwOnError: false,
             });
 
-            console.log("✅ Token refreshed successfully:", refreshResult);
+            console.log(" Token refreshed successfully:", refreshResult);
 
             // Clone the original request and retry
             const retryInit = { ...init };
@@ -105,7 +95,7 @@ window.fetch = async (input, init) => {
             console.log("🔄 Retrying original request...");
             return await originalFetch(retryRequest, retryInit);
           } catch (refreshError) {
-            console.error("❌ Failed to refresh token:", refreshError);
+            console.error(" Failed to refresh token:", refreshError);
             // Redirect to login if refresh fails
             localStorage.clear();
             sessionStorage.clear();
@@ -115,11 +105,11 @@ window.fetch = async (input, init) => {
       }
     } catch (e) {
       // Not JSON response or parsing error
-      console.error("⚠️ Could not parse response as JSON:", e);
+      console.error(" Could not parse response as JSON:", e);
 
       // If it's 401/403 but not JSON, probably auth issue
       if (response.status === 401 || response.status === 403) {
-        console.log("🔴 Non-JSON auth error, redirecting to login");
+        console.log(" Non-JSON auth error, redirecting to login");
         localStorage.clear();
         sessionStorage.clear();
         window.location.replace("/auth/login?error=session_expired");
@@ -130,7 +120,6 @@ window.fetch = async (input, init) => {
   return response;
 };
 
-const router = createRouter({ routeTree });
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -150,6 +139,7 @@ const queryClient = new QueryClient({
     },
   },
 });
+const router = createRouter({ routeTree, context: { queryClient } });
 
 declare module "@tanstack/react-router" {
   interface Register {

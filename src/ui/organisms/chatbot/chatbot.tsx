@@ -53,7 +53,7 @@ export default function ChatBot() {
   };
 
   const handleBagClick = (bagId: string) => {
-    navigate({ to: `/bags/${bagId}` });
+    navigate({ to: `/bag/${bagId}` });
   };
 
   const handleClearChat = () => {

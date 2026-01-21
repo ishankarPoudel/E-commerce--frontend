@@ -21,6 +21,7 @@ import { Route as SearchIdRouteImport } from './routes/search/$id'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout/success'
 import { Route as CheckoutResultRouteImport } from './routes/checkout/result'
 import { Route as CheckoutEsewaCheckoutRouteImport } from './routes/checkout/esewa-checkout'
+import { Route as BagIdRouteImport } from './routes/bag/$id'
 import { Route as AuthResetPasswordIndexRouteImport } from './routes/auth/reset-password/index'
 import { Route as AuthRegisterIndexRouteImport } from './routes/auth/register/index'
 import { Route as AuthProtectedIndexRouteImport } from './routes/auth/protected/index'
@@ -94,6 +95,11 @@ const CheckoutResultRoute = CheckoutResultRouteImport.update({
 const CheckoutEsewaCheckoutRoute = CheckoutEsewaCheckoutRouteImport.update({
   id: '/checkout/esewa-checkout',
   path: '/checkout/esewa-checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BagIdRoute = BagIdRouteImport.update({
+  id: '/bag/$id',
+  path: '/bag/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetPasswordIndexRoute = AuthResetPasswordIndexRouteImport.update({
@@ -174,6 +180,7 @@ const AdminDashboardBagsIdRoute = AdminDashboardBagsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/forbidden': typeof ForbiddenRoute
+  '/bag/$id': typeof BagIdRoute
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/forbidden': typeof ForbiddenRoute
+  '/bag/$id': typeof BagIdRoute
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/forbidden': typeof ForbiddenRoute
+  '/bag/$id': typeof BagIdRoute
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/forbidden'
+    | '/bag/$id'
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/forbidden'
+    | '/bag/$id'
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/forbidden'
+    | '/bag/$id'
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
@@ -346,6 +358,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ForbiddenRoute: typeof ForbiddenRoute
+  BagIdRoute: typeof BagIdRoute
   CheckoutEsewaCheckoutRoute: typeof CheckoutEsewaCheckoutRoute
   CheckoutResultRoute: typeof CheckoutResultRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
@@ -458,6 +471,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutEsewaCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bag/$id': {
+      id: '/bag/$id'
+      path: '/bag/$id'
+      fullPath: '/bag/$id'
+      preLoaderRoute: typeof BagIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/reset-password/': {
       id: '/auth/reset-password/'
       path: '/auth/reset-password'
@@ -562,6 +582,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ForbiddenRoute: ForbiddenRoute,
+  BagIdRoute: BagIdRoute,
   CheckoutEsewaCheckoutRoute: CheckoutEsewaCheckoutRoute,
   CheckoutResultRoute: CheckoutResultRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
