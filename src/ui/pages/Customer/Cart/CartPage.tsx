@@ -7,6 +7,7 @@ import {
   AlertCircle,
   MapPin,
   Globe,
+  Info,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/ui/shadcn/card";
@@ -94,7 +95,7 @@ export default function CartPage() {
           to: "/orders",
         });
       },
-    }
+    },
   );
   const handlePickupOrder = () => {
     createPickupOrder({
@@ -105,7 +106,7 @@ export default function CartPage() {
   };
 
   const stripePromise = loadStripe(
-    import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!
+    import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!,
   );
 
   //mutation for stripe payment intent creation
@@ -133,11 +134,11 @@ export default function CartPage() {
             message,
             shippingAddress:
               deliveryMethod === "delivery" ? shippingAddress : null,
-          })
+          }),
         );
         navigate({ to: "/checkout" });
       },
-    }
+    },
   );
 
   const handleCheckout = () => {
@@ -189,11 +190,11 @@ export default function CartPage() {
               formUrl: responseData?.formUrl as string,
               orderId: responseData?.params?.productId,
               params: responseData?.params,
-            })
+            }),
           );
           navigate({ to: "/checkout/esewa-checkout" });
         },
-      }
+      },
     );
   };
 
@@ -214,15 +215,15 @@ export default function CartPage() {
         onError: (error: Error) => {
           toast.error(error.message || "Failed to remove item from cart");
         },
-      }
+      },
     );
   };
 
-  const handleQuantityUpdate = (itemId: string, itemQuantity: number) => {
+  const handleQuantityUpdate = (cartId: string, itemQuantity: number) => {
     updateCart(
       {
         body: {
-          bagId: itemId,
+          bagId: cartId,
           quantity: itemQuantity,
         },
       },
@@ -233,13 +234,14 @@ export default function CartPage() {
           });
           toast.success(response?.message || "Cart item updated successfully");
         },
-      }
+      },
     );
   };
 
   const cartItems =
     cartData?.data?.cartItems.map((item: any) => ({
-      id: item.id,
+      id: item.id, // cart id
+      bagId: item.product.id,
       name: item.product.name,
       price: item.product.price,
       quantity: item.quantity,
@@ -251,11 +253,12 @@ export default function CartPage() {
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
-  const shipping = subtotal > 200 ? 0 : 15.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const shipping = 0;
+  const serviceCharge = 5;
+  const tax = 0;
+  const total = subtotal + shipping + tax + serviceCharge;
 
   const getLocationString = () => {
     if (!userLocation) return "your area";
@@ -352,7 +355,7 @@ export default function CartPage() {
                           "flex items-start gap-2 p-2.5 md:p-3 rounded-lg border",
                           userLocation.country?.toLowerCase() !== "nepal"
                             ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900"
-                            : "bg-primary/5 border-primary/20"
+                            : "bg-primary/5 border-primary/20",
                         )}
                       >
                         <Globe
@@ -360,7 +363,7 @@ export default function CartPage() {
                             "h-3.5 w-3.5 md:h-4 md:w-4 mt-0.5 flex-shrink-0",
                             userLocation.country?.toLowerCase() !== "nepal"
                               ? "text-amber-600 dark:text-amber-400"
-                              : "text-primary"
+                              : "text-primary",
                           )}
                         />
                         <div className="flex-1 min-w-0">
@@ -396,18 +399,24 @@ export default function CartPage() {
                         htmlFor="shipping-address"
                         className="text-xs md:text-sm font-medium"
                       >
-                        Full Address <span className="text-destructive">*</span>
+                        Shipping Address & Order Notes
+                        <span className="text-destructive"> *</span>
                       </Label>
+
                       <Textarea
+                        maxLength={200}
                         id="shipping-address"
-                        placeholder="Enter your complete delivery address..."
+                        placeholder={`Enter your delivery address first.Then add optional notes (phone number, instructions).`}
                         value={shippingAddress}
                         onChange={(e) => setShippingAddress(e.target.value)}
-                        className="min-h-[80px] md:min-h-[100px] resize-none text-xs md:text-sm"
+                        className="min-h-[90px] md:min-h-[110px] resize-none text-xs md:text-sm"
                         required
                       />
+
                       <p className="text-[10px] md:text-xs text-muted-foreground">
-                        Include details for timely delivery.
+                        Start with your full shipping address. You may then add
+                        optional notes such as a contact phone number or
+                        delivery instructions.
                       </p>
                     </div>
                   </div>
@@ -508,7 +517,7 @@ export default function CartPage() {
                           <div className="flex justify-between items-center gap-2">
                             <div className="flex items-center gap-1 md:gap-2">
                               <span className="text-base sm:text-lg md:text-xl font-semibold text-card-foreground">
-                                रु {item.price.toFixed(2)}
+                                रु {item.price}
                               </span>
                             </div>
 
@@ -520,7 +529,7 @@ export default function CartPage() {
                                 onClick={() =>
                                   handleQuantityUpdate(
                                     item.id,
-                                    item.quantity - 1
+                                    item.quantity - 1,
                                   )
                                 }
                                 className="h-7 w-7 md:h-8 md:w-8 p-0"
@@ -538,7 +547,7 @@ export default function CartPage() {
                                 onClick={() =>
                                   handleQuantityUpdate(
                                     item.id,
-                                    item.quantity + 1
+                                    item.quantity + 1,
                                   )
                                 }
                                 className="h-7 w-7 md:h-8 md:w-8 p-0"
@@ -575,32 +584,26 @@ export default function CartPage() {
                     </span>
                   </div>
 
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {deliveryMethod === "pickup" ? "Pickup" : "Shipping"}
-                    </span>
-                    <span className="font-medium">
-                      {shipping === 0 ? (
-                        <span className="text-green-600">Free</span>
-                      ) : (
-                        ` रु ${shipping.toFixed(2)}`
-                      )}
-                    </span>
-                  </div>
+                  <div className="flex justify-between text-sm items-center">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">
+                        Service Charge
+                      </span>
 
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tax</span>
-                    <span className="font-medium">रू{tax.toFixed(2)}</span>
-                  </div>
-
-                  {deliveryMethod === "delivery" &&
-                    subtotal > 0 &&
-                    subtotal < 200 && (
-                      <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg">
-                        Add रु {(200 - subtotal).toFixed(2)} more for free
-                        shipping
+                      <div className="group relative">
+                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                        {/* Tooltip */}
+                        <div className="absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded-md border bg-background px-3 py-2 text-xs text-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100">
+                          Abishek Bag Pashal applies a small service charge to
+                          support secure payment processing and platform
+                          maintenance.
+                        </div>
                       </div>
-                    )}
+                    </div>
+                    <span className="font-medium">
+                      रु {serviceCharge.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
 
                 <Separator />
@@ -619,7 +622,7 @@ export default function CartPage() {
                       deliveryMethod === "pickup"
                         ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                         : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800",
-                      "text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                      "text-white shadow-lg hover:shadow-xl transition-all duration-200",
                     )}
                     onClick={
                       deliveryMethod === "pickup"
@@ -637,8 +640,8 @@ export default function CartPage() {
                     {ischeckoutPending || isPickupPending
                       ? "Processing..."
                       : deliveryMethod === "pickup"
-                      ? "Reserve & Pay in Store"
-                      : "Pay with eSewa"}
+                        ? "Reserve & Pay in Store"
+                        : "Pay with eSewa"}
                   </Button>
                   {deliveryMethod === "delivery" && (
                     <>
@@ -696,7 +699,7 @@ export default function CartPage() {
 
             {/* ✅ Mobile: Fixed Bottom Summary */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg">
-              <div className="container mx-auto px-3 sm:px-4 py-3">
+              <div className="container mx-auto px-5 sm:px-4 py-3">
                 <div className="space-y-2.5">
                   {/* Summary Details */}
                   <div className="space-y-1.5">
@@ -709,15 +712,23 @@ export default function CartPage() {
                       </span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">
-                        {deliveryMethod === "pickup" ? "Pickup" : "Shipping"}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-muted-foreground">
+                          Service Charge
+                        </span>
+                        <div className="group relative">
+                          <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+
+                          {/* Tooltip */}
+                          <div className="absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded-md border bg-background px-3 py-2 text-xs text-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100">
+                            Abishek Bag Pashal applies a small service charge to
+                            support secure payment processing and platform
+                            maintenance.
+                          </div>
+                        </div>
+                      </div>
                       <span className="font-medium">
-                        {shipping === 0 ? (
-                          <span className="text-green-600">Free</span>
-                        ) : (
-                          `रु ${shipping.toFixed(2)}`
-                        )}
+                        रु {serviceCharge.toFixed(2)}
                       </span>
                     </div>
                     <Separator className="my-1.5" />
@@ -736,7 +747,7 @@ export default function CartPage() {
                       deliveryMethod === "pickup"
                         ? "bg-gradient-to-r from-blue-600 to-blue-700"
                         : "bg-gradient-to-r from-green-600 to-green-700",
-                      "text-white shadow-lg"
+                      "text-white shadow-lg",
                     )}
                     onClick={
                       deliveryMethod === "pickup"
@@ -754,8 +765,8 @@ export default function CartPage() {
                     {ischeckoutPending || isPickupPending
                       ? "Processing..."
                       : deliveryMethod === "pickup"
-                      ? "Reserve & Pay in Store"
-                      : "Pay with eSewa"}
+                        ? "Reserve & Pay in Store"
+                        : "Pay with eSewa"}
                   </Button>
 
                   {!shippingAddress.trim() && deliveryMethod === "delivery" && (
