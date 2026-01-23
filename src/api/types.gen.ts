@@ -649,7 +649,6 @@ export type VerifyEsewaPaymentResponses = {
     200: {
         data: {
             orderId: string;
-            shouldRetry: boolean;
             esewaStatus: 'PENDING' | 'COMPLETE' | 'FAILED';
             ref_id: string;
             status: 'pending' | 'paid' | 'failed' | 'refunded';

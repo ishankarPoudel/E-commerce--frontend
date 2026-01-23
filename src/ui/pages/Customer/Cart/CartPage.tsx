@@ -8,6 +8,7 @@ import {
   MapPin,
   Globe,
   Info,
+  Loader2,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/ui/shadcn/card";
@@ -28,7 +29,7 @@ import { getImageUrl } from "@/utils/urlHelpers";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DeliveryMethodSelector } from "./DeliveryMethod";
 import { getClientInfo } from "@/utils/getClientInfo";
 import { cn } from "@/lib/utils";
@@ -76,7 +77,7 @@ export default function CartPage() {
     ...removeFromCartMutation(),
   });
 
-  const { mutate: updateCart } = useMutation({
+  const { mutate: updateCart, isPending: isUpdatePending } = useMutation({
     ...updateCartMutation(),
   });
 
@@ -218,38 +219,98 @@ export default function CartPage() {
       },
     );
   };
+  const [pendingUpdates, setPendingUpdates] = useState<Map<string, number>>(
+    new Map(),
+  );
 
-  const handleQuantityUpdate = (cartId: string, itemQuantity: number) => {
-    updateCart(
-      {
-        body: {
-          bagId: cartId,
-          quantity: itemQuantity,
-        },
-      },
-      {
-        onSuccess: (response) => {
-          queryClient.invalidateQueries({
-            queryKey: getCartQueryKey(),
-          });
-          toast.success(response?.message || "Cart item updated successfully");
-        },
-      },
-    );
-  };
+  const handleQuantityUpdate = useCallback(
+    (cartItemId: string, newQuantity: number) => {
+      // Prevent duplicate calls for the same item
+      if (pendingUpdates.has(cartItemId)) {
+        console.log("⚠️ Update already pending for:", cartItemId);
+        return;
+      }
 
-  const cartItems =
-    cartData?.data?.cartItems.map((item: any) => ({
-      id: item.id, // cart id
-      bagId: item.product.id,
-      name: item.product.name,
-      price: item.product.price,
-      quantity: item.quantity,
-      image: item.product.images,
-      size: item.size,
-      color: item.color,
-      inStock: true,
-    })) || [];
+      console.log(
+        " Updating cart item:",
+        cartItemId,
+        "to quantity:",
+        newQuantity,
+      );
+
+      // Add to pending updates
+      setPendingUpdates((prev) => new Map(prev).set(cartItemId, newQuantity));
+
+      updateCart(
+        {
+          body: {
+            bagId: cartItemId,
+            quantity: newQuantity,
+          },
+        },
+        {
+          onSuccess: async (response) => {
+            console.log("✅ Update successful for:", cartItemId);
+
+            // Remove from pending
+            setPendingUpdates((prev) => {
+              const next = new Map(prev);
+              next.delete(cartItemId);
+              return next;
+            });
+
+            // Refetch cart data
+            await queryClient.invalidateQueries({
+              queryKey: getCartQueryKey(),
+            });
+
+            toast.success(
+              response?.message || "Cart item updated successfully",
+            );
+          },
+          onError: (error: Error) => {
+            console.log("❌ Update failed for:", cartItemId);
+
+            // Remove from pending
+            setPendingUpdates((prev) => {
+              const next = new Map(prev);
+              next.delete(cartItemId);
+              return next;
+            });
+
+            toast.error(error.message || "Failed to update quantity");
+
+            // Refetch to reset state
+            queryClient.invalidateQueries({
+              queryKey: getCartQueryKey(),
+            });
+          },
+        },
+      );
+    },
+    [pendingUpdates, updateCart, queryClient],
+  );
+
+  const cartItems = useMemo(() => {
+    const items =
+      cartData?.data?.cartItems.map((item: any) => ({
+        id: item.id,
+        bagId: item.product.id,
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        image: item.product.images,
+        size: item.size,
+        color: item.color,
+        createdAt: item.createdAt,
+        inStock: true,
+      })) || [];
+    return items.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA; // Newest first
+    });
+  }, [cartData]);
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -323,7 +384,6 @@ export default function CartPage() {
 
       <div className="container mx-auto px-3 sm:px-4 py-4 md:py-8">
         <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
-          {/* ✅ Cart Items - Mobile Optimized */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
             <DeliveryMethodSelector
               selectedMethod={deliveryMethod}
@@ -448,7 +508,7 @@ export default function CartPage() {
               ) : (
                 cartItems.map((item) => (
                   <Card
-                    key={item.id}
+                    key={`${item.id}-${item.quantity}`}
                     className="overflow-hidden hover:shadow-md transition-shadow"
                   >
                     <CardContent className="p-3 sm:p-4 md:p-6">
@@ -526,15 +586,26 @@ export default function CartPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                   handleQuantityUpdate(
                                     item.id,
                                     item.quantity - 1,
-                                  )
+                                  );
+                                }}
+                                disabled={
+                                  pendingUpdates.has(item.id) ||
+                                  item.quantity <= 1 ||
+                                  isUpdatePending
                                 }
                                 className="h-7 w-7 md:h-8 md:w-8 p-0"
                               >
-                                <Minus className="h-3 w-3" />
+                                {pendingUpdates.has(item.id) ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Minus className="h-3 w-3" />
+                                )}
                               </Button>
 
                               <span className="font-medium min-w-[1.5rem] md:min-w-[2rem] text-center text-sm md:text-base">
@@ -544,15 +615,24 @@ export default function CartPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                   handleQuantityUpdate(
                                     item.id,
                                     item.quantity + 1,
-                                  )
+                                  );
+                                }}
+                                disabled={
+                                  pendingUpdates.has(item.id) || isUpdatePending
                                 }
                                 className="h-7 w-7 md:h-8 md:w-8 p-0"
                               >
-                                <Plus className="h-3 w-3" />
+                                {pendingUpdates.has(item.id) ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Plus className="h-3 w-3" />
+                                )}
                               </Button>
                             </div>
                           </div>

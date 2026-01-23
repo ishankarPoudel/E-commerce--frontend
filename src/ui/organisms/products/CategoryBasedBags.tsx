@@ -16,6 +16,7 @@ import {
   type Product,
   ProductCard,
 } from "@/ui/pages/Customer/Search/ProductCard";
+import { Skeleton } from "@/ui/shadcn/skeleton";
 
 export default function CategoryBasedBags() {
   const scrollContainerRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -25,10 +26,10 @@ export default function CategoryBasedBags() {
   const [openDialog, setOpenDialog] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [visibleItems, setVisibleItems] = useState<Map<string, number>>(
-    new Map()
+    new Map(),
   );
 
-  const { data: listOfBag, isPending } = useQuery({
+  const { data: listOfBag, isLoading } = useQuery({
     ...getCategoriesWithBagsOptions({
       query: { page: 1, limit: 10 },
     }),
@@ -89,7 +90,7 @@ export default function CategoryBasedBags() {
     const checkAllScrollButtons = () => {
       if (window.innerWidth >= 768) {
         listOfBag.data.data.forEach((c: { id: string }) =>
-          checkScrollButtons(c.id)
+          checkScrollButtons(c.id),
         );
       }
     };
@@ -100,11 +101,19 @@ export default function CategoryBasedBags() {
 
     return () => window.removeEventListener("resize", checkAllScrollButtons);
   }, [listOfBag]);
-
-  if (isPending) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <div className="container mx-auto px-4 py-8">
+        <Skeleton className="h-8 w-64 mb-6" /> {/* Title skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-64 w-full rounded-lg" /> {/* Image */}
+              <Skeleton className="h-4 w-3/4" /> {/* Product name */}
+              <Skeleton className="h-4 w-1/2" /> {/* Price */}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -350,7 +359,7 @@ export default function CategoryBasedBags() {
                 </div>
               </section>
             );
-          }
+          },
         )}
       </div>
 
