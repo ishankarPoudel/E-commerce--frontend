@@ -1,14 +1,22 @@
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { X, Upload, Package } from "lucide-react";
+import {
+  X,
+  Upload,
+  Package,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Textarea } from "@/ui/shadcn/textarea";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addBagMutation,
   getCategoriesOptions,
-  uploadMediaMutation,
+  getUploadSignatureOptions,
+  saveMultipleImagesToDbMutation,
 } from "@/api/@tanstack/react-query.gen";
 import {
   BagType,
@@ -24,14 +32,35 @@ import {
   SelectValue,
 } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// Type for Cloudinary upload response
+interface CloudinaryUploadResult {
+  secure_url: string;
+  public_id: string;
+  format: string;
+  width: number;
+  height: number;
+  bytes: number;
+}
+
+// Type for image upload state
+interface ImageUploadState {
+  file: File;
+  preview: string;
+  status: "pending" | "uploading" | "success" | "error";
+  cloudinaryData?: CloudinaryUploadResult;
+  error?: string;
+}
 
 export function AddBagForm() {
   const [colorInput, setColorInput] = useState("");
   const [sizeInput, setSizeInput] = useState("");
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageUploads, setImageUploads] = useState<ImageUploadState[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -77,8 +106,31 @@ export function AddBagForm() {
 
   const colors = watch("colors") || [];
   const sizes = watch("sizes") || [];
-  const images = watch("images") || [];
   const watchedBagType = watch("type");
+
+  // Fetch categories
+  const { data: categoriesData } = useQuery(getCategoriesOptions());
+  const categories = categoriesData?.data || [];
+
+  // Fetch Cloudinary signature (fetches on component mount)
+  const {
+    data: signatureData,
+    isLoading: isSignatureLoading,
+    refetch: refetchSignature,
+  } = useQuery({
+    ...getUploadSignatureOptions(),
+    staleTime: 5 * 60 * 1000, // 5 minutes - signature is valid for a while
+  });
+
+  // Add bag mutation
+  const { mutate: addBag } = useMutation(addBagMutation());
+
+  // Save images mutation
+  const { mutate: saveMultipleImages } = useMutation({
+    ...saveMultipleImagesToDbMutation(),
+  });
+
+  // --- Helper Functions ---
 
   const addColor = () => {
     if (colorInput.trim() && !colors.includes(colorInput.trim())) {
@@ -90,7 +142,7 @@ export function AddBagForm() {
   const removeColor = (color: string) => {
     setValue(
       "colors",
-      colors.filter((c) => c !== color)
+      colors.filter((c) => c !== color),
     );
   };
 
@@ -104,34 +156,10 @@ export function AddBagForm() {
   const removeSize = (size: string) => {
     setValue(
       "sizes",
-      sizes.filter((s) => s !== size)
+      sizes.filter((s) => s !== size),
     );
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const newImageFile = [...imageFiles, ...files];
-      setValue("images", newImageFile);
-      setImageFiles(newImageFile);
-
-      // Create preview URLs
-      files.forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews((prev) => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  };
-
-  const removeImage = (index: number) => {
-    const newImageFiles = imageFiles.filter((_, i) => i !== index);
-    setImageFiles(newImageFiles);
-    setValue("images", newImageFiles);
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
-  };
   const toggleCategory = (categoryId: string) => {
     const newCategories = selectedCategories.includes(categoryId)
       ? selectedCategories.filter((id) => id !== categoryId)
@@ -140,20 +168,115 @@ export function AddBagForm() {
     setValue("categories", newCategories);
   };
 
-  const { data: categoriesData } = useQuery(getCategoriesOptions());
+  // Upload single image to Cloudinary
+  const uploadToCloudinary = async (
+    file: File,
+    signature: {
+      timestamp: number;
+      signature: string;
+      cloudName: string;
+      apiKey: string;
+    },
+  ): Promise<CloudinaryUploadResult> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("api_key", signature.apiKey);
+    formData.append("timestamp", signature.timestamp.toString());
+    formData.append("signature", signature.signature);
+    formData.append("folder", "bags");
 
-  const categories = categoriesData?.data || [];
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
-  const { mutate: addBag, isPending: isBagAdding } = useMutation(
-    addBagMutation()
-  );
-  const { mutateAsync: uploadMedia, isPending: isImageUploading } = useMutation(
-    uploadMediaMutation()
-  );
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Cloudinary error:", errorData);
+      throw new Error(
+        errorData.error?.message || "Failed to upload to Cloudinary",
+      );
+    }
+
+    return response.json();
+  };
+
+  // Save images to database
+  const saveImagesToDatabase = (
+    bagId: string,
+    images: CloudinaryUploadResult[],
+  ): Promise<unknown> => {
+    return new Promise((resolve, reject) => {
+      saveMultipleImages(
+        {
+          body: {
+            bagId,
+            images: images.map((img, index) => ({
+              url: img.secure_url,
+              publicId: img.public_id,
+              format: img.format,
+              width: img.width,
+              height: img.height,
+              bytes: img.bytes,
+              sortOrder: index,
+            })),
+          },
+        },
+        {
+          onSuccess: (data) => {
+            resolve(data);
+          },
+          onError: (error) => {
+            reject(error);
+          },
+        },
+      );
+    });
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const newUploads: ImageUploadState[] = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      status: "pending",
+    }));
+
+    setImageUploads((prev) => [...prev, ...newUploads]);
+    e.target.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setImageUploads((prev) => {
+      const newUploads = [...prev];
+      URL.revokeObjectURL(newUploads[index].preview);
+      newUploads.splice(index, 1);
+      return newUploads;
+    });
+  };
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      imageUploads.forEach((upload) => URL.revokeObjectURL(upload.preview));
+    };
+  }, []);
+
+  // --- Form Submission ---
 
   const onSubmit = async (data: ProductFormData) => {
-    const validationErrors = validateProductForm(data);
+    // Validation
+    if (imageUploads.length === 0) {
+      toast.error("Please upload at least one image");
+      return;
+    }
 
+    const validationErrors = validateProductForm(data);
     if (validationErrors.length > 0) {
       validationErrors.forEach((error) => {
         setError(error.field as keyof ProductFormData, {
@@ -164,106 +287,168 @@ export function AddBagForm() {
       return;
     }
 
-    addBag(
-      {
-        body: {
-          name: data.name,
-          type: data.type,
-          price: Number(data.price),
-          description: data.description || "",
-          brand: data.brand || "",
-          material: data.material || "",
-          colors: data.colors || [],
-          sizes: data.sizes || [],
-          weightKg: data.weightKg ? Number(data.weightKg) : 0,
-          capacityLiters: data.capacityLiters ? Number(data.capacityLiters) : 0,
-          categories: data.categories || [],
-          isFeatured: Boolean(data.isFeatured),
-          features: {
-            hasWheels: Boolean(data.features?.hasWheels),
-            telescopicHandle: Boolean(data.features?.telescopicHandle),
-            expandable: Boolean(data.features?.expandable),
-            hasReflectiveStraps: Boolean(data.features?.hasReflectiveStraps),
-            laptopCompartment: Boolean(data.features?.laptopCompartment),
-            hasLaptopCompartment: Boolean(data.features?.hasLaptopCompartment),
-            paddedStraps: Boolean(data.features?.paddedStraps),
-            waterproof: Boolean(data.features?.waterproof),
-            chestStrap: Boolean(data.features?.chestStrap),
-            waterResistant: Boolean(data.features?.waterResistant),
-            hydrationPackCompatible: Boolean(
-              data.features?.hydrationPackCompatible
-            ),
-            innerPockets: Boolean(data.features?.innerPockets),
-            zipperClosure: Boolean(data.features?.zipperClosure),
-          },
-        },
-      },
-      {
-        onSuccess: async (response) => {
-          toast.success(response.message || "Product added successfully");
+    // Check if signature is available
+    if (
+      !signatureData?.apiKey ||
+      !signatureData?.signature ||
+      !signatureData?.cloudName ||
+      !signatureData?.timestamp
+    ) {
+      toast.error(
+        "Unable to get upload credentials. Please refresh and try again.",
+      );
+      // Try to refetch signature
+      await refetchSignature();
+      return;
+    }
 
-          const bagId = response.data?.id;
+    setIsSubmitting(true);
 
-          if (!bagId) {
-            toast.error("Bag created but missing ID for image upload");
-            return;
-          }
-
-          // Upload images if any exist
-          if (imageFiles.length > 0) {
-            toast.info(`Uploading ${imageFiles.length} image(s)...`);
-
-            try {
-              const uploadPromises = imageFiles.map(async (file) => {
-                const formData = new FormData();
-                formData.append("bagId", bagId);
-                formData.append("file", file);
-
-                return uploadMedia(
-                  {
-                    body: {
-                      bagId: bagId,
-                      file: file,
-                    },
-                  },
-                  {
-                    onSuccess: (res) => {
-                      toast.success(
-                        res.message || "Image uploaded successfully"
-                      );
-                    },
-                    onError: (err) => {
-                      toast.error(err.message || "Image upload failed");
-                    },
-                  }
+    try {
+      //  Create bag first (without images)
+      const bagResponse = await new Promise<{ data: { id: string } }>(
+        (resolve, reject) => {
+          addBag(
+            {
+              body: {
+                name: data.name,
+                type: data.type,
+                price: Number(data.price),
+                description: data.description || "",
+                brand: data.brand || "",
+                material: data.material || "",
+                colors: data.colors || [],
+                sizes: data.sizes || [],
+                weightKg: data.weightKg ? Number(data.weightKg) : 0,
+                capacityLiters: data.capacityLiters
+                  ? Number(data.capacityLiters)
+                  : 0,
+                categories: selectedCategories,
+                isFeatured: Boolean(data.isFeatured),
+                features: {
+                  hasWheels: Boolean(data.features?.hasWheels),
+                  telescopicHandle: Boolean(data.features?.telescopicHandle),
+                  expandable: Boolean(data.features?.expandable),
+                  hasReflectiveStraps: Boolean(
+                    data.features?.hasReflectiveStraps,
+                  ),
+                  laptopCompartment: Boolean(data.features?.laptopCompartment),
+                  hasLaptopCompartment: Boolean(
+                    data.features?.hasLaptopCompartment,
+                  ),
+                  paddedStraps: Boolean(data.features?.paddedStraps),
+                  waterproof: Boolean(data.features?.waterproof),
+                  chestStrap: Boolean(data.features?.chestStrap),
+                  waterResistant: Boolean(data.features?.waterResistant),
+                  hydrationPackCompatible: Boolean(
+                    data.features?.hydrationPackCompatible,
+                  ),
+                  innerPockets: Boolean(data.features?.innerPockets),
+                  zipperClosure: Boolean(data.features?.zipperClosure),
+                },
+              },
+            },
+            {
+              onSuccess: (response) =>
+                resolve(response as { data: { id: string } }),
+              onError: (error) => {
+                console.error("Add bag error:", error);
+                reject(
+                  new Error(
+                    error instanceof Error
+                      ? error.message
+                      : "Failed to create bag",
+                  ),
                 );
-              });
-
-              const results = await Promise.all(uploadPromises);
-
-              const successCount = results.filter((r) => r.data).length;
-              toast.success(
-                `${successCount} of ${imageFiles.length} image(s) uploaded successfully`
-              );
-            } catch (error) {
-              console.error("Image upload error:", error);
-              toast.error("Some images failed to upload");
-            }
-          }
-
-          // Reset form after everything is done
-          reset();
-          setImageFiles([]);
-          setImagePreviews([]);
-          setSelectedCategories([]);
+              },
+            },
+          );
         },
-        onError: (error: Error) => {
-          toast.error(error.message || "Failed to add product");
-          console.error("Add bag error:", error);
-        },
+      );
+
+      const bagId = bagResponse.data?.id;
+      if (!bagId) {
+        throw new Error("Failed to get bag ID from response");
       }
-    );
+
+      toast.success("Product created! Uploading images...");
+
+      const uploadedImages: CloudinaryUploadResult[] = [];
+
+      for (let i = 0; i < imageUploads.length; i++) {
+        const upload = imageUploads[i];
+
+        // Update status to uploading
+        setImageUploads((prev) => {
+          const newUploads = [...prev];
+          newUploads[i] = { ...newUploads[i], status: "uploading" };
+          return newUploads;
+        });
+
+        try {
+          const result = await uploadToCloudinary(upload.file, {
+            timestamp: signatureData.timestamp,
+            signature: signatureData.signature,
+            cloudName: signatureData.cloudName,
+            apiKey: signatureData.apiKey,
+          });
+
+          uploadedImages.push(result);
+
+          // Update status to success
+          setImageUploads((prev) => {
+            const newUploads = [...prev];
+            newUploads[i] = {
+              ...newUploads[i],
+              status: "success",
+              cloudinaryData: result,
+            };
+            return newUploads;
+          });
+
+          console.log(`Image ${i + 1} uploaded:`, result.secure_url);
+        } catch (error) {
+          // Update status to error
+          setImageUploads((prev) => {
+            const newUploads = [...prev];
+            newUploads[i] = {
+              ...newUploads[i],
+              status: "error",
+              error: error instanceof Error ? error.message : "Upload failed",
+            };
+            return newUploads;
+          });
+          console.error(`Failed to upload image ${i + 1}:`, error);
+        }
+      }
+
+      if (uploadedImages.length === 0) {
+        throw new Error("All image uploads failed");
+      }
+
+      // Step 4: Save images to database with bag relation
+      await saveImagesToDatabase(bagId, uploadedImages);
+
+      toast.success(`Product created with ${uploadedImages.length} image(s)!`);
+
+      // Reset everything
+      reset();
+      setImageUploads([]);
+      setSelectedCategories([]);
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["getAllBags"] });
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create product",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // --- Logic for Conditional Fields ---
   const isLuggageType =
     watchedBagType === BagType.LUGGAGE || watchedBagType === BagType.SUITCASE;
   const isSchoolBag = watchedBagType === BagType.SCHOOL_BAG;
@@ -274,6 +459,16 @@ export function AddBagForm() {
     watchedBagType === BagType.TOTE ||
     watchedBagType === BagType.HANDBAG ||
     watchedBagType === BagType.CROSSBODY;
+
+  // Show loading state if signature is still loading
+  if (isSignatureLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <span className="ml-2">Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
@@ -305,7 +500,6 @@ export function AddBagForm() {
                 Basic Information
               </h2>
             </div>
-
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="name" className="text-sm font-medium">
@@ -321,7 +515,6 @@ export function AddBagForm() {
                   <p className="text-sm text-red-500">{errors.name.message}</p>
                 )}
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="type" className="text-sm font-medium">
                   Product Type <span className="text-red-500">*</span>
@@ -344,7 +537,7 @@ export function AddBagForm() {
                               .split("_")
                               .map(
                                 (word) =>
-                                  word.charAt(0).toUpperCase() + word.slice(1)
+                                  word.charAt(0).toUpperCase() + word.slice(1),
                               )
                               .join(" ")}
                           </SelectItem>
@@ -354,10 +547,9 @@ export function AddBagForm() {
                   )}
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="price" className="text-sm font-medium">
-                  Price (USD) <span className="text-red-500">*</span>
+                  Price (NPR) <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="price"
@@ -371,7 +563,6 @@ export function AddBagForm() {
                   <p className="text-sm text-red-500">{errors.price.message}</p>
                 )}
               </div>
-
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="description" className="text-sm font-medium">
                   Description
@@ -394,7 +585,6 @@ export function AddBagForm() {
                 Detailed Specifications
               </h2>
             </div>
-
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="brand" className="text-sm font-medium">
@@ -407,7 +597,6 @@ export function AddBagForm() {
                   className="h-11"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="material" className="text-sm font-medium">
                   Material
@@ -419,7 +608,6 @@ export function AddBagForm() {
                   className="h-11"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="weightKg" className="text-sm font-medium">
                   Weight (kg)
@@ -433,7 +621,6 @@ export function AddBagForm() {
                   className="h-11"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="capacityLiters" className="text-sm font-medium">
                   Capacity (liters)
@@ -448,6 +635,7 @@ export function AddBagForm() {
                 />
               </div>
 
+              {/* Conditional Features Switches */}
               {isLuggageType && (
                 <>
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
@@ -474,7 +662,6 @@ export function AddBagForm() {
                       )}
                     />
                   </div>
-
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                     <div className="space-y-0.5">
                       <Label
@@ -499,7 +686,6 @@ export function AddBagForm() {
                       )}
                     />
                   </div>
-
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                     <div className="space-y-0.5">
                       <Label
@@ -553,7 +739,6 @@ export function AddBagForm() {
                       )}
                     />
                   </div>
-
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                     <div className="space-y-0.5">
                       <Label
@@ -607,7 +792,6 @@ export function AddBagForm() {
                       )}
                     />
                   </div>
-
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                     <div className="space-y-0.5">
                       <Label
@@ -632,7 +816,6 @@ export function AddBagForm() {
                       )}
                     />
                   </div>
-
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                     <div className="space-y-0.5">
                       <Label
@@ -686,7 +869,6 @@ export function AddBagForm() {
                       )}
                     />
                   </div>
-
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                     <div className="space-y-0.5">
                       <Label
@@ -711,7 +893,6 @@ export function AddBagForm() {
                       )}
                     />
                   </div>
-
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                     <div className="space-y-0.5">
                       <Label
@@ -765,7 +946,6 @@ export function AddBagForm() {
                       )}
                     />
                   </div>
-
                   <div className="flex items-center justify-between space-y-0 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                     <div className="space-y-0.5">
                       <Label
@@ -803,7 +983,6 @@ export function AddBagForm() {
                 Colors & Sizes
               </h2>
             </div>
-
             <div className="grid gap-6 md:grid-cols-2">
               {/* Colors */}
               <div className="space-y-3">
@@ -897,18 +1076,19 @@ export function AddBagForm() {
 
           {/* Categories & Featured */}
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-6 flex items-center gap-2 border-b border-slate-200 pb-4 dark:border-slate-800">
-              <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                Categories & Settings
-              </h2>
-            </div>
-            {selectedCategories.length > 0 && (
-              <div className="flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                <span>{selectedCategories.length} selected</span>
+            <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  Categories & Settings
+                </h2>
               </div>
-            )}
-
+              {selectedCategories.length > 0 && (
+                <div className="flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                  <span>{selectedCategories.length} selected</span>
+                </div>
+              )}
+            </div>
             <div className="space-y-6">
               {/* Categories */}
               <div className="space-y-3">
@@ -960,13 +1140,19 @@ export function AddBagForm() {
 
           {/* Image Upload */}
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-6 flex items-center gap-2 border-b border-slate-200 pb-4 dark:border-slate-800">
-              <div className="h-2 w-2 rounded-full bg-rose-500"></div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                Product Images
-              </h2>
+            <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-rose-500"></div>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  Product Images <span className="text-red-500">*</span>
+                </h2>
+              </div>
+              {imageUploads.length > 0 && (
+                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                  {imageUploads.length} image(s) selected
+                </span>
+              )}
             </div>
-
             <div className="space-y-4">
               <div className="flex items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-600 dark:hover:bg-blue-950/30">
                 <label
@@ -989,31 +1175,57 @@ export function AddBagForm() {
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={handleImageUpload}
+                    onChange={handleImageSelect}
                     className="hidden"
+                    disabled={isSubmitting}
                   />
                 </label>
               </div>
 
-              {imagePreviews.length > 0 && (
+              {imageUploads.length > 0 && (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                  {imagePreviews.map((preview, index) => (
+                  {imageUploads.map((upload, index) => (
                     <div
                       key={index}
                       className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950"
                     >
                       <img
-                        src={preview || "/placeholder.svg"}
+                        src={upload.preview}
                         alt={`Preview ${index + 1}`}
-                        className="h-full w-full object-cover"
+                        className={`h-full w-full object-cover transition-opacity ${
+                          upload.status === "uploading"
+                            ? "opacity-50"
+                            : "opacity-100"
+                        }`}
                       />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+
+                      {/* Status Overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {upload.status === "uploading" && (
+                          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                        )}
+                        {upload.status === "success" && (
+                          <div className="rounded-full bg-green-500/20 p-2">
+                            <CheckCircle className="h-6 w-6 text-green-500" />
+                          </div>
+                        )}
+                        {upload.status === "error" && (
+                          <div className="rounded-full bg-red-500/20 p-2">
+                            <AlertCircle className="h-6 w-6 text-red-500" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Remove Button */}
+                      {upload.status !== "uploading" && (
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1023,15 +1235,31 @@ export function AddBagForm() {
 
           {/* Submit Button */}
           <div className="flex items-center justify-end gap-4 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 p-6 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950">
-            <Button type="button" variant="outline" disabled={isBagAdding}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isSubmitting}
+              onClick={() => {
+                reset();
+                setImageUploads([]);
+                setSelectedCategories([]);
+              }}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isBagAdding}
+              disabled={isSubmitting || imageUploads.length === 0}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 hover:from-blue-700 hover:to-indigo-700"
             >
-              {isBagAdding ? "Creating..." : "Create Product"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Product...
+                </>
+              ) : (
+                "Create Product"
+              )}
             </Button>
           </div>
         </form>

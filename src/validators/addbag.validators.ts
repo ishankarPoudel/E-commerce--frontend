@@ -24,7 +24,7 @@ export interface ProductFormData {
   capacityLiters?: number;
   isFeatured?: boolean;
   categories?: string[];
-  images?: File[];
+  images?: [];
   features?: {
     hasWheels?: boolean;
     telescopicHandle?: boolean;

@@ -92,8 +92,14 @@ export type MediaEntity = {
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
-    image: string;
+    url: string;
+    publicId: string;
     altText?: string;
+    format?: string;
+    width?: number;
+    height?: number;
+    bytes?: number;
+    sortOrder: number;
     bag: BagEntity;
 };
 
@@ -142,6 +148,39 @@ export type OrderItemEntity = {
     unitPrice: number;
     color: string;
     size: string;
+};
+
+export type UploadImageBody = {
+    bagId: string;
+    url: string;
+    publicId: string;
+    format?: string;
+    width?: number;
+    height?: number;
+    bytes?: number;
+    altText?: string;
+    sortOrder?: number;
+};
+
+/**
+ * From T, pick a set of properties whose keys are in the union K
+ */
+export type PickUploadImageBodyExcludeKeyofUploadImageBodyBagId = {
+    url: string;
+    publicId: string;
+    format?: string;
+    width?: number;
+    height?: number;
+    bytes?: number;
+    altText?: string;
+    sortOrder?: number;
+};
+
+export type OmitUploadImageBodyBagId = PickUploadImageBodyExcludeKeyofUploadImageBodyBagId;
+
+export type UploadMultipleImagesBody = {
+    bagId: string;
+    images: Array<OmitUploadImageBodyBagId>;
 };
 
 export type CreateCategoryValidator = {
@@ -415,7 +454,7 @@ export type GetAllOrdersResponses = {
                 items: Array<{
                     product: {
                         images: Array<{
-                            url: string;
+                            url: unknown;
                             id: string;
                         }>;
                         price: number;
@@ -541,32 +580,66 @@ export type GetAllOrdersOfUserForAdminResponses = {
 
 export type GetAllOrdersOfUserForAdminResponse = GetAllOrdersOfUserForAdminResponses[keyof GetAllOrdersOfUserForAdminResponses];
 
-export type UploadMediaData = {
-    body: {
-        bagId: string;
-        file: Blob | File;
+export type GetUploadSignatureData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/media/signature';
+};
+
+export type GetUploadSignatureResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        apiKey: string;
+        cloudName: string;
+        signature: string;
+        timestamp: number;
     };
+};
+
+export type GetUploadSignatureResponse = GetUploadSignatureResponses[keyof GetUploadSignatureResponses];
+
+export type SaveImagedToDbData = {
+    body: UploadImageBody;
     path?: never;
     query?: never;
     url: '/media/upload';
 };
 
-export type UploadMediaResponses = {
+export type SaveImagedToDbResponses = {
     /**
      * Ok
      */
     200: {
-        data?: unknown;
-        message: string;
-        success: boolean;
-    } | {
         data: MediaEntity;
         message: string;
         success: boolean;
     };
 };
 
-export type UploadMediaResponse = UploadMediaResponses[keyof UploadMediaResponses];
+export type SaveImagedToDbResponse = SaveImagedToDbResponses[keyof SaveImagedToDbResponses];
+
+export type SaveMultipleImagesToDbData = {
+    body: UploadMultipleImagesBody;
+    path?: never;
+    query?: never;
+    url: '/media/upload-multiple';
+};
+
+export type SaveMultipleImagesToDbResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        data: Array<MediaEntity>;
+        message: string;
+        success: boolean;
+    };
+};
+
+export type SaveMultipleImagesToDbResponse = SaveMultipleImagesToDbResponses[keyof SaveMultipleImagesToDbResponses];
 
 export type SearchData = {
     body: {
