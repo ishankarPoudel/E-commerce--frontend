@@ -5,6 +5,7 @@ import { getImageUrl } from "@/utils/urlHelpers";
 import { AddToCartButton } from "@/ui/molecules/Buttons/AddToCart";
 import { cn } from "@/lib/utils";
 import { getColorHex } from "@/ui/organisms/products/DetailProduct";
+import { MediaEntity } from "@/api";
 
 export interface Product {
   categories: any;
@@ -12,7 +13,7 @@ export interface Product {
   name: string;
   price: number;
   type: string;
-  images: string[];
+  images: MediaEntity[];
   colors: { name: string; hex: string }[];
   sizes?: string[];
   isFeatured?: boolean;
@@ -43,9 +44,11 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const productImages = product?.images?.map((img) =>
-    typeof img === "string" ? img : (img as { image: string })?.image
-  );
+  const images = product.images.map((img) => {
+    return img.url;
+  });
+
+  const firstImageUrl = product.images[0]?.url || "";
 
   return (
     <div
@@ -62,17 +65,17 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         className={cn(
           "relative aspect-[3/4] overflow-hidden bg-muted rounded-md mb-1.5 sm:mb-2",
           "transition-transform duration-300 will-change-transform",
-          isHovered && "md:-translate-y-1"
+          isHovered && "md:-translate-y-1",
         )}
       >
         <Image
-          src={getImageUrl(productImages?.[0])}
+          src={firstImageUrl}
           alt={product.name}
           fill
           priority
           className={cn(
             "object-cover transition-transform duration-500",
-            isHovered && "md:scale-105"
+            isHovered && "md:scale-105",
           )}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
@@ -91,7 +94,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
             isHovered
               ? "md:opacity-100 md:translate-y-0"
-              : "md:opacity-0 md:translate-y-2"
+              : "md:opacity-0 md:translate-y-2",
           )}
           onClick={(e) => e.stopPropagation()}
         >
@@ -148,7 +151,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                   <span
                     className={cn(
                       "absolute inset-0 rounded-full",
-                      isLight ? "ring-1 ring-border" : "ring-1 ring-black/10"
+                      isLight ? "ring-1 ring-border" : "ring-1 ring-black/10",
                     )}
                   />
                 </span>

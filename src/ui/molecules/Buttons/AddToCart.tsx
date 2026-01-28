@@ -8,13 +8,14 @@ import { toast } from "sonner";
 import { getImageUrl } from "@/utils/urlHelpers";
 import { useMutation } from "@tanstack/react-query";
 import { addToCartMutation } from "@/api/@tanstack/react-query.gen";
+import { MediaEntity } from "@/api";
 
 interface Product {
   id: string;
   name: string;
   price: number;
   type: string;
-  images: string[];
+  images: MediaEntity[];
   colors: { name: string; hex: string }[];
   sizes?: string[];
   isFeatured?: boolean;
@@ -69,10 +70,10 @@ export function AddToCartButton({
   onSuccess,
 }: AddToCartButtonProps) {
   const [selectedColor, setSelectedColor] = useState(
-    defaultColor || product?.colors?.[0]?.name
+    defaultColor || product?.colors?.[0]?.name,
   );
   const [selectedSize, setSelectedSize] = useState(
-    defaultSize || product.sizes?.[0]
+    defaultSize || product.sizes?.[0],
   );
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -113,7 +114,7 @@ export function AddToCartButton({
           setIsAdding(false);
           setShowSuccess(true);
           toast.success(
-            `${showQuantity ? quantity : 1}x ${product.name} added to your cart`
+            `${showQuantity ? quantity : 1}x ${product.name} added to your cart`,
           );
           setTimeout(() => {
             setShowSuccess(false);
@@ -126,7 +127,7 @@ export function AddToCartButton({
           setIsAdding(false);
           toast.error("Failed to add item to cart. Please try again.");
         },
-      }
+      },
     );
   };
 
@@ -163,8 +164,8 @@ export function AddToCartButton({
             {isAdding
               ? "Adding..."
               : product.stock === 0
-              ? "Out of Stock"
-              : "Add to Cart"}
+                ? "Out of Stock"
+                : "Add to Cart"}
           </>
         )}
       </Button>
@@ -243,7 +244,7 @@ export function AddToCartButton({
                           "relative w-10 h-10 rounded-lg border-2 transition-all shadow-sm hover:shadow-md",
                           selectedColor === colorName
                             ? "border-primary ring-2 ring-primary/30 ring-offset-2 scale-110 shadow-lg"
-                            : "border-border/50 hover:border-primary/50 hover:scale-105"
+                            : "border-border/50 hover:border-primary/50 hover:scale-105",
                         )}
                         style={{ backgroundColor: colorHex }}
                         aria-label={colorName}
@@ -285,7 +286,7 @@ export function AddToCartButton({
                         "px-4 py-2 text-xs font-bold rounded-lg border-2 transition-all uppercase tracking-wide shadow-sm hover:shadow-md",
                         selectedSize === sizeOption
                           ? "bg-primary text-primary-foreground border-primary scale-105 shadow-md"
-                          : "bg-background border-border hover:border-primary/50 hover:bg-muted/50"
+                          : "bg-background border-border hover:border-primary/50 hover:bg-muted/50",
                       )}
                     >
                       {sizeOption}
@@ -336,7 +337,7 @@ export function AddToCartButton({
                 "bg-gradient-to-r from-primary to-primary/90 hover:cursor-pointer ",
                 "",
                 isAdding && "opacity-70 cursor-not-allowed",
-                showSuccess && "hover:cursor-default"
+                showSuccess && "hover:cursor-default",
               )}
             >
               {showSuccess ? (
@@ -353,7 +354,7 @@ export function AddToCartButton({
                     {isAdding
                       ? "Adding..."
                       : `Add to Cart • रु ${(product.price * quantity).toFixed(
-                          2
+                          2,
                         )}`}
                   </span>
                 </div>

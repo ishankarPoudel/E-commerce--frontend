@@ -23,7 +23,6 @@ import {
   ChevronUp,
 } from "lucide-react";
 
-import { getImageUrl } from "@/utils/urlHelpers";
 import { Separator } from "@/ui/shadcn/separator";
 
 const OrderPage = () => {
@@ -58,7 +57,7 @@ const OrderPage = () => {
 
   const filtered = orders
     .filter((o) =>
-      deliveryFilter === "all" ? true : o.deliveryMethod === deliveryFilter
+      deliveryFilter === "all" ? true : o.deliveryMethod === deliveryFilter,
     )
     .sort((a, b) => {
       switch (sortBy) {
@@ -301,7 +300,11 @@ const OrderPage = () => {
                           className="flex gap-2 sm:gap-3 md:gap-4 p-2.5 sm:p-3 md:p-4 rounded-lg bg-muted/30"
                         >
                           <img
-                            src={getImageUrl(item.image)}
+                            src={
+                              item?.images && item.images.length > 0
+                                ? item.images[0].url
+                                : "/placeholder.svg?height=120&width=120"
+                            }
                             alt={item.name}
                             className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-md object-cover bg-muted flex-shrink-0"
                           />
@@ -348,10 +351,10 @@ const OrderPage = () => {
                               order.status === "paid"
                                 ? "bg-green-500"
                                 : order.status === "failed"
-                                ? "bg-red-500"
-                                : order.status === "refunded"
-                                ? "bg-yellow-500"
-                                : "bg-gray-300"
+                                  ? "bg-red-500"
+                                  : order.status === "refunded"
+                                    ? "bg-yellow-500"
+                                    : "bg-gray-300"
                             }`}
                           />
                           <div className="flex-1 min-w-0">
@@ -359,19 +362,19 @@ const OrderPage = () => {
                               {order.status === "paid"
                                 ? "Payment Confirmed"
                                 : order.status === "failed"
-                                ? "Payment Failed"
-                                : order.status === "refunded"
-                                ? "Payment Refunded"
-                                : "Payment Pending"}
+                                  ? "Payment Failed"
+                                  : order.status === "refunded"
+                                    ? "Payment Refunded"
+                                    : "Payment Pending"}
                             </p>
                             <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
                               {order.status === "paid"
                                 ? "Payment received successfully"
                                 : order.status === "failed"
-                                ? "Payment was unsuccessful"
-                                : order.status === "refunded"
-                                ? "Amount has been refunded"
-                                : "Awaiting payment confirmation"}
+                                  ? "Payment was unsuccessful"
+                                  : order.status === "refunded"
+                                    ? "Amount has been refunded"
+                                    : "Awaiting payment confirmation"}
                             </p>
                           </div>
                           <Badge
@@ -379,8 +382,8 @@ const OrderPage = () => {
                               order.status === "paid"
                                 ? "default"
                                 : order.status === "failed"
-                                ? "destructive"
-                                : "secondary"
+                                  ? "destructive"
+                                  : "secondary"
                             }
                             className="text-[10px] sm:text-xs shrink-0"
                           >
@@ -398,8 +401,8 @@ const OrderPage = () => {
                                 order.orderStatus === "completed"
                                   ? "bg-green-500"
                                   : order.orderStatus === "cancelled"
-                                  ? "bg-red-500"
-                                  : "bg-gray-300"
+                                    ? "bg-red-500"
+                                    : "bg-gray-300"
                               }`}
                             />
                             <div className="flex-1 min-w-0">
@@ -412,10 +415,10 @@ const OrderPage = () => {
                                 {order.orderStatus === "processing"
                                   ? "Your order is being prepared"
                                   : order.orderStatus === "cancelled"
-                                  ? "Order has been cancelled"
-                                  : order.orderStatus === "completed"
-                                  ? "Order was processed successfully"
-                                  : "Order being processed"}
+                                    ? "Order has been cancelled"
+                                    : order.orderStatus === "completed"
+                                      ? "Order was processed successfully"
+                                      : "Order being processed"}
                               </p>
                             </div>
                             {order.orderStatus === "processing" && (
@@ -481,8 +484,8 @@ const OrderPage = () => {
                                   {order.orderStatus === "completed"
                                     ? "Order has been collected"
                                     : order.orderStatus === "processing"
-                                    ? "Being prepared for pickup"
-                                    : "Available at store"}
+                                      ? "Being prepared for pickup"
+                                      : "Available at store"}
                                 </p>
                               </div>
                               {order.orderStatus === "completed" && (

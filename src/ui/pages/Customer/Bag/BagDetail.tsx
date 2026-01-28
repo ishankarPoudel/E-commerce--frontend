@@ -22,10 +22,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/ui/pages/Customer/Search/ProductCard";
-import { getImageUrl } from "@/utils/urlHelpers";
 import { Image } from "@/ui/shadcn/image";
 import AddToCartButton from "@/ui/molecules/Buttons/AddToCart";
 import { getColorHex } from "@/ui/organisms/products/DetailProduct";
+import { MediaEntity } from "@/api/types.gen";
 
 interface BagDetailProps {
   product: Product | null;
@@ -47,12 +47,13 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
     setSelectedColor(
       typeof firstColor === "string"
         ? firstColor
-        : firstColor?.name ?? undefined
+        : (firstColor?.name ?? undefined),
     );
     setSelectedSize(product.sizes?.[0]);
   }, [product]);
 
   const gallery = product?.images ?? [];
+
   const hasGallery = gallery.length > 0;
 
   const featureList = useMemo(() => {
@@ -63,9 +64,14 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
         key
           .replace(/([A-Z])/g, " $1")
           .replace(/-/g, " ")
-          .replace(/^./, (c) => c.toUpperCase())
+          .replace(/^./, (c) => c.toUpperCase()),
       );
   }, [product]);
+
+  const images = product?.images.map((img) => {
+    return img.url;
+  });
+  console.log("images arrayyyyyyyyy", images);
 
   if (!product) {
     return (
@@ -145,7 +151,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
               {hasGallery ? (
                 <Image
                   key={selectedImage}
-                  src={getProductImage(gallery[selectedImage])}
+                  src={images?.[selectedImage] ?? ""}
                   alt={`${product.name} ${selectedImage + 1}`}
                   fill
                   priority
@@ -165,7 +171,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
                     icon={ChevronLeft}
                     onClick={() =>
                       setSelectedImage((prev) =>
-                        prev === 0 ? gallery.length - 1 : prev - 1
+                        prev === 0 ? gallery.length - 1 : prev - 1,
                       )
                     }
                   />
@@ -174,7 +180,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
                     icon={ChevronRight}
                     onClick={() =>
                       setSelectedImage((prev) =>
-                        prev === gallery.length - 1 ? 0 : prev + 1
+                        prev === gallery.length - 1 ? 0 : prev + 1,
                       )
                     }
                   />
@@ -202,18 +208,18 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
                         key={
                           typeof image === "string"
                             ? image
-                            : (image as string) ?? index
+                            : ((image as MediaEntity)?.id ?? index)
                         }
                         onClick={() => setSelectedImage(index)}
                         className={cn(
                           "relative h-14 w-14 overflow-hidden rounded-xl border border-border transition hover:-translate-y-1 hover:border-primary/60 sm:h-16 sm:w-16",
                           selectedImage === index &&
-                            "border-primary ring-2 ring-primary/30"
+                            "border-primary ring-2 ring-primary/30",
                         )}
                         aria-label={`Preview ${index + 1}`}
                       >
                         <Image
-                          src={getProductImage(image)}
+                          src={image.url}
                           alt={`Thumbnail ${index + 1}`}
                           fill
                           sizes="64px"
@@ -246,7 +252,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
                       const label =
                         typeof color === "string"
                           ? color
-                          : color?.name ?? "Color";
+                          : (color?.name ?? "Color");
                       const hex = resolveColorHex(color);
 
                       return (
@@ -255,7 +261,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
                           onClick={() => setSelectedColor(label)}
                           className={cn(
                             "group relative h-10 w-10 rounded-full border border-border transition hover:-translate-y-1 hover:border-primary/60",
-                            selectedColor === label && "ring-2 ring-primary/30"
+                            selectedColor === label && "ring-2 ring-primary/30",
                           )}
                           aria-label={label}
                         >
@@ -288,7 +294,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
                         className={cn(
                           "rounded-lg border border-border px-3 py-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground transition hover:-translate-y-0.5 hover:border-primary hover:text-primary",
                           selectedSize === size &&
-                            "border-primary bg-primary/10 text-primary"
+                            "border-primary bg-primary/10 text-primary",
                         )}
                       >
                         {size}
@@ -432,7 +438,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
 
           <div className="relative h-[75vh] w-full max-w-[900px] overflow-hidden rounded-xl border border-border bg-background sm:h-[80vh]">
             <Image
-              src={getProductImage(gallery[selectedImage])}
+              src={product.images[selectedImage].url}
               alt={`${product.name} fullscreen ${selectedImage + 1}`}
               fill
               priority
@@ -448,7 +454,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
                 icon={ArrowLeft}
                 onClick={() =>
                   setSelectedImage((prev) =>
-                    prev === 0 ? gallery.length - 1 : prev - 1
+                    prev === 0 ? gallery.length - 1 : prev - 1,
                   )
                 }
               />
@@ -457,7 +463,7 @@ export function BagDetail({ product, onBack }: BagDetailProps) {
                 icon={ArrowRight}
                 onClick={() =>
                   setSelectedImage((prev) =>
-                    prev === gallery.length - 1 ? 0 : prev + 1
+                    prev === gallery.length - 1 ? 0 : prev + 1,
                   )
                 }
               />
@@ -509,18 +515,12 @@ function MediaControl({
       onClick={onClick}
       className={cn(
         "absolute top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-white/10 text-white transition hover:bg-white/20",
-        side === "left" ? "left-3 sm:left-4" : "right-3 sm:right-4"
+        side === "left" ? "left-3 sm:left-4" : "right-3 sm:right-4",
       )}
     >
       <Icon className="h-4 w-4" />
     </Button>
   );
-}
-
-function getProductImage(image: any) {
-  if (!image) return "https://via.placeholder.com/900x1200?text=No+Image";
-  if (typeof image === "string") return getImageUrl(image);
-  return getImageUrl(image.image);
 }
 
 function resolveColorHex(color: unknown) {

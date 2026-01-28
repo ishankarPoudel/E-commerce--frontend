@@ -25,7 +25,6 @@ import {
   removeFromCartMutation,
   updateCartMutation,
 } from "@/api/@tanstack/react-query.gen";
-import { getImageUrl } from "@/utils/urlHelpers";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
 import { useNavigate } from "@tanstack/react-router";
@@ -227,16 +226,8 @@ export default function CartPage() {
     (cartItemId: string, newQuantity: number) => {
       // Prevent duplicate calls for the same item
       if (pendingUpdates.has(cartItemId)) {
-        console.log("⚠️ Update already pending for:", cartItemId);
         return;
       }
-
-      console.log(
-        " Updating cart item:",
-        cartItemId,
-        "to quantity:",
-        newQuantity,
-      );
 
       // Add to pending updates
       setPendingUpdates((prev) => new Map(prev).set(cartItemId, newQuantity));
@@ -250,8 +241,6 @@ export default function CartPage() {
         },
         {
           onSuccess: async (response) => {
-            console.log("✅ Update successful for:", cartItemId);
-
             // Remove from pending
             setPendingUpdates((prev) => {
               const next = new Map(prev);
@@ -269,8 +258,6 @@ export default function CartPage() {
             );
           },
           onError: (error: Error) => {
-            console.log("❌ Update failed for:", cartItemId);
-
             // Remove from pending
             setPendingUpdates((prev) => {
               const next = new Map(prev);
@@ -311,6 +298,13 @@ export default function CartPage() {
       return dateB - dateA; // Newest first
     });
   }, [cartData]);
+
+  console.log(
+    "Cart Items:",
+    cartItems.map((item) => ({
+      image: item.image,
+    })),
+  );
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -516,11 +510,7 @@ export default function CartPage() {
                         {/* ✅ Product Image - Mobile Optimized */}
                         <div className="relative flex-shrink-0">
                           <img
-                            src={
-                              item.image.length > 0 && item.image[0]?.image
-                                ? getImageUrl(item.image[0].image)
-                                : "/placeholder.svg?height=120&width=120"
-                            }
+                            src={item?.image[0]?.url || null}
                             alt={item.name}
                             className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 object-cover rounded-lg bg-muted"
                           />

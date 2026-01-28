@@ -97,7 +97,7 @@ const BagList = () => {
   });
 
   const bagImages = bagListResponse?.data?.data.map((bag) =>
-    bag.images.map((img) => img.image)
+    bag.images.map((img) => img.url),
   );
   console.log("Bag Images:", bagImages);
 
@@ -112,7 +112,7 @@ const BagList = () => {
   ]);
 
   const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery(
-    getCategoriesOptions()
+    getCategoriesOptions(),
   );
 
   //for pagination
@@ -155,7 +155,7 @@ const BagList = () => {
       (bag) =>
         bag.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (bag.description &&
-          bag.description.toLowerCase().includes(searchQuery.toLowerCase()))
+          bag.description.toLowerCase().includes(searchQuery.toLowerCase())),
     );
   }, [bags, searchQuery]);
 

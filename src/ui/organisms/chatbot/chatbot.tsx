@@ -7,7 +7,7 @@ import { Input } from "@/ui/shadcn/input";
 import { useMutation } from "@tanstack/react-query";
 import { searchMutation } from "@/api/@tanstack/react-query.gen";
 import { getImageUrl } from "@/utils/urlHelpers";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 interface Message {
   id: string;
@@ -25,7 +25,7 @@ export default function ChatBot() {
   const navigate = useNavigate();
 
   const [sessionId] = useState(
-    () => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    () => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
   );
 
   const { mutate, isPending } = useMutation({
@@ -126,7 +126,7 @@ export default function ChatBot() {
 
           setMessages((prev) => [...prev, errorMessage]);
         },
-      }
+      },
     );
   };
 
@@ -203,13 +203,13 @@ export default function ChatBot() {
             key={m.id}
             className={cn(
               "flex",
-              m.role === "user" ? "justify-end" : "justify-start"
+              m.role === "user" ? "justify-end" : "justify-start",
             )}
           >
             <div
               className={cn(
                 "max-w-2xl space-y-3",
-                m.role === "user" ? "w-auto" : "w-full"
+                m.role === "user" ? "w-auto" : "w-full",
               )}
             >
               {m.language === "bags" ? (
@@ -243,8 +243,8 @@ export default function ChatBot() {
                         <div className="relative overflow-hidden rounded-xl mb-3">
                           <img
                             src={
-                              bag.images?.[0]?.image
-                                ? getImageUrl(bag.images[0].image)
+                              bag.images && bag.images.length > 0
+                                ? getImageUrl(bag.images[0].url)
                                 : "https://via.placeholder.com/300x200?text=No+Image"
                             }
                             alt={bag.name}
@@ -279,7 +279,7 @@ export default function ChatBot() {
                     m.role === "user"
                       ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-none"
                       : "bg-muted/50 border border-border rounded-2xl rounded-tl-none",
-                    "px-6 py-4 shadow-md"
+                    "px-6 py-4 shadow-md",
                   )}
                 >
                   <p className="text-base leading-relaxed whitespace-pre-wrap break-words">

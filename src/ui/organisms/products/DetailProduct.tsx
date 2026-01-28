@@ -50,20 +50,6 @@ const featureIcons: Record<string, any> = {
   expandable: Ruler,
 };
 
-function getProductImageUrl(image: any): string {
-  if (!image) return "/placeholder.svg";
-
-  if (typeof image === "string") {
-    return getImageUrl(image) || "/placeholder.svg";
-  }
-
-  if (image.image) {
-    return getImageUrl(image.image) || "/placeholder.svg";
-  }
-
-  return "/placeholder.svg";
-}
-
 export function ProductDetailPanel({
   product,
   isOpen,
@@ -115,6 +101,8 @@ export function ProductDetailPanel({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, selectedImage, product, isFullscreen, onClose]);
+
+  const images = product?.images.map((img) => img.url);
 
   const trueFeatures = product?.features
     ? Object.entries(product.features)
@@ -168,12 +156,14 @@ export function ProductDetailPanel({
               {/* Main Image Container */}
               <div className="relative aspect-square bg-muted">
                 <Image
-                  src={getProductImageUrl(product.images?.[selectedImage])}
+                  src={
+                    images?.[selectedImage] || getImageUrl("placeholder.png")
+                  }
                   alt={`${product.name} - Image ${selectedImage + 1}`}
                   fill
                   className={cn(
                     "object-contain p-4 md:p-6 lg:p-8 transition-transform duration-300",
-                    isZoomed && "scale-150 cursor-zoom-out"
+                    isZoomed && "scale-150 cursor-zoom-out",
                   )}
                   onClick={() => setIsZoomed(!isZoomed)}
                   sizes="(max-width: 768px) 100vw, 550px"
@@ -186,7 +176,7 @@ export function ProductDetailPanel({
                     <Button
                       onClick={() =>
                         setSelectedImage((prev) =>
-                          prev > 0 ? prev - 1 : product.images.length - 1
+                          prev > 0 ? prev - 1 : product.images.length - 1,
                         )
                       }
                       variant="ghost"
@@ -202,7 +192,7 @@ export function ProductDetailPanel({
                     <Button
                       onClick={() =>
                         setSelectedImage((prev) =>
-                          prev < product.images.length - 1 ? prev + 1 : 0
+                          prev < product.images.length - 1 ? prev + 1 : 0,
                         )
                       }
                       variant="ghost"
@@ -274,13 +264,13 @@ export function ProductDetailPanel({
                             "relative flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-md overflow-hidden border-2 transition-all",
                             selectedImage === index
                               ? "border-primary ring-2 ring-primary ring-offset-2"
-                              : "border-border hover:border-accent"
+                              : "border-border hover:border-accent",
                           )}
                           aria-label={`View image ${index + 1}`}
                           aria-pressed={selectedImage === index}
                         >
                           <Image
-                            src={getProductImageUrl(image)}
+                            src={image.url}
                             alt={`${product.name} thumbnail ${index + 1}`}
                             fill
                             className="object-cover"
@@ -343,7 +333,7 @@ export function ProductDetailPanel({
                                 "w-8 h-8 sm:w-9 sm:h-9 md:w-9 md:h-9 rounded-full border-2 transition-all",
                                 selectedColor === colorName
                                   ? "border-primary ring-2 ring-primary ring-offset-2 scale-110"
-                                  : "border-border hover:border-accent hover:scale-105"
+                                  : "border-border hover:border-accent hover:scale-105",
                               )}
                               style={{ backgroundColor: colorHex }}
                               aria-label={colorName}
@@ -564,7 +554,7 @@ export function ProductDetailPanel({
                 <Button
                   onClick={() =>
                     setSelectedImage((prev) =>
-                      prev > 0 ? prev - 1 : product.images.length - 1
+                      prev > 0 ? prev - 1 : product.images.length - 1,
                     )
                   }
                   variant="ghost"
@@ -580,7 +570,7 @@ export function ProductDetailPanel({
                 <Button
                   onClick={() =>
                     setSelectedImage((prev) =>
-                      prev < product.images.length - 1 ? prev + 1 : 0
+                      prev < product.images.length - 1 ? prev + 1 : 0,
                     )
                   }
                   variant="ghost"
@@ -605,7 +595,7 @@ export function ProductDetailPanel({
 
             <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
               <Image
-                src={getProductImageUrl(product.images?.[selectedImage])}
+                src={product.images?.[selectedImage].url}
                 alt={`${product.name} - Fullscreen`}
                 fill
                 className="object-contain"
