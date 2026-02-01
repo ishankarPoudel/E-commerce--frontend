@@ -23,17 +23,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/shadcn/select";
-import { getImageUrl } from "@/utils/urlHelpers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, Edit, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-
 import { toast } from "sonner";
 
-interface BagImage {
+// ✅ Updated interfaces to match backend response
+interface MediaImage {
   id: string;
-  image: string;
+  url: string;
+  publicId: string;
+  altText?: string;
+  format?: string;
+  width?: number;
+  height?: number;
+  bytes?: number;
+  sortOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Category {
@@ -46,8 +54,17 @@ interface Bag {
   name: string;
   price: number;
   description: string;
-  bagImages?: BagImage[];
+  brand?: string;
+  material?: string;
+  type: string;
+  colors?: string[];
+  sizes?: string[];
+  weightKg?: number;
+  capacityLiters?: number;
+  isFeatured?: boolean;
+  images: MediaImage[]; // ✅ Changed from bagImages to images
   categories: Category[];
+  features?: Record<string, boolean>;
   createdAt: string;
   updatedAt: string;
 }
@@ -96,10 +113,7 @@ const BagList = () => {
     }),
   });
 
-  const bagImages = bagListResponse?.data?.data.map((bag) =>
-    bag.images.map((img) => img.url),
-  );
-  console.log("Bag Images:", bagImages);
+  console.log("bagListResponse", bagListResponse);
 
   useEffect(() => {
     refetch();
@@ -242,7 +256,6 @@ const BagList = () => {
                         Loading...
                       </SelectItem>
                     )}
-                    {/*ts-ignore*/}
                     {Array.isArray(categoriesData?.data) &&
                       categoriesData.data.map((cat: Category) => (
                         <SelectItem key={cat.id} value={cat.id}>
@@ -285,81 +298,103 @@ const BagList = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredBags.map((bag) => (
-              <Card
-                key={bag.id}
-                className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 flex flex-col"
-              >
-                <div className="relative aspect-square overflow-hidden bg-muted">
-                  <img
-                    // Use getImageUrl and access the 'image' property from bagImages
-                    src={getImageUrl(bagImages)}
-                    alt={bag.name} // Use bag.name for alt text
-                    className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(bag);
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+            {filteredBags.map((bag) => {
+              // ✅ Get first image URL for each bag
+              const firstImageUrl =
+                bag.images && bag.images.length > 0
+                  ? bag.images[0].url
+                  : "/placeholder.svg?height=400&width=300";
+
+              return (
+                <Card
+                  key={bag.id}
+                  className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 flex flex-col"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-muted">
+                    {/* ✅ Use individual bag's first image */}
+                    <img
+                      src={firstImageUrl}
+                      alt={bag.images?.[0]?.altText || bag.name}
+                      className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                      onError={(e) => {
+                        console.error(`Failed to load image for ${bag.name}`);
+                        e.currentTarget.src =
+                          "/placeholder.svg?height=400&width=300";
                       }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      onClick={(e) => {
-                        setIsDialogOpen(true);
-                        e.stopPropagation();
-                        handleDelete(bag.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <CardContent className="p-4 flex-grow">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-lg line-clamp-1">
-                      {bag.name}
-                    </h3>
-                    <p className="font-bold text-lg whitespace-nowrap">
-                      ${bag.price.toFixed(2)}
-                    </p>
-                  </div>
-                  <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-                    {bag.description || "No description available."}{" "}
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {/* Map through bag.categories */}
-                    {bag.categories?.map((category) => (
-                      <Badge
-                        key={category.id}
-                        variant="outline"
-                        className="text-xs"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    {/* ✅ Show image count badge if multiple images */}
+                    {bag.images && bag.images.length > 1 && (
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-black/70 text-white text-xs">
+                          {bag.images.length} photos
+                        </Badge>
+                      </div>
+                    )}
+
+                    <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(bag);
+                        }}
                       >
-                        {category.categoryName}{" "}
-                      </Badge>
-                    ))}
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={(e) => {
+                          setIsDialogOpen(true);
+                          e.stopPropagation();
+                          handleDelete(bag.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </CardContent>
-                <CardFooter className="p-4 pt-0 border-t mt-auto">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between text-primary hover:text-primary"
-                    onClick={() => openBagDetail(bag)}
-                  >
-                    View Details
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                  <CardContent className="p-4 flex-grow">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-lg line-clamp-1">
+                        {bag.name}
+                      </h3>
+                      <p className="font-bold text-lg whitespace-nowrap">
+                        ${bag.price.toFixed(2)}
+                      </p>
+                    </div>
+                    <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                      {bag.description || "No description available."}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {bag.categories?.map((category) => (
+                        <Badge
+                          key={category.id}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {category.categoryName}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0 border-t mt-auto">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between text-primary hover:text-primary"
+                      onClick={() => openBagDetail(bag)}
+                    >
+                      View Details
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
         )}
 
@@ -373,13 +408,14 @@ const BagList = () => {
                 </DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 max-h-[70vh] overflow-y-auto p-1">
+                {/* ✅ Main Image */}
                 <div className="aspect-square relative bg-muted rounded-md overflow-hidden">
                   <img
                     src={
-                      getImageUrl(selectedBag.bagImages?.[0]?.image) ||
+                      selectedBag.images?.[0]?.url ||
                       "/placeholder.svg?height=400&width=300"
                     }
-                    alt={selectedBag.name}
+                    alt={selectedBag.images?.[0]?.altText || selectedBag.name}
                     className="object-cover w-full h-full"
                   />
                 </div>
@@ -411,10 +447,42 @@ const BagList = () => {
                       </Button>
                     </div>
                   </div>
+
+                  {/* Details */}
                   <h3 className="text-lg font-medium mb-1">Description</h3>
                   <p className="text-muted-foreground mb-4 text-sm">
                     {selectedBag.description || "No description provided."}
                   </p>
+
+                  {/* Brand & Material */}
+                  {(selectedBag.brand || selectedBag.material) && (
+                    <>
+                      <h3 className="text-lg font-medium mb-1">Details</h3>
+                      <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
+                        {selectedBag.brand && (
+                          <div>
+                            <span className="text-muted-foreground">
+                              Brand:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {selectedBag.brand}
+                            </span>
+                          </div>
+                        )}
+                        {selectedBag.material && (
+                          <div>
+                            <span className="text-muted-foreground">
+                              Material:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {selectedBag.material}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
                   <h3 className="text-lg font-medium mb-1">Categories</h3>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {selectedBag.categories?.map((category) => (
@@ -423,19 +491,32 @@ const BagList = () => {
                       </Badge>
                     ))}
                   </div>
-                  <h3 className="text-lg font-medium mb-1">Gallery</h3>
-                  {selectedBag.bagImages && selectedBag.bagImages.length > 0 ? (
+
+                  {/* ✅ Image Gallery - shows all images */}
+                  <h3 className="text-lg font-medium mb-1">
+                    Gallery ({selectedBag.images?.length || 0} images)
+                  </h3>
+                  {selectedBag.images && selectedBag.images.length > 0 ? (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {selectedBag.bagImages.map((image) => (
+                      {selectedBag.images.map((image, idx) => (
                         <div
                           key={image.id}
-                          className="aspect-square relative bg-muted rounded-md overflow-hidden border"
+                          className="aspect-square relative bg-muted rounded-md overflow-hidden border hover:border-primary transition-colors cursor-pointer"
                         >
                           <img
-                            src={getImageUrl(image.image) || "/placeholder.svg"}
-                            alt={`${selectedBag.name} - gallery image`}
-                            className="object-cover w-full h-full"
+                            src={image.url}
+                            alt={
+                              image.altText ||
+                              `${selectedBag.name} - Image ${idx + 1}`
+                            }
+                            className="object-cover w-full h-full hover:scale-110 transition-transform"
                           />
+                          {/* Show image format badge */}
+                          {image.format && (
+                            <Badge className="absolute bottom-1 right-1 text-[10px] px-1 py-0">
+                              {image.format.toUpperCase()}
+                            </Badge>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -449,6 +530,7 @@ const BagList = () => {
             </DialogContent>
           </Dialog>
         )}
+
         <DeleteDialog
           open={deleteDialogOpen}
           setOpen={setDeleteDialogOpen}
@@ -463,6 +545,7 @@ const BagList = () => {
         />
       </div>
 
+      {/* Pagination */}
       <div className="flex justify-center items-center gap-6 mt-6 mb-6">
         <Button
           variant="ghost"

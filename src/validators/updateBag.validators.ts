@@ -1,43 +1,75 @@
+import type { BagType } from "@/api";
 import {
-  IsArray,
-  IsInstance,
+  IsString,
   IsNumber,
   IsOptional,
-  IsPositive,
-  IsString,
-  ValidateIf,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  Min,
+  IsObject,
 } from "class-validator";
 
 export class UpdateBagValidator {
-  @IsString()
   @IsOptional()
+  @IsString()
   name?: string;
 
   @IsOptional()
+  type?: BagType;
+
+  @IsOptional()
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   price?: number;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 
-  @IsArray()
   @IsOptional()
+  @IsString()
+  brand?: string;
+
+  @IsOptional()
+  @IsString()
+  material?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  colors?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  sizes?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  weightKg?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  capacityLiters?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
+
+  @IsOptional()
+  @IsObject()
+  features?: Record<string, boolean>;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   categories?: string[];
 
-  @ValidateIf(
-    (o) =>
-      o.images !== undefined &&
-      o.images !== null &&
-      Array.isArray(o.images) &&
-      o.images.length > 0
-  ) // Only validate if images array is provided and not empty
-  @IsArray({ message: "Images must be an array." })
-  @IsInstance(File, {
-    each: true, // Validate each element in the array
-    message: "Each image must be a valid File object.",
-  })
   @IsOptional()
-  images?: File[];
+  @IsArray()
+  @IsString({ each: true })
+  bagImages?: string[];
 }

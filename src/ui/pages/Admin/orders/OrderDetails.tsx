@@ -51,7 +51,12 @@ export function OrderDetails({
   });
 
   const data = orderDetails?.data;
-  console.log("order details data", data);
+
+  const images = Array.isArray(data?.itemsSnapShot)
+    ? data.itemsSnapShot.map((item: any) =>
+        item.images?.length > 0 ? getImageUrl(item.images[0].url) : null,
+      )
+    : [];
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -281,7 +286,7 @@ export function OrderDetails({
                     <p className="text-xs text-muted-foreground">
                       {data?.status === "paid"
                         ? `Paid on ${new Date(
-                            order.createdAt
+                            order.createdAt,
                           ).toLocaleDateString()}`
                         : `Status: ${data?.status}`}
                     </p>
@@ -311,9 +316,10 @@ export function OrderDetails({
                         >
                           <div className="h-20 w-20 rounded-lg border bg-gray-100 overflow-hidden flex-shrink-0">
                             <img
-                              src={getImageUrl(
-                                item.image || "/placeholder.png"
-                              )}
+                              src={
+                                images[index] ||
+                                "https://via.placeholder.com/150?text=No+Image"
+                              }
                               alt={item.name}
                               className="h-full w-full object-cover"
                             />
