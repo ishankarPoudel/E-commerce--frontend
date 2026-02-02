@@ -212,8 +212,17 @@ export type AddBagValidator = {
 
 export type UpdateBagValidator = {
     name?: string;
+    type?: BagType;
     price?: number;
     description?: string;
+    brand?: string;
+    material?: string;
+    colors?: Array<string>;
+    sizes?: Array<string>;
+    weightKg?: number;
+    capacityLiters?: number;
+    isFeatured?: boolean;
+    features?: RecordStringBoolean;
     categories?: Array<string>;
     bagImages?: Array<string>;
 };
@@ -451,22 +460,6 @@ export type GetAllOrdersResponses = {
                 orderStatus: 'new' | 'processing' | 'cancelled' | 'completed';
                 status: 'pending' | 'paid' | 'failed' | 'refunded';
                 user: UserEntity;
-                items: Array<{
-                    product: {
-                        images: Array<{
-                            url: unknown;
-                            id: string;
-                        }>;
-                        price: number;
-                        name: string;
-                        id: string;
-                    };
-                    size: string;
-                    color: string;
-                    unitPrice: number;
-                    quantity: number;
-                    id: string;
-                }>;
                 shippingAddress: string;
             }>;
         };
@@ -640,6 +633,48 @@ export type SaveMultipleImagesToDbResponses = {
 };
 
 export type SaveMultipleImagesToDbResponse = SaveMultipleImagesToDbResponses[keyof SaveMultipleImagesToDbResponses];
+
+export type DeleteSingleImageFromCloudinaryData = {
+    body: {
+        publicId: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/media/delete-single-image';
+};
+
+export type DeleteSingleImageFromCloudinaryResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        message: string;
+        success: boolean;
+    };
+};
+
+export type DeleteSingleImageFromCloudinaryResponse = DeleteSingleImageFromCloudinaryResponses[keyof DeleteSingleImageFromCloudinaryResponses];
+
+export type DeleteMultipleImagesFromCloudinaryData = {
+    body: {
+        publicId: Array<string>;
+    };
+    path?: never;
+    query?: never;
+    url: '/media/delete-multiple-images';
+};
+
+export type DeleteMultipleImagesFromCloudinaryResponses = {
+    /**
+     * Ok
+     */
+    200: {
+        message: string;
+        success: boolean;
+    };
+};
+
+export type DeleteMultipleImagesFromCloudinaryResponse = DeleteMultipleImagesFromCloudinaryResponses[keyof DeleteMultipleImagesFromCloudinaryResponses];
 
 export type SearchData = {
     body: {
@@ -1029,7 +1064,9 @@ export type DeleteBagByIdResponses = {
      * Ok
      */
     200: {
-        data: BagEntity;
+        data: {
+            success: boolean;
+        };
         message: string;
         success: boolean;
     };

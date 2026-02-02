@@ -1,5 +1,7 @@
 import {
   deleteBagByIdMutation,
+  deleteMultipleImagesFromCloudinaryMutation,
+  deleteSingleImageFromCloudinaryMutation,
   getAllBagsOptions,
   getAllBagsQueryKey,
   getCategoriesOptions,
@@ -29,7 +31,6 @@ import { ChevronRight, Edit, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
-// ✅ Updated interfaces to match backend response
 interface MediaImage {
   id: string;
   url: string;
@@ -62,7 +63,7 @@ interface Bag {
   weightKg?: number;
   capacityLiters?: number;
   isFeatured?: boolean;
-  images: MediaImage[]; // ✅ Changed from bagImages to images
+  images: MediaImage[];
   categories: Category[];
   features?: Record<string, boolean>;
   createdAt: string;
@@ -139,6 +140,10 @@ const BagList = () => {
       setIsDetailOpen(false);
       setIsDialogOpen(false);
       setDeleteDialogOpen(false);
+      //now delete images of associated bag from cloudinary
+
+      // If there were multiple images to delete in bulk,
+
       toast.success(response?.message || "Bag deleted successfully");
     },
     onError: (error) => {
@@ -300,7 +305,6 @@ const BagList = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
             {filteredBags.map((bag) => {
-              // ✅ Get first image URL for each bag
               const firstImageUrl =
                 bag.images && bag.images.length > 0
                   ? bag.images[0].url
@@ -325,7 +329,6 @@ const BagList = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                    {/* ✅ Show image count badge if multiple images */}
                     {bag.images && bag.images.length > 1 && (
                       <div className="absolute top-3 left-3">
                         <Badge className="bg-black/70 text-white text-xs">
@@ -408,7 +411,6 @@ const BagList = () => {
                 </DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 max-h-[70vh] overflow-y-auto p-1">
-                {/* ✅ Main Image */}
                 <div className="aspect-square relative bg-muted rounded-md overflow-hidden">
                   <img
                     src={
@@ -492,7 +494,6 @@ const BagList = () => {
                     ))}
                   </div>
 
-                  {/* ✅ Image Gallery - shows all images */}
                   <h3 className="text-lg font-medium mb-1">
                     Gallery ({selectedBag.images?.length || 0} images)
                   </h3>

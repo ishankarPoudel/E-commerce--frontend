@@ -368,7 +368,6 @@ const UpdateBag = ({ bag }: UpdateBagProps) => {
               path: { id: bag.id },
               body: {
                 name: data.name,
-                //@ts-expect-error
                 type: data.type as BagType,
                 price: Number(data.price),
                 description: data.description,
