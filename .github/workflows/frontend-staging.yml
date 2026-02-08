@@ -1,0 +1,37 @@
+name: Frontend Staging CI/CD
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Frontend to Netlify (Staging)
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️ Pull source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+
+      # 3️Install dependencies (clean & deterministic)
+      - name: Install dependencies
+        run: pnpm install
+      # 4️ Build frontend
+      - name: Build project
+        run: pnpm run build
+
+      # 5️ Deploy to Netlify (only if build succeeds)
+      - name: Deploy to Netlify (Staging)
+        run: npx netlify-cli deploy --prod --dir=dist
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
