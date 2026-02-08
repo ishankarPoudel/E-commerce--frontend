@@ -7,29 +7,35 @@ on:
 
 jobs:
   build-and-deploy:
-    name: Build & Deploy Frontend to Netlify (Staging)
     runs-on: ubuntu-latest
 
     steps:
-      # 1️ Pull source code
+      # Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️ Setup Node.js
+      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: pnpm
 
-      # 3️Install dependencies (clean & deterministic)
-      - name: Install dependencies
-        run: pnpm install
-      # 4️ Build frontend
-      - name: Build project
-        run: pnpm run build
+      # Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-      # 5️ Deploy to Netlify (only if build succeeds)
+      #  Install dependencies
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build frontend
+      - name: Build project
+        run: pnpm build
+
+      # Deploy to Netlify
       - name: Deploy to Netlify (Staging)
         run: npx netlify-cli deploy --prod --dir=dist
         env:
