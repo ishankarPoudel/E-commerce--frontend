@@ -12,7 +12,14 @@ jobs:
     steps:
       # Checkout code
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses:
+          actions/checkout@v4
+
+          # Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       # Setup Node.js
       - name: Setup Node.js
@@ -20,12 +27,6 @@ jobs:
         with:
           node-version: 18
           cache: pnpm
-
-      # Install pnpm
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       #  Install dependencies
       - name: Install dependencies
