@@ -19,7 +19,6 @@ client.setConfig({
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
   const response = await originalFetch(input, init);
-
   const url = input instanceof Request ? input.url : input.toString();
 
   // Skip force logout check for auth endpoints (login, register, etc.)
@@ -85,7 +84,6 @@ window.fetch = async (input, init) => {
 
           try {
             const refreshResult = await refreshToken({
-              credentials: "include",
               throwOnError: false,
             });
 
