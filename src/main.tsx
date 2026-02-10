@@ -11,6 +11,9 @@ import { refreshToken } from "./api/sdk.gen";
 client.setConfig({
   baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8000",
   credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 const originalFetch = window.fetch;
@@ -28,7 +31,8 @@ window.fetch = async (input, init) => {
     url.includes("/auth/recover-password") ||
     url.includes("/auth/google") ||
     url.includes("/refresh-token") ||
-    url.includes("/auth/logout");
+    url.includes("/auth/logout") ||
+    url.includes("/auth/google/callback");
 
   // check force logout FIRST (before token refresh)
   if (
@@ -60,7 +64,7 @@ window.fetch = async (input, init) => {
             .replace(/^ +/, "")
             .replace(
               /=.*/,
-              "=;expires=" + new Date().toUTCString() + ";path=/"
+              "=;expires=" + new Date().toUTCString() + ";path=/",
             );
         });
 
@@ -153,5 +157,5 @@ createRoot(document.getElementById("root")!).render(
       <RouterProvider router={router} />
       <Toaster />
     </StrictMode>
-  </QueryClientProvider>
+  </QueryClientProvider>,
 );
