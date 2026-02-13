@@ -21,12 +21,4 @@ export type CreateClientConfig<T extends DefaultClientOptions = ClientOptions> =
     override?: Config<DefaultClientOptions & T>,
   ) => Config<Required<DefaultClientOptions> & T>;
 
-export const client = createClient(
-  createConfig<ClientOptions>({
-    baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8000",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }),
-);
+export const client = createClient(createConfig<ClientOptions>());
