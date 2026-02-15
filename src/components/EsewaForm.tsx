@@ -2,20 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 interface EsewaPaymentFormProps {
   formUrl: string;
-  params: {
-    product_delivery_charge: string | number | readonly string[] | undefined;
-    product_service_charge: string | number | readonly string[] | undefined;
-    product_code: string | number | readonly string[] | undefined;
-    total_amount: string | number | readonly string[] | undefined;
-    amount: number;
-    tax_amount: number;
-    transaction_uuid: string;
-    productCode: string;
-    success_url: string;
-    failure_url: string;
-    signed_field_names: string;
-    signature: string;
-  };
+  params: Record<string, unknown>;
 }
 
 export const EsewaPaymentForm = ({
@@ -24,6 +11,15 @@ export const EsewaPaymentForm = ({
 }: EsewaPaymentFormProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  const normalizedParams = Object.fromEntries(
+    Object.entries(params).map(([key, value]) => {
+      if (value === undefined || value === null) {
+        throw new Error(`Missing eSewa field: ${key}`);
+      }
+      return [key, String(value)];
+    }),
+  ) as Record<string, string>;
 
   useEffect(() => {
     if (!formRef.current || submitted) return;
@@ -42,40 +38,9 @@ export const EsewaPaymentForm = ({
       <p>Securely redirecting you to complete your payment.</p>
 
       <form ref={formRef} action={formUrl} method="POST">
-        <input type="hidden" name="amount" value={params.amount} />
-        <input type="hidden" name="tax_amount" value={params.tax_amount} />
-        <input type="hidden" name="total_amount" value={params.total_amount} />
-
-        <input
-          type="hidden"
-          name="transaction_uuid"
-          value={params.transaction_uuid}
-        />
-
-        <input type="hidden" name="product_code" value={params.product_code} />
-
-        <input
-          type="hidden"
-          name="product_service_charge"
-          value={params.product_service_charge}
-        />
-
-        <input
-          type="hidden"
-          name="product_delivery_charge"
-          value={params.product_delivery_charge}
-        />
-
-        <input type="hidden" name="success_url" value={params.success_url} />
-        <input type="hidden" name="failure_url" value={params.failure_url} />
-
-        <input
-          type="hidden"
-          name="signed_field_names"
-          value={params.signed_field_names}
-        />
-
-        <input type="hidden" name="signature" value={params.signature} />
+        {Object.entries(normalizedParams).map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} readOnly />
+        ))}
       </form>
     </>
   );

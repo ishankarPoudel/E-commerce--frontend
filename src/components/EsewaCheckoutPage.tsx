@@ -18,7 +18,6 @@ export const EsewaCheckoutPage = () => {
     try {
       const parsed = JSON.parse(stored);
 
-      // Basic integrity checks
       if (
         parsed.provider !== "esewa" ||
         !parsed.formUrl ||
