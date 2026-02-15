@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface EsewaPaymentFormProps {
   formUrl: string;
@@ -23,49 +23,60 @@ export const EsewaPaymentForm = ({
   params,
 }: EsewaPaymentFormProps) => {
   const formRef = useRef<HTMLFormElement>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    if (formRef.current) {
-      formRef.current.submit();
-    }
-  }, []);
+    if (!formRef.current || submitted) return;
+
+    const timer = setTimeout(() => {
+      formRef.current?.submit();
+      setSubmitted(true);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [submitted]);
 
   return (
-    <form ref={formRef} action={formUrl} method="POST">
-      <input type="hidden" name="amount" value={params.amount} />
-      <input type="hidden" name="tax_amount" value={params.tax_amount} />
-      <input type="hidden" name="total_amount" value={params.total_amount} />
+    <>
+      <h2>Connecting to eSewa</h2>
+      <p>Securely redirecting you to complete your payment.</p>
 
-      <input
-        type="hidden"
-        name="transaction_uuid"
-        value={params.transaction_uuid}
-      />
+      <form ref={formRef} action={formUrl} method="POST">
+        <input type="hidden" name="amount" value={params.amount} />
+        <input type="hidden" name="tax_amount" value={params.tax_amount} />
+        <input type="hidden" name="total_amount" value={params.total_amount} />
 
-      <input type="hidden" name="product_code" value={params.product_code} />
+        <input
+          type="hidden"
+          name="transaction_uuid"
+          value={params.transaction_uuid}
+        />
 
-      <input
-        type="hidden"
-        name="product_service_charge"
-        value={params.product_service_charge}
-      />
+        <input type="hidden" name="product_code" value={params.product_code} />
 
-      <input
-        type="hidden"
-        name="product_delivery_charge"
-        value={params.product_delivery_charge}
-      />
+        <input
+          type="hidden"
+          name="product_service_charge"
+          value={params.product_service_charge}
+        />
 
-      <input type="hidden" name="success_url" value={params.success_url} />
-      <input type="hidden" name="failure_url" value={params.failure_url} />
+        <input
+          type="hidden"
+          name="product_delivery_charge"
+          value={params.product_delivery_charge}
+        />
 
-      <input
-        type="hidden"
-        name="signed_field_names"
-        value={params.signed_field_names}
-      />
+        <input type="hidden" name="success_url" value={params.success_url} />
+        <input type="hidden" name="failure_url" value={params.failure_url} />
 
-      <input type="hidden" name="signature" value={params.signature} />
-    </form>
+        <input
+          type="hidden"
+          name="signed_field_names"
+          value={params.signed_field_names}
+        />
+
+        <input type="hidden" name="signature" value={params.signature} />
+      </form>
+    </>
   );
 };
