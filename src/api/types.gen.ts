@@ -227,6 +227,15 @@ export type UpdateBagValidator = {
     bagImages?: Array<string>;
 };
 
+export type VerifyOtpRequest = {
+    email: string;
+    otp: string;
+};
+
+export type ResendOtpRequest = {
+    email: string;
+};
+
 export type UserResponseData = {
     email: string;
     fullName: string;
@@ -257,6 +266,10 @@ export type LoginValidator = {
     browser: string;
     device: string;
     location: string;
+};
+
+export type ResetPasswordRequest = {
+    email: string;
 };
 
 export type RevenueMetrics = {
@@ -364,7 +377,7 @@ export type UpdateUserByIdData = {
 
 export type UpdateUserByIdResponses = {
     /**
-     * User updated successfully
+     * Ok
      */
     200: {
         data: {
@@ -725,13 +738,13 @@ export type InitiateEsewaPaymentResponses = {
                 signed_field_names: string;
                 failure_url: string;
                 success_url: string;
-                product_delivery_charge: number;
-                product_service_charge: number;
+                product_delivery_charge: string;
+                product_service_charge: string;
                 product_code: string;
                 transaction_uuid: string;
-                total_amount: unknown;
-                tax_amount: number;
-                amount: unknown;
+                total_amount: string;
+                tax_amount: string;
+                amount: string;
             };
             formUrl: string;
         };
@@ -1119,10 +1132,7 @@ export type GetBagsByCategoryIdResponses = {
 export type GetBagsByCategoryIdResponse = GetBagsByCategoryIdResponses[keyof GetBagsByCategoryIdResponses];
 
 export type VerifyOtpData = {
-    body: {
-        email: string;
-        otp: string;
-    };
+    body: VerifyOtpRequest;
     path?: never;
     query?: never;
     url: '/auth/verify-otp';
@@ -1145,9 +1155,7 @@ export type VerifyOtpResponses = {
 export type VerifyOtpResponse = VerifyOtpResponses[keyof VerifyOtpResponses];
 
 export type ResendOtpData = {
-    body: {
-        email: string;
-    };
+    body: ResendOtpRequest;
     path?: never;
     query?: never;
     url: '/auth/resend-otp';
@@ -1229,9 +1237,7 @@ export type LogoutResponses = {
 export type LogoutResponse = LogoutResponses[keyof LogoutResponses];
 
 export type ResetPasswordData = {
-    body: {
-        email: string;
-    };
+    body: ResetPasswordRequest;
     path?: never;
     query?: never;
     url: '/auth/reset-password';
