@@ -96,6 +96,7 @@ export function AddToCartButton({
   const handleAddToCart = async (e?: React.MouseEvent) => {
     if (authLoading) {
       toast.loading("verifying authentication...");
+      return;
     }
     if (!isAuthenticated) {
       (toast.info("Please log in to add items to your cart"),
@@ -109,6 +110,7 @@ export function AddToCartButton({
             },
           },
         });
+      return;
     }
     e?.stopPropagation();
     if (product.stock === 0) {
@@ -327,7 +329,7 @@ export function AddToCartButton({
                     <button
                       type="button"
                       onClick={decrementQuantity}
-                      disabled={quantity <= 1}
+                      disabled={quantity <= 1 || authLoading}
                       className="h-9 w-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg"
                     >
                       <Minus className="h-4 w-4" />
@@ -338,7 +340,9 @@ export function AddToCartButton({
                     <button
                       type="button"
                       onClick={incrementQuantity}
-                      disabled={quantity >= (product.stock ?? Infinity)}
+                      disabled={
+                        quantity >= (product.stock ?? Infinity) || authLoading
+                      }
                       className="h-9 w-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg"
                     >
                       <Plus className="h-4 w-4" />
@@ -358,6 +362,7 @@ export function AddToCartButton({
                 "",
                 isAdding && "opacity-70 cursor-not-allowed",
                 showSuccess && "hover:cursor-default",
+                authLoading && "opacity-70 cursor-not-allowed",
               )}
             >
               {showSuccess ? (
