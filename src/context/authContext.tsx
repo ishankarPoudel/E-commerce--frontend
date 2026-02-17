@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ...getCurrentUserOptions(),
     refetchOnWindowFocus: true,
     refetchOnMount: true,
+    enabled: hasToken, // Only run if token exists
   });
 
   const checkAuth = async () => {
