@@ -32,31 +32,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const hasToken = document.cookie.includes("accessToken");
 
-  //get current user details
   const {
     data: response,
     isLoading: queryLoading,
     refetch: refetchCurrentUser,
   } = useQuery({
     ...getCurrentUserOptions(),
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     refetchOnMount: true,
-    enabled: hasToken, // Only run if token exists
   });
 
   const checkAuth = async () => {
     try {
       setIsLoading(true);
 
+      console.log("🔍 checkAuth - response:", response);
+
       if (response?.data && response.success) {
+        console.log("✅ Setting user:", response.data);
         setUser(response.data as User);
       } else {
+        console.log("❌ No valid response, setting user to null");
         setUser(null);
       }
     } catch (error) {
-      console.error("Auth check failed:", error);
+      console.error("❌ Auth check failed:", error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -71,6 +72,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refetch = async () => {
     const result = await refetchCurrentUser();
 
+    console.log("🔄 Refetch result:", result);
+
     if (result.data?.data && result.data.success) {
       setUser(result.data.data as User);
       return;
@@ -78,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(null);
   };
+
   useEffect(() => {
     if (response) {
       checkAuth();
@@ -88,11 +92,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(queryLoading);
   }, [queryLoading]);
 
+  const isAuthenticated = !!user; // ← Check if this logic is correct
+
+  console.log("🔍 Final Auth State:", {
+    user,
+    isLoading,
+    isAuthenticated,
+    isAdmin: user?.role === "admin",
+  });
+
   const value = {
     user,
     isLoading,
     isAdmin: user?.role === "admin",
-    isAuthenticated: hasToken && (!!user || isLoading),
+    isAuthenticated,
     checkAuth,
     logout,
     refetch,
