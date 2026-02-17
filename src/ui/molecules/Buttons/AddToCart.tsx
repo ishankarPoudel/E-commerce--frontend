@@ -94,25 +94,31 @@ export function AddToCartButton({
   });
 
   const handleAddToCart = async (e?: React.MouseEvent) => {
+    console.log(" Add to Cart clicked:", {
+      authLoading,
+      isAuthenticated,
+    });
     if (authLoading) {
+      console.log(" Auth still loading");
       toast.loading("verifying authentication...");
       return;
     }
     if (!isAuthenticated) {
-      (toast.info("Please log in to add items to your cart"),
-        {
-          action: {
-            label: "LogIn",
-            onClick: () => {
-              navigate({
-                to: "/auth/login",
-              });
-            },
+      console.log(" User not authenticated");
+      toast.info("Please log in to add items to your cart", {
+        action: {
+          label: "Log In",
+          onClick: () => {
+            navigate({
+              to: "/auth/login",
+            });
           },
-        });
+        },
+      });
       return;
     }
     e?.stopPropagation();
+    console.log(" Proceeding with add to cart:");
     if (product.stock === 0) {
       toast.error("This item is currently unavailable");
       return;
