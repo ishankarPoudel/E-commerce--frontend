@@ -33,7 +33,7 @@ window.fetch = async (input, init) => {
     url.includes("/auth/reset-password") ||
     url.includes("/auth/recover-password") ||
     url.includes("/auth/google") ||
-    url.includes("/refresh-token") ||
+    url.includes("/auth/refresh-token") ||
     url.includes("/auth/logout") ||
     url.includes("/auth/google/callback");
 
@@ -52,15 +52,10 @@ window.fetch = async (input, init) => {
       const errorType = data.errorType || "unknown";
       const currentPath = window.location.pathname;
 
-      console.log(
-        `Auth Error - Type: ${errorType}, Status: ${response.status}`,
-      );
-
       //  Handle based on errorType FIRST
       switch (errorType) {
         case "guest_user": {
           //User not logged in - DON'T clear storage, DON'T try refresh
-          console.log("Guest user - redirecting to login");
 
           if (!window.location.pathname.includes("/auth/login")) {
             window.location.replace(
@@ -79,7 +74,7 @@ window.fetch = async (input, init) => {
             refreshPromise = refreshToken({ throwOnError: false });
 
             try {
-              const refreshResult = await refreshPromise;
+              await refreshPromise;
               console.log(" Token refreshed successfully");
               isRefreshing = false;
               refreshPromise = null;
@@ -94,6 +89,14 @@ window.fetch = async (input, init) => {
               // Clear and redirect
               localStorage.clear();
               sessionStorage.clear();
+              document.cookie.split(";").forEach((c) => {
+                document.cookie = c
+                  .replace(/^ +/, "")
+                  .replace(
+                    /=.*/,
+                    "=;expires=" + new Date().toUTCString() + ";path=/",
+                  );
+              });
               window.location.replace(
                 `/auth/login?error=session_expired&redirect=${encodeURIComponent(currentPath)}`,
               );
@@ -172,7 +175,7 @@ window.fetch = async (input, init) => {
         case "insufficient_permissions": {
           //  User authenticated but not authorized - DON'T logout
           console.log("Insufficient permissions");
-          // Let component handle this error
+
           return response;
         }
 
