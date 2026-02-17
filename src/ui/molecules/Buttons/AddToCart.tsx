@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { ShoppingCart, Check, Plus, Minus, X } from "lucide-react";
+import { ShoppingCart, Check, Plus, Minus } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent } from "@/ui/shadcn/dialog";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,8 @@ import { getImageUrl } from "@/utils/urlHelpers";
 import { useMutation } from "@tanstack/react-query";
 import { addToCartMutation } from "@/api/@tanstack/react-query.gen";
 import { MediaEntity } from "@/api";
+import { useAuth } from "@/context/authContext";
+import { useNavigate } from "@tanstack/react-router";
 
 interface Product {
   id: string;
@@ -79,6 +81,8 @@ export function AddToCartButton({
   const [isAdding, setIsAdding] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   // const { addItem } = useCart();
   const needsOptions =
@@ -90,6 +94,19 @@ export function AddToCartButton({
   });
 
   const handleAddToCart = async (e?: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      (toast.info("Please log in to add items to your cart"),
+        {
+          action: {
+            label: "LogIn",
+            onClick: () => {
+              navigate({
+                to: "/auth/login",
+              });
+            },
+          },
+        });
+    }
     e?.stopPropagation();
     if (product.stock === 0) {
       toast.error("This item is currently unavailable");

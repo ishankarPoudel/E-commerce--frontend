@@ -27,6 +27,7 @@ export default function CategoryBasedBags() {
     ...getCategoriesWithBagsOptions({
       query: { page: 1, limit: 10 },
     }),
+    retry: 1,
   });
 
   const checkScrollButtons = (categoryId: string) => {
