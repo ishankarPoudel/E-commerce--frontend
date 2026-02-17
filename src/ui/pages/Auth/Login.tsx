@@ -20,9 +20,11 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/authContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { refetch } = useAuth();
   const [errorType, setErrorType] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -108,8 +110,9 @@ const Login = () => {
         },
       },
       {
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           toast.success(response.message || "Login successful");
+          await refetch(); // Update auth context with new user data
           const urlParams = new URLSearchParams(window.location.search);
           const redirect = urlParams.get("redirect") || "/";
           navigate({ to: redirect });

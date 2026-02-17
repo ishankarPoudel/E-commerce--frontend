@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isLoading,
     isAdmin: user?.role === "admin",
-    isAuthenticated: !!user,
+    isAuthenticated: hasToken && (!!user || isLoading),
     checkAuth,
     logout,
     refetch,
