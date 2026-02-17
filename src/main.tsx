@@ -6,7 +6,6 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./ui/shadcn/sonner";
 import { client } from "./api/client.gen";
-import { refreshToken } from "./api/sdk.gen";
 
 client.setConfig({
   baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8000",
@@ -18,12 +17,12 @@ client.setConfig({
 
 // Track refresh token state
 let isRefreshing = false;
-let refreshPromise: Promise<any> | null = null;
 
 let failedQueue: Array<{
   resolve: (value?: any) => void;
   reject: (reason?: any) => void;
 }> = [];
+
 const processQueue = (error: any = null) => {
   failedQueue.forEach((promise) => {
     if (error) {
@@ -34,10 +33,21 @@ const processQueue = (error: any = null) => {
   });
   failedQueue = [];
 };
+
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
-  const response = await originalFetch(input, init);
   const url = input instanceof Request ? input.url : input.toString();
+
+  // ✅ DEBUG: Log every request
+  console.log("📡 REQUEST:", url);
+
+  const response = await originalFetch(input, init);
+
+  // ✅ DEBUG: Log every response
+  console.log("📡 RESPONSE:", url, {
+    status: response.status,
+    ok: response.ok,
+  });
 
   // Skip auth endpoints
   const isAuthEndpoint =
@@ -58,26 +68,42 @@ window.fetch = async (input, init) => {
     console.log("👤 User not logged in - allowing guest access");
     return response;
   }
+
   // Handle 401/403 errors
   if (
     (response.status === 401 || response.status === 403) &&
     url.includes(import.meta.env.VITE_API_URL) &&
     !isAuthEndpoint
   ) {
+    console.log("🚨 AUTH ERROR DETECTED:", {
+      url,
+      status: response.status,
+      isAuthEndpoint,
+    });
+
     const responseClone = response.clone();
 
     try {
       const data = await responseClone.json();
 
-      //  Get errorType
+      // ✅ DEBUG: Log the full error response
+      console.log("🚨 ERROR DATA:", {
+        url,
+        status: response.status,
+        errorType: data.errorType,
+        message: data.message,
+        forceLogout: data.forceLogout,
+        fullData: data,
+      });
+
       const errorType = data.errorType || "unknown";
       const currentPath = window.location.pathname;
 
-      //  Handle based on errorType FIRST
+      console.log("🔍 HANDLING ERROR TYPE:", errorType);
+
       switch (errorType) {
         case "guest_user": {
-          //User not logged in - DON'T clear storage, DON'T try refresh
-
+          console.log("❌ CASE: guest_user");
           if (!window.location.pathname.includes("/auth/login")) {
             window.location.replace(
               `/auth/login?error=guest_user&redirect=${encodeURIComponent(currentPath)}`,
@@ -87,14 +113,14 @@ window.fetch = async (input, init) => {
         }
 
         case "token_expired": {
-          // Token exists but expired - TRY refresh
-          console.log(" Token expired - attempting refresh");
+          console.log("⏰ CASE: token_expired - Access token expired");
 
           if (!isRefreshing) {
             isRefreshing = true;
-            refreshPromise = refreshToken({ throwOnError: false });
+            console.log("🔄 Starting token refresh...");
 
             try {
+              console.log("🔄 Calling refresh endpoint...");
               const refreshResponse = await originalFetch(
                 `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
                 {
@@ -105,22 +131,121 @@ window.fetch = async (input, init) => {
                   },
                 },
               );
+
+              console.log(
+                "🔄 Refresh response status:",
+                refreshResponse.status,
+              );
+
               if (!refreshResponse.ok) {
-                throw new Error("Refresh token failed");
+                const errorData = await refreshResponse.json();
+                console.error("❌ Refresh failed:", errorData);
+
+                const refreshErrorType = errorData.errorType;
+                const shouldForceLogout = errorData.forceLogout;
+
+                isRefreshing = false;
+                processQueue(new Error(errorData.message || "Refresh failed"));
+
+                if (
+                  refreshErrorType === "session_expired" &&
+                  shouldForceLogout
+                ) {
+                  console.log(
+                    "⏰ Session expired (refresh token expired) - logging out",
+                  );
+
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                      .replace(/^ +/, "")
+                      .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/",
+                      );
+                  });
+
+                  window.location.replace(
+                    `/auth/login?error=session_expired&message=${encodeURIComponent("Your session has expired. Please log in again.")}&redirect=${encodeURIComponent(currentPath)}`,
+                  );
+                  return response;
+                } else if (refreshErrorType === "account_banned") {
+                  console.log("⛔ Account banned - logging out");
+
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                      .replace(/^ +/, "")
+                      .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/",
+                      );
+                  });
+
+                  window.location.replace(
+                    `/auth/login?error=account_banned&message=${encodeURIComponent("Your account has been banned. Contact support.")}`,
+                  );
+                  return response;
+                } else if (refreshErrorType === "session_revoked") {
+                  console.log("🚫 Session revoked by admin - logging out");
+
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                      .replace(/^ +/, "")
+                      .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/",
+                      );
+                  });
+
+                  window.location.replace(
+                    `/auth/login?error=session_revoked&message=${encodeURIComponent("Your session has been revoked by an administrator.")}`,
+                  );
+                  return response;
+                } else if (shouldForceLogout) {
+                  console.log("🚪 Force logout - clearing session");
+
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                      .replace(/^ +/, "")
+                      .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/",
+                      );
+                  });
+
+                  window.location.replace(
+                    `/auth/login?error=${refreshErrorType || "invalid_session"}&redirect=${encodeURIComponent(currentPath)}`,
+                  );
+                  return response;
+                } else {
+                  console.log("👤 Guest user - redirecting to login");
+                  window.location.replace(
+                    `/auth/login?error=guest_user&redirect=${encodeURIComponent(currentPath)}`,
+                  );
+                  return response;
+                }
               }
 
               const refreshData = await refreshResponse.json();
+              console.log("✅ Token refreshed successfully:", refreshData);
+
               isRefreshing = false;
               processQueue();
 
-              // Retry original request
+              console.log("🔄 Retrying original request:", url);
               return await originalFetch(input, init);
             } catch (refreshError) {
-              console.error(" Refresh failed:", refreshError);
+              console.error("❌ Unexpected refresh error:", refreshError);
               isRefreshing = false;
               processQueue(refreshError);
 
-              // Clear and redirect
               localStorage.clear();
               sessionStorage.clear();
               document.cookie.split(";").forEach((c) => {
@@ -131,35 +256,33 @@ window.fetch = async (input, init) => {
                     "=;expires=" + new Date().toUTCString() + ";path=/",
                   );
               });
+
               window.location.replace(
-                `/auth/login?error=session_expired&redirect=${encodeURIComponent(currentPath)}`,
+                `/auth/login?error=network_error&redirect=${encodeURIComponent(currentPath)}`,
               );
               return response;
             }
           } else {
-            console.log(" Refresh in progress - queuing request");
+            console.log("⏳ Refresh in progress - queuing request");
 
             return new Promise((resolve, reject) => {
               failedQueue.push({ resolve, reject });
             })
               .then(() => {
-                console.log("Retrying queued request:", url);
+                console.log("🔄 Retrying queued request:", url);
                 return originalFetch(input, init);
               })
               .catch((error) => {
-                console.error("Queued request failed:", error);
+                console.error("❌ Queued request failed:", error);
                 return response;
               });
           }
         }
 
         case "session_revoked": {
-          // Admin revoked session
-          console.log("Session revoked by admin");
+          console.log("🚫 CASE: session_revoked");
           localStorage.clear();
           sessionStorage.clear();
-
-          // Clear cookies
           document.cookie.split(";").forEach((c) => {
             document.cookie = c
               .replace(/^ +/, "")
@@ -168,18 +291,14 @@ window.fetch = async (input, init) => {
                 "=;expires=" + new Date().toUTCString() + ";path=/",
               );
           });
-
           window.location.replace("/auth/login?error=session_revoked");
           return response;
         }
 
         case "account_banned": {
-          // Account banned
-          console.log("Account banned");
+          console.log("⛔ CASE: account_banned");
           localStorage.clear();
           sessionStorage.clear();
-
-          // Clear cookies
           document.cookie.split(";").forEach((c) => {
             document.cookie = c
               .replace(/^ +/, "")
@@ -188,19 +307,15 @@ window.fetch = async (input, init) => {
                 "=;expires=" + new Date().toUTCString() + ";path=/",
               );
           });
-
           window.location.replace("/auth/login?error=account_banned");
           return response;
         }
 
         case "invalid_token":
         case "user_not_found": {
-          // Invalid/corrupted token or user deleted
-          console.log("Invalid session");
+          console.log("❌ CASE: invalid_token/user_not_found");
           localStorage.clear();
           sessionStorage.clear();
-
-          // Clear cookies
           document.cookie.split(";").forEach((c) => {
             document.cookie = c
               .replace(/^ +/, "")
@@ -209,7 +324,6 @@ window.fetch = async (input, init) => {
                 "=;expires=" + new Date().toUTCString() + ";path=/",
               );
           });
-
           window.location.replace(
             `/auth/login?error=session_expired&redirect=${encodeURIComponent(currentPath)}`,
           );
@@ -217,21 +331,17 @@ window.fetch = async (input, init) => {
         }
 
         case "insufficient_permissions": {
-          //  User authenticated but not authorized - DON'T logout
-          console.log("Insufficient permissions");
-
+          console.log("⚠️ CASE: insufficient_permissions");
           return response;
         }
 
         default: {
-          // Unknown error - check forceLogout as fallback
-          console.warn(` Unknown errorType: ${errorType}`);
+          console.warn("⚠️ CASE: default/unknown -", errorType);
 
           if (data.forceLogout === true) {
-            console.log(" Force logout flag set");
+            console.log("🚪 Force logout flag set");
             localStorage.clear();
             sessionStorage.clear();
-
             document.cookie.split(";").forEach((c) => {
               document.cookie = c
                 .replace(/^ +/, "")
@@ -240,7 +350,6 @@ window.fetch = async (input, init) => {
                   "=;expires=" + new Date().toUTCString() + ";path=/",
                 );
             });
-
             window.location.replace(
               `/auth/login?error=session_expired&redirect=${encodeURIComponent(currentPath)}`,
             );
@@ -249,8 +358,7 @@ window.fetch = async (input, init) => {
         }
       }
     } catch (parseError) {
-      // Can't parse JSON response
-      console.error(" Could not parse error response:", parseError);
+      console.error("❌ Could not parse error response:", parseError);
 
       if (response.status === 401 || response.status === 403) {
         localStorage.clear();
@@ -270,7 +378,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error: any) => {
-        // Don't retry on auth errors
         if (
           error?.status === 401 ||
           error?.status === 403 ||
