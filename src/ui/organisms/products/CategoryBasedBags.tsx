@@ -22,13 +22,11 @@ export default function CategoryBasedBags() {
   const [visibleItems, setVisibleItems] = useState<Map<string, number>>(
     new Map(),
   );
-  const hasToken = document.cookie.includes("accessToken");
 
   const { data: listOfBag, isLoading } = useQuery({
     ...getCategoriesWithBagsOptions({
       query: { page: 1, limit: 10 },
     }),
-    enabled: hasToken,
   });
 
   const checkScrollButtons = (categoryId: string) => {
