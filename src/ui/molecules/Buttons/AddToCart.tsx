@@ -82,7 +82,7 @@ export function AddToCartButton({
   const [showSuccess, setShowSuccess] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   // const { addItem } = useCart();
   const needsOptions =
@@ -94,6 +94,9 @@ export function AddToCartButton({
   });
 
   const handleAddToCart = async (e?: React.MouseEvent) => {
+    if (isLoading) {
+      return;
+    }
     if (!isAuthenticated) {
       (toast.info("Please log in to add items to your cart"),
         {

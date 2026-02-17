@@ -35,7 +35,9 @@ window.fetch = async (input, init) => {
     url.includes("/auth/google") ||
     url.includes("/auth/refresh-token") ||
     url.includes("/auth/logout") ||
-    url.includes("/auth/google/callback");
+    url.includes("/auth/google/callback") ||
+    url.includes("/legal/privacy-policy") ||
+    url.includes("/legal/terms-of-use");
 
   // Handle 401/403 errors
   if (

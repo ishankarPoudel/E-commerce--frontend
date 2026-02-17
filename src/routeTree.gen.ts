@@ -18,6 +18,8 @@ import { Route as CheckoutIndexRouteImport } from './routes/checkout/index'
 import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as AdminDashboardIndexRouteImport } from './routes/admin-dashboard/index'
 import { Route as SearchIdRouteImport } from './routes/search/$id'
+import { Route as LegalTermsOfUseRouteImport } from './routes/legal/terms-of-use'
+import { Route as LegalPrivacyPolicyRouteImport } from './routes/legal/privacy-policy'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout/success'
 import { Route as CheckoutResultRouteImport } from './routes/checkout/result'
 import { Route as CheckoutEsewaCheckoutRouteImport } from './routes/checkout/esewa-checkout'
@@ -80,6 +82,16 @@ const AdminDashboardIndexRoute = AdminDashboardIndexRouteImport.update({
 const SearchIdRoute = SearchIdRouteImport.update({
   id: '/search/$id',
   path: '/search/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsOfUseRoute = LegalTermsOfUseRouteImport.update({
+  id: '/legal/terms-of-use',
+  path: '/legal/terms-of-use',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyPolicyRoute = LegalPrivacyPolicyRouteImport.update({
+  id: '/legal/privacy-policy',
+  path: '/legal/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
@@ -184,6 +196,8 @@ export interface FileRoutesByFullPath {
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
+  '/legal/terms-of-use': typeof LegalTermsOfUseRoute
   '/search/$id': typeof SearchIdRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/cart': typeof CartIndexRoute
@@ -213,6 +227,8 @@ export interface FileRoutesByTo {
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
+  '/legal/terms-of-use': typeof LegalTermsOfUseRoute
   '/search/$id': typeof SearchIdRoute
   '/admin-dashboard': typeof AdminDashboardIndexRoute
   '/cart': typeof CartIndexRoute
@@ -243,6 +259,8 @@ export interface FileRoutesById {
   '/checkout/esewa-checkout': typeof CheckoutEsewaCheckoutRoute
   '/checkout/result': typeof CheckoutResultRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/legal/privacy-policy': typeof LegalPrivacyPolicyRoute
+  '/legal/terms-of-use': typeof LegalTermsOfUseRoute
   '/search/$id': typeof SearchIdRoute
   '/admin-dashboard/': typeof AdminDashboardIndexRoute
   '/cart/': typeof CartIndexRoute
@@ -274,6 +292,8 @@ export interface FileRouteTypes {
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
+    | '/legal/privacy-policy'
+    | '/legal/terms-of-use'
     | '/search/$id'
     | '/admin-dashboard'
     | '/cart'
@@ -303,6 +323,8 @@ export interface FileRouteTypes {
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
+    | '/legal/privacy-policy'
+    | '/legal/terms-of-use'
     | '/search/$id'
     | '/admin-dashboard'
     | '/cart'
@@ -332,6 +354,8 @@ export interface FileRouteTypes {
     | '/checkout/esewa-checkout'
     | '/checkout/result'
     | '/checkout/success'
+    | '/legal/privacy-policy'
+    | '/legal/terms-of-use'
     | '/search/$id'
     | '/admin-dashboard/'
     | '/cart/'
@@ -362,6 +386,8 @@ export interface RootRouteChildren {
   CheckoutEsewaCheckoutRoute: typeof CheckoutEsewaCheckoutRoute
   CheckoutResultRoute: typeof CheckoutResultRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
+  LegalPrivacyPolicyRoute: typeof LegalPrivacyPolicyRoute
+  LegalTermsOfUseRoute: typeof LegalTermsOfUseRoute
   SearchIdRoute: typeof SearchIdRoute
   AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
   CartIndexRoute: typeof CartIndexRoute
@@ -448,6 +474,20 @@ declare module '@tanstack/react-router' {
       path: '/search/$id'
       fullPath: '/search/$id'
       preLoaderRoute: typeof SearchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms-of-use': {
+      id: '/legal/terms-of-use'
+      path: '/legal/terms-of-use'
+      fullPath: '/legal/terms-of-use'
+      preLoaderRoute: typeof LegalTermsOfUseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy-policy': {
+      id: '/legal/privacy-policy'
+      path: '/legal/privacy-policy'
+      fullPath: '/legal/privacy-policy'
+      preLoaderRoute: typeof LegalPrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/success': {
@@ -586,6 +626,8 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutEsewaCheckoutRoute: CheckoutEsewaCheckoutRoute,
   CheckoutResultRoute: CheckoutResultRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
+  LegalPrivacyPolicyRoute: LegalPrivacyPolicyRoute,
+  LegalTermsOfUseRoute: LegalTermsOfUseRoute,
   SearchIdRoute: SearchIdRoute,
   AdminDashboardIndexRoute: AdminDashboardIndexRoute,
   CartIndexRoute: CartIndexRoute,

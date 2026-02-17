@@ -475,19 +475,19 @@ const Login = () => {
           <footer className="mt-12 pt-8 border-t border-border/40">
             <p className="text-center text-xs text-muted-foreground/70">
               By signing in, you agree to our{" "}
-              <a
-                href="/terms"
+              <Link
+                to="/legal/terms-of-use"
                 className="underline hover:text-foreground transition-colors"
               >
                 Terms of Service
-              </a>{" "}
+              </Link>{" "}
               and{" "}
-              <a
-                href="/privacy"
+              <Link
+                to="/legal/privacy-policy"
                 className="underline hover:text-foreground transition-colors"
               >
                 Privacy Policy
-              </a>
+              </Link>
             </p>
           </footer>
         </div>

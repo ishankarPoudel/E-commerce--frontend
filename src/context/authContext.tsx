@@ -24,7 +24,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   checkAuth: () => Promise<void>;
   logout: () => void;
-  refetch: () => void;
+  refetch: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,11 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasToken = document.cookie.includes("accessToken");
 
   //get current user details
-  const { data: response, isLoading: queryLoading } = useQuery({
+  const {
+    data: response,
+    isLoading: queryLoading,
+    refetch: refetchCurrentUser,
+  } = useQuery({
     ...getCurrentUserOptions(),
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    enabled: hasToken,
+    enabled: hasToken, // Only fetch if token exists
   });
 
   const checkAuth = async () => {
@@ -63,6 +67,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     sessionStorage.clear();
   };
+
+  const refetch = async () => {
+    const result = await refetchCurrentUser();
+
+    if (result.data?.data && result.data.success) {
+      setUser(result.data.data as User);
+      return;
+    }
+
+    setUser(null);
+  };
   useEffect(() => {
     if (response) {
       checkAuth();
@@ -77,10 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isLoading,
     isAdmin: user?.role === "admin",
-    isAuthenticated: hasToken && (!!user || queryLoading),
+    isAuthenticated: !!user,
     checkAuth,
     logout,
-    refetch: () => {}, // Placeholder, can be implemented to refetch user data
+    refetch,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
