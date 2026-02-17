@@ -41,6 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ...getCurrentUserOptions(),
     refetchOnWindowFocus: false,
     refetchOnMount: true,
+    retry: false,
+    throwOnError: false,
   });
 
   const checkAuth = async () => {
@@ -50,14 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("🔍 checkAuth - response:", response);
 
       if (response?.data && response.success) {
-        console.log("✅ Setting user:", response.data);
         setUser(response.data as User);
       } else {
-        console.log("❌ No valid response, setting user to null");
         setUser(null);
       }
     } catch (error) {
-      console.error("❌ Auth check failed:", error);
       setUser(null);
     } finally {
       setIsLoading(false);

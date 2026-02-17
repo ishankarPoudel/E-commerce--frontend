@@ -39,6 +39,11 @@ window.fetch = async (input, init) => {
     url.includes("/legal/privacy-policy") ||
     url.includes("/legal/terms-of-use");
 
+  // ✅ Don't redirect if it's the /user/me endpoint
+  if (url.includes("/user/me") && response.status === 401) {
+    console.log("👤 User not logged in - allowing guest access");
+    return response;
+  }
   // Handle 401/403 errors
   if (
     (response.status === 401 || response.status === 403) &&
