@@ -52,6 +52,9 @@ export const EsewaCheckoutPage = () => {
       <div className="checkout-loading">
         <h2>Redirecting to eSewa…</h2>
         <p>Please do not refresh or close this page.</p>
+        <button onClick={() => navigate({ to: "/cart" })}>
+          Return to cart
+        </button>
       </div>
     );
   }

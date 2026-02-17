@@ -8,7 +8,6 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/ui/shadcn/sidebar";
-
 import { Avatar, AvatarFallback } from "@/ui/shadcn/avatar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/shadcn/button";
@@ -33,7 +32,7 @@ export function AppSidebar() {
           <span
             className={cn(
               "text-black font-semibold select-none tracking-wide transition-all",
-              state === "collapsed" ? "text-sm leading-none" : "text-base"
+              state === "collapsed" ? "text-sm leading-none" : "text-base",
             )}
           >
             AB
@@ -42,7 +41,7 @@ export function AppSidebar() {
             className={cn(
               "flex flex-col transition-all origin-left",
               state === "collapsed" &&
-                "opacity-0 -translate-x-2 pointer-events-none w-0 overflow-hidden"
+                "opacity-0 -translate-x-2 pointer-events-none w-0 overflow-hidden",
             )}
           >
             <span className="text-lg font-semibold">Avisekh Bags</span>
@@ -79,7 +78,7 @@ export function AppSidebar() {
               className={cn(
                 "flex flex-1 flex-col overflow-hidden transition-all",
                 state === "collapsed" &&
-                  "opacity-0 -translate-x-2 pointer-events-none w-0"
+                  "opacity-0 -translate-x-2 pointer-events-none w-0",
               )}
             >
               <span className="truncate text-sm font-medium">
@@ -95,7 +94,7 @@ export function AppSidebar() {
               size="icon"
               className={cn(
                 "h-8 w-8 text-muted-foreground hover:text-black",
-                state === "collapsed" && "mx-auto"
+                state === "collapsed" && "mx-auto",
               )}
             >
               <LogOut className="h-4 w-4" />
