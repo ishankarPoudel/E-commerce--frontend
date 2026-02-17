@@ -3,13 +3,7 @@ import { Badge } from "@/ui/shadcn/badge";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/ui/shadcn/dialog";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  ChevronDown,
-  Package,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Package } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { ProductDetailPanel } from "./DetailProduct";
 import {
@@ -28,11 +22,13 @@ export default function CategoryBasedBags() {
   const [visibleItems, setVisibleItems] = useState<Map<string, number>>(
     new Map(),
   );
+  const hasToken = document.cookie.includes("accessToken");
 
   const { data: listOfBag, isLoading } = useQuery({
     ...getCategoriesWithBagsOptions({
       query: { page: 1, limit: 10 },
     }),
+    enabled: hasToken,
   });
 
   const checkScrollButtons = (categoryId: string) => {
