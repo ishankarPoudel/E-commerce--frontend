@@ -20,6 +20,20 @@ client.setConfig({
 let isRefreshing = false;
 let refreshPromise: Promise<any> | null = null;
 
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+const processQueue = (error: any = null) => {
+  failedQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error);
+    } else {
+      promise.resolve();
+    }
+  });
+  failedQueue = [];
+};
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
   const response = await originalFetch(input, init);
@@ -81,17 +95,30 @@ window.fetch = async (input, init) => {
             refreshPromise = refreshToken({ throwOnError: false });
 
             try {
-              await refreshPromise;
-              console.log(" Token refreshed successfully");
+              const refreshResponse = await originalFetch(
+                `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
+                {
+                  method: "POST",
+                  credentials: "include",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+              if (!refreshResponse.ok) {
+                throw new Error("Refresh token failed");
+              }
+
+              const refreshData = await refreshResponse.json();
               isRefreshing = false;
-              refreshPromise = null;
+              processQueue();
 
               // Retry original request
               return await originalFetch(input, init);
             } catch (refreshError) {
               console.error(" Refresh failed:", refreshError);
               isRefreshing = false;
-              refreshPromise = null;
+              processQueue(refreshError);
 
               // Clear and redirect
               localStorage.clear();
@@ -107,13 +134,23 @@ window.fetch = async (input, init) => {
               window.location.replace(
                 `/auth/login?error=session_expired&redirect=${encodeURIComponent(currentPath)}`,
               );
+              return response;
             }
           } else {
-            // Wait for ongoing refresh
-            await refreshPromise;
-            return await originalFetch(input, init);
+            console.log(" Refresh in progress - queuing request");
+
+            return new Promise((resolve, reject) => {
+              failedQueue.push({ resolve, reject });
+            })
+              .then(() => {
+                console.log("Retrying queued request:", url);
+                return originalFetch(input, init);
+              })
+              .catch((error) => {
+                console.error("Queued request failed:", error);
+                return response;
+              });
           }
-          return response;
         }
 
         case "session_revoked": {
