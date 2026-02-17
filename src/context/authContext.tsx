@@ -37,8 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   //get current user details
   const { data: response, isLoading: queryLoading } = useQuery({
     ...getCurrentUserOptions(),
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     enabled: hasToken,
   });
 
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isLoading,
     isAdmin: user?.role === "admin",
-    isAuthenticated: !!user,
+    isAuthenticated: hasToken && (!!user || queryLoading),
     checkAuth,
     logout,
     refetch: () => {}, // Placeholder, can be implemented to refetch user data
