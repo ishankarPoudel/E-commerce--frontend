@@ -39,19 +39,15 @@ window.fetch = async (input, init) => {
   const url = input instanceof Request ? input.url : input.toString();
 
   let originalUrl = url;
-  let originalInit = init;
+  let originalInit: RequestInit = { ...init };
 
-  //  If input is a Request object, extract its properties
+  // Clone request details
   if (input instanceof Request) {
     originalUrl = input.url;
-
-    // Clone the request to preserve body
-    const clonedRequest = input.clone();
 
     originalInit = {
       method: input.method,
       headers: Object.fromEntries(input.headers.entries()),
-      body: input.bodyUsed ? undefined : await clonedRequest.text(),
       credentials: input.credentials,
       mode: input.mode,
       cache: input.cache,
@@ -59,18 +55,40 @@ window.fetch = async (input, init) => {
       referrer: input.referrer,
       integrity: input.integrity,
     };
-  } else if (init?.body) {
-    //  Clone the body if it exists
-    if (typeof init.body === "string") {
-      originalInit = { ...init, body: init.body };
-    } else if (init.body instanceof FormData) {
-      const formData = new FormData();
-      for (const [key, value] of (init.body as FormData).entries()) {
-        formData.append(key, value);
+
+    // Only add body if request method allows it AND it has a body
+    if (
+      input.body &&
+      !input.bodyUsed &&
+      !["GET", "HEAD"].includes(input.method.toUpperCase()) //  Check method
+    ) {
+      try {
+        const clonedRequest = input.clone();
+        originalInit.body = await clonedRequest.text();
+      } catch (error) {
+        console.warn("Could not clone request body:", error);
       }
-      originalInit = { ...init, body: formData };
+    }
+  } else if (init?.body) {
+    //Only add body if method allows it
+    const method = (init.method || "GET").toUpperCase();
+
+    if (!["GET", "HEAD"].includes(method)) {
+      if (typeof init.body === "string") {
+        originalInit = { ...init, body: init.body };
+      } else if (init.body instanceof FormData) {
+        const formData = new FormData();
+        for (const [key, value] of (init.body as FormData).entries()) {
+          formData.append(key, value);
+        }
+        originalInit = { ...init, body: formData };
+      } else {
+        originalInit = { ...init };
+      }
     } else {
-      originalInit = { ...init };
+      //  For GET/HEAD, remove body
+      const { body, ...restInit } = init;
+      originalInit = restInit;
     }
   }
 
@@ -90,8 +108,30 @@ window.fetch = async (input, init) => {
     url.includes("/legal/privacy-policy") ||
     url.includes("/legal/terms-of-use");
 
+  // Special handling for /user/me to allow guest browsing
   if (url.includes("/user/me") && response.status === 401) {
-    return response;
+    try {
+      const responseClone = response.clone();
+      const data = await responseClone.json();
+
+      //  If it's guest_user, return immediately (allow guest browsing)
+      if (data.errorType === "guest_user") {
+        console.log("👤 Guest user - allowing catalog browsing");
+        return response;
+      }
+
+      //  If it's token_expired, continue to refresh logic below
+      if (data.errorType === "token_expired") {
+        // Don't return, let it fall through to the refresh logic
+      } else {
+        // Other error types, return as-is
+        console.log(" Other error type:", data.errorType);
+        return response;
+      }
+    } catch (parseError) {
+      console.error(" Could not parse /user/me response:", parseError);
+      return response;
+    }
   }
 
   if (
@@ -107,11 +147,20 @@ window.fetch = async (input, init) => {
       const errorType = data.errorType || "unknown";
       const currentPath = window.location.pathname;
 
-      console.log("HANDLING ERROR TYPE:", errorType);
+      console.log("🔍 HANDLING ERROR TYPE:", errorType);
 
       switch (errorType) {
         case "guest_user": {
+          console.log("👤 CASE: guest_user");
+
+          //  For /user/me, we already handled this above
+          if (url.includes("/user/me")) {
+            return response;
+          }
+
+          // For other endpoints, redirect to login
           if (!window.location.pathname.includes("/auth/login")) {
+            console.log("👤 Non /user/me endpoint - redirecting to login");
             window.location.replace(
               `/auth/login?error=guest_user&redirect=${encodeURIComponent(currentPath)}`,
             );
@@ -180,8 +229,6 @@ window.fetch = async (input, init) => {
                   );
                   return response;
                 } else if (refreshErrorType === "session_revoked") {
-                  console.log(" Session revoked by admin - logging out");
-
                   localStorage.clear();
                   sessionStorage.clear();
                   document.cookie.split(";").forEach((c) => {
@@ -198,8 +245,6 @@ window.fetch = async (input, init) => {
                   );
                   return response;
                 } else if (shouldForceLogout) {
-                  console.log("🚪 Force logout - clearing session");
-
                   localStorage.clear();
                   sessionStorage.clear();
                   document.cookie.split(";").forEach((c) => {
@@ -216,7 +261,7 @@ window.fetch = async (input, init) => {
                   );
                   return response;
                 } else {
-                  console.log("👤 Guest user - redirecting to login");
+                  console.log("👤 Guest user");
                   window.location.replace(
                     `/auth/login?error=guest_user&redirect=${encodeURIComponent(currentPath)}`,
                   );
@@ -229,8 +274,11 @@ window.fetch = async (input, init) => {
               isRefreshing = false;
               processQueue();
 
+              console.log("🔄 Retrying original request:", originalUrl);
+
               return await originalFetch(originalUrl, originalInit);
             } catch (refreshError) {
+              console.error(" Unexpected refresh error:", refreshError);
               isRefreshing = false;
               processQueue(refreshError);
 
@@ -257,8 +305,6 @@ window.fetch = async (input, init) => {
               failedQueue.push({ resolve, reject });
             })
               .then(() => {
-                console.log("🔄 Retrying queued request:", originalUrl);
-
                 return originalFetch(originalUrl, originalInit);
               })
               .catch(() => {
@@ -320,8 +366,9 @@ window.fetch = async (input, init) => {
         }
 
         default: {
+          console.warn("CASE: default/unknown -", errorType);
+
           if (data.forceLogout === true) {
-            console.log(" Force logout flag set");
             localStorage.clear();
             sessionStorage.clear();
             document.cookie.split(";").forEach((c) => {
@@ -340,6 +387,8 @@ window.fetch = async (input, init) => {
         }
       }
     } catch (parseError) {
+      console.error(" Could not parse error response:", parseError);
+
       if (response.status === 401 || response.status === 403) {
         localStorage.clear();
         sessionStorage.clear();
