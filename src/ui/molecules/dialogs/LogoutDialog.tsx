@@ -11,7 +11,7 @@ import {
   AlertDialogAction,
 } from "@/ui/shadcn/alert-dialog";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const LogoutDialog = ({
@@ -24,19 +24,26 @@ const LogoutDialog = ({
   const { mutate: logout, isPending: isLoggingOut } = useMutation({
     ...logoutMutation(),
   });
+  const queryClient = useQueryClient();
   const handleLogoutClick = () => {
     logout(
       {},
       {
         onSuccess: (response) => {
-          localStorage.removeItem("email");
+          localStorage.clear();
+          queryClient.clear();
+          sessionStorage.clear();
           window.location.href = "/auth/login";
           toast.success(response.message || "Logged out successfully");
         },
         onError: () => {
           toast.error("Logout failed");
+          queryClient.clear();
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = "/auth/login";
         },
-      }
+      },
     );
   };
 

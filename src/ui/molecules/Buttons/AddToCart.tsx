@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { ShoppingCart, Check, Plus, Minus, X } from "lucide-react";
+import { ShoppingCart, Check, Plus, Minus } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent } from "@/ui/shadcn/dialog";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,8 @@ import { getImageUrl } from "@/utils/urlHelpers";
 import { useMutation } from "@tanstack/react-query";
 import { addToCartMutation } from "@/api/@tanstack/react-query.gen";
 import { MediaEntity } from "@/api";
+import { useAuth } from "@/context/authContext";
+import { useNavigate } from "@tanstack/react-router";
 
 interface Product {
   id: string;
@@ -79,6 +81,8 @@ export function AddToCartButton({
   const [isAdding, setIsAdding] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   // const { addItem } = useCart();
   const needsOptions =
@@ -90,7 +94,31 @@ export function AddToCartButton({
   });
 
   const handleAddToCart = async (e?: React.MouseEvent) => {
+    console.log(" Add to Cart clicked:", {
+      authLoading,
+      isAuthenticated,
+    });
+    if (authLoading) {
+      console.log(" Auth still loading");
+      toast.loading("verifying authentication...");
+      return;
+    }
+    if (!isAuthenticated) {
+      console.log(" User not authenticated");
+      toast.info("Please log in to add items to your cart", {
+        action: {
+          label: "Log In",
+          onClick: () => {
+            navigate({
+              to: "/auth/login",
+            });
+          },
+        },
+      });
+      return;
+    }
     e?.stopPropagation();
+    console.log(" Proceeding with add to cart:");
     if (product.stock === 0) {
       toast.error("This item is currently unavailable");
       return;
@@ -307,7 +335,7 @@ export function AddToCartButton({
                     <button
                       type="button"
                       onClick={decrementQuantity}
-                      disabled={quantity <= 1}
+                      disabled={quantity <= 1 || authLoading}
                       className="h-9 w-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg"
                     >
                       <Minus className="h-4 w-4" />
@@ -318,7 +346,9 @@ export function AddToCartButton({
                     <button
                       type="button"
                       onClick={incrementQuantity}
-                      disabled={quantity >= (product.stock ?? Infinity)}
+                      disabled={
+                        quantity >= (product.stock ?? Infinity) || authLoading
+                      }
                       className="h-9 w-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg"
                     >
                       <Plus className="h-4 w-4" />
@@ -338,6 +368,7 @@ export function AddToCartButton({
                 "",
                 isAdding && "opacity-70 cursor-not-allowed",
                 showSuccess && "hover:cursor-default",
+                authLoading && "opacity-70 cursor-not-allowed",
               )}
             >
               {showSuccess ? (

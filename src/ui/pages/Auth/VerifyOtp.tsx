@@ -55,13 +55,13 @@ const VerifyOtp = () => {
           // localStorage.removeItem("email");
           toast.success(response.message);
           navigate({
-            to: "/auth/protected",
+            to: "/",
           });
         },
         onError: (error) => {
           toast.error(error.message || "Failed to verify OTP");
         },
-      }
+      },
     );
   };
   const handleOTPResendClick = () => {
@@ -79,7 +79,7 @@ const VerifyOtp = () => {
         onError: (error) => {
           toast.error(error.message || "Failed to resend OTP");
         },
-      }
+      },
     );
   };
 

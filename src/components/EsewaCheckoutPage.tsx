@@ -1,33 +1,11 @@
 import { useEffect, useState } from "react";
-
-import { EsewaPaymentForm } from "./EsewaForm";
 import { useNavigate } from "@tanstack/react-router";
-
-type EsewaCheckoutData = {
-  provider: "esewa";
-  orderId: string;
-  formUrl: string;
-  params: {
-    amount: number;
-    tax_amount: number;
-    transaction_uuid: string;
-    productCode: string;
-    product_code: string | number | readonly string[] | undefined;
-    product_delivery_charge: string | number | readonly string[] | undefined;
-    product_service_charge: string | number | readonly string[] | undefined;
-    total_amount: string | number | readonly string[] | undefined;
-    success_url: string;
-    failure_url: string;
-    signed_field_names: string;
-    signature: string;
-  };
-};
-
-type CheckoutData = EsewaCheckoutData;
+import { EsewaPaymentForm } from "./EsewaForm";
 
 export const EsewaCheckoutPage = () => {
   const navigate = useNavigate();
-  const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+  const [checkoutData, setCheckoutData] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("checkout");
@@ -38,26 +16,53 @@ export const EsewaCheckoutPage = () => {
     }
 
     try {
-      const parsed = JSON.parse(stored) as CheckoutData;
+      const parsed = JSON.parse(stored);
+
+      if (
+        parsed.provider !== "esewa" ||
+        !parsed.formUrl ||
+        !parsed.params?.signature ||
+        !parsed.params?.transaction_uuid
+      ) {
+        throw new Error("Invalid checkout payload");
+      }
+
       setCheckoutData(parsed);
-    } catch {
+    } catch (err) {
+      console.error("Invalid checkout data:", err);
       sessionStorage.removeItem("checkout");
-      navigate({ to: "/cart" });
+      setError("Your checkout session expired. Please try again.");
     }
   }, [navigate]);
 
-  if (!checkoutData) {
-    return <p>Preparing checkout...</p>;
-  }
-
-  if (checkoutData.provider === "esewa") {
+  if (error) {
     return (
-      <EsewaPaymentForm
-        formUrl={checkoutData.formUrl}
-        params={checkoutData.params}
-      />
+      <div className="checkout-error">
+        <h2>Checkout Error</h2>
+        <p>{error}</p>
+        <button onClick={() => navigate({ to: "/cart" })}>
+          Return to cart
+        </button>
+      </div>
     );
   }
 
-  return <p>Unsupported payment provider</p>;
+  if (!checkoutData) {
+    return (
+      <div className="checkout-loading">
+        <h2>Redirecting to eSewa…</h2>
+        <p>Please do not refresh or close this page.</p>
+        <button onClick={() => navigate({ to: "/cart" })}>
+          Return to cart
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <EsewaPaymentForm
+      formUrl={checkoutData.formUrl}
+      params={checkoutData.params}
+    />
+  );
 };

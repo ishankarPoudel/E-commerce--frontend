@@ -15,13 +15,16 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  LogIn,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/authContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { refetch } = useAuth();
   const [errorType, setErrorType] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -42,6 +45,11 @@ const Login = () => {
 
       // Show toast notification based on error type
       switch (error) {
+        case "guest_user":
+          toast.info("Please login to continue", {
+            duration: 4000,
+          });
+          break;
         case "session_revoked":
           toast.error("Your session has been revoked by an administrator", {
             duration: 5000,
@@ -53,6 +61,8 @@ const Login = () => {
           });
           break;
         case "session_expired":
+        case "token_expired":
+        case "invalid_token":
           toast.warning("Your session has expired", {
             duration: 4000,
           });
@@ -100,27 +110,40 @@ const Login = () => {
         },
       },
       {
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           toast.success(response.message || "Login successful");
-          navigate({
-            to: "/",
-          });
+          await refetch(); // Update auth context with new user data
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirect = urlParams.get("redirect") || "/";
+          navigate({ to: redirect });
         },
         onError: (error: Error) => {
           toast.error(error.message || "Login failed");
         },
-      }
+      },
     );
   };
 
   // fn to handle oAuth login click
   const handleOauthLoginClick = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get("redirect") || "/";
+    sessionStorage.setItem("oauth_redirect", redirect);
     window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   // Get error alert configuration
   const getErrorAlert = () => {
     switch (errorType) {
+      case "guest_user":
+        return {
+          icon: LogIn,
+          variant: "default" as const,
+          title: "Login Required",
+          description:
+            "Please sign in to access this feature. Create an account if you don't have one yet.",
+          iconColor: "text-blue-600",
+        };
       case "session_revoked":
         return {
           icon: ShieldAlert,
@@ -140,6 +163,8 @@ const Login = () => {
           iconColor: "text-red-600",
         };
       case "session_expired":
+      case "token_expired":
+      case "invalid_token":
         return {
           icon: AlertTriangle,
           variant: "default" as const,
@@ -287,15 +312,15 @@ const Login = () => {
               {errorType === "session_revoked"
                 ? "Session Expired"
                 : errorType === "account_banned"
-                ? "Access Restricted"
-                : "Welcome back"}
+                  ? "Access Restricted"
+                  : "Welcome back"}
             </h1>
             <p className="text-muted-foreground">
               {errorType === "session_revoked"
                 ? "Please log in again to continue securely."
                 : errorType === "account_banned"
-                ? "Contact support to restore access."
-                : "Sign in to access your account and continue your journey with us."}
+                  ? "Contact support to restore access."
+                  : "Sign in to access your account and continue your journey with us."}
             </p>
           </div>
 
@@ -305,8 +330,8 @@ const Login = () => {
               {errorType === "session_revoked"
                 ? "Session Expired"
                 : errorType === "account_banned"
-                ? "Access Restricted"
-                : "Welcome back"}
+                  ? "Access Restricted"
+                  : "Welcome back"}
             </h1>
             <p className="text-muted-foreground text-sm">
               {errorType === "account_banned"
@@ -453,19 +478,19 @@ const Login = () => {
           <footer className="mt-12 pt-8 border-t border-border/40">
             <p className="text-center text-xs text-muted-foreground/70">
               By signing in, you agree to our{" "}
-              <a
-                href="/terms"
+              <Link
+                to="/legal/terms-of-use"
                 className="underline hover:text-foreground transition-colors"
               >
                 Terms of Service
-              </a>{" "}
+              </Link>{" "}
               and{" "}
-              <a
-                href="/privacy"
+              <Link
+                to="/legal/privacy-policy"
                 className="underline hover:text-foreground transition-colors"
               >
                 Privacy Policy
-              </a>
+              </Link>
             </p>
           </footer>
         </div>

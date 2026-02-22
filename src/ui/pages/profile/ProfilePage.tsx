@@ -191,8 +191,8 @@ export function CustomerProfile() {
                         customer.provider === "google"
                           ? "https://www.svgrepo.com/show/355037/google.svg"
                           : customer.provider === "github"
-                          ? "https://www.svgrepo.com/show/512317/github-142.svg"
-                          : "https://www.svgrepo.com/show/452213/user.svg"
+                            ? "https://www.svgrepo.com/show/512317/github-142.svg"
+                            : "https://www.svgrepo.com/show/452213/user.svg"
                       }
                       alt={customer.provider || "user"}
                       className="h-4 w-4 sm:h-5 sm:w-5"

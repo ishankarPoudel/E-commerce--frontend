@@ -1,13 +1,7 @@
 import { UserRole } from "@/api";
 import { getCurrentUserOptions } from "@/api/@tanstack/react-query.gen";
 import { useQuery } from "@tanstack/react-query";
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, ReactNode } from "react";
 
 interface User {
   userId: string;
@@ -24,62 +18,68 @@ interface AuthContextType {
   isAuthenticated: boolean;
   checkAuth: () => Promise<void>;
   logout: () => void;
-  refetch: () => void;
+  refetch: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  //get current user details
-  const { data: response, isLoading: queryLoading } = useQuery({
+  const {
+    data: response,
+    isLoading,
+    refetch: refetchCurrentUser,
+    error,
+  } = useQuery({
     ...getCurrentUserOptions(),
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: true,
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
   });
 
-  const checkAuth = async () => {
-    try {
-      setIsLoading(true);
+  const user =
+    response?.data && response.success ? (response.data as User) : null;
 
-      if (response?.data && response.success) {
-        setUser(response.data as User);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+  const checkAuth = async () => {
+    console.log("🔄 checkAuth - refetching user data...");
+    await refetchCurrentUser();
   };
 
   const logout = () => {
-    setUser(null);
+    // Clear React Query cache
+    refetchCurrentUser();
     sessionStorage.clear();
+    localStorage.clear();
   };
-  useEffect(() => {
-    if (response) {
-      checkAuth();
-    }
-  }, [response]);
 
+  const refetch = async () => {
+    console.log("🔄 Refetching user data...");
+    await refetchCurrentUser();
+  };
+
+  // Log auth state changes
   useEffect(() => {
-    setIsLoading(queryLoading);
-  }, [queryLoading]);
+    console.log("🔍 Auth State Changed:", {
+      user,
+      isLoading,
+      isAuthenticated: !!user,
+      isAdmin: user?.role === "admin",
+      error: error ? "Error occurred" : "No error",
+    });
+  }, [user, isLoading, error]);
+
+  const isAuthenticated = !!user;
+  const isAdmin = user?.role === "admin";
 
   const value = {
     user,
     isLoading,
-    isAdmin: user?.role === "admin",
-    isAuthenticated: !!user,
+    isAdmin,
+    isAuthenticated,
     checkAuth,
     logout,
-    refetch: () => {}, // Placeholder, can be implemented to refetch user data
+    refetch,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

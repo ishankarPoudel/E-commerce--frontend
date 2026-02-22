@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/ui/shadcn/badge";
 import { Image } from "@/ui/shadcn/image";
-import { getImageUrl } from "@/utils/urlHelpers";
 import { AddToCartButton } from "@/ui/molecules/Buttons/AddToCart";
 import { cn } from "@/lib/utils";
 import { getColorHex } from "@/ui/organisms/products/DetailProduct";
@@ -43,10 +42,6 @@ function isLightColor(hex: string): boolean {
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-
-  const images = product.images.map((img) => {
-    return img.url;
-  });
 
   const firstImageUrl = product.images[0]?.url || "";
 

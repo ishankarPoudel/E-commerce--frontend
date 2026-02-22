@@ -6,20 +6,95 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./ui/shadcn/sonner";
 import { client } from "./api/client.gen";
-import { refreshToken } from "./api/sdk.gen";
 
 client.setConfig({
   baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8000",
   credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
+
+// Track refresh token state
+let isRefreshing = false;
+
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any = null) => {
+  failedQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error);
+    } else {
+      promise.resolve();
+    }
+  });
+  failedQueue = [];
+};
 
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
-  const response = await originalFetch(input, init);
-
   const url = input instanceof Request ? input.url : input.toString();
 
-  // Skip force logout check for auth endpoints (login, register, etc.)
+  let originalUrl = url;
+  let originalInit: RequestInit = { ...init };
+
+  // Clone request details
+  if (input instanceof Request) {
+    originalUrl = input.url;
+
+    originalInit = {
+      method: input.method,
+      headers: Object.fromEntries(input.headers.entries()),
+      credentials: input.credentials,
+      mode: input.mode,
+      cache: input.cache,
+      redirect: input.redirect,
+      referrer: input.referrer,
+      integrity: input.integrity,
+    };
+
+    // Only add body if request method allows it AND it has a body
+    if (
+      input.body &&
+      !input.bodyUsed &&
+      !["GET", "HEAD"].includes(input.method.toUpperCase()) //  Check method
+    ) {
+      try {
+        const clonedRequest = input.clone();
+        originalInit.body = await clonedRequest.text();
+      } catch (error) {
+        console.warn("Could not clone request body:", error);
+      }
+    }
+  } else if (init?.body) {
+    //Only add body if method allows it
+    const method = (init.method || "GET").toUpperCase();
+
+    if (!["GET", "HEAD"].includes(method)) {
+      if (typeof init.body === "string") {
+        originalInit = { ...init, body: init.body };
+      } else if (init.body instanceof FormData) {
+        const formData = new FormData();
+        for (const [key, value] of (init.body as FormData).entries()) {
+          formData.append(key, value);
+        }
+        originalInit = { ...init, body: formData };
+      } else {
+        originalInit = { ...init };
+      }
+    } else {
+      //  For GET/HEAD, remove body
+      const { body, ...restInit } = init;
+      originalInit = restInit;
+    }
+  }
+
+  const response = await originalFetch(input, init);
+
+  // Skip auth endpoints
   const isAuthEndpoint =
     url.includes("/auth/login") ||
     url.includes("/auth/register") ||
@@ -27,92 +102,291 @@ window.fetch = async (input, init) => {
     url.includes("/auth/reset-password") ||
     url.includes("/auth/recover-password") ||
     url.includes("/auth/google") ||
-    url.includes("/refresh-token") ||
-    url.includes("/auth/logout");
+    url.includes("/auth/refresh-token") ||
+    url.includes("/auth/logout") ||
+    url.includes("/auth/google/callback") ||
+    url.includes("/legal/privacy-policy") ||
+    url.includes("/legal/terms-of-use");
 
-  // check force logout FIRST (before token refresh)
+  // Special handling for /user/me to allow guest browsing
+  if (url.includes("/user/me") && response.status === 401) {
+    try {
+      const responseClone = response.clone();
+      const data = await responseClone.json();
+
+      //  If it's guest_user, return immediately (allow guest browsing)
+      if (data.errorType === "guest_user") {
+        console.log("👤 Guest user - allowing catalog browsing");
+        return response;
+      }
+
+      //  If it's token_expired, continue to refresh logic below
+      if (data.errorType === "token_expired") {
+        // Don't return, let it fall through to the refresh logic
+      } else {
+        // Other error types, return as-is
+        console.log(" Other error type:", data.errorType);
+        return response;
+      }
+    } catch (parseError) {
+      console.error(" Could not parse /user/me response:", parseError);
+      return response;
+    }
+  }
+
   if (
     (response.status === 401 || response.status === 403) &&
     url.includes(import.meta.env.VITE_API_URL) &&
     !isAuthEndpoint
   ) {
-    // Clone response to read body without consuming it
     const responseClone = response.clone();
 
     try {
       const data = await responseClone.json();
 
-      // handle force logout scenarios
-      if (data.forceLogout === true) {
-        const errorType =
-          data.errorType ||
-          (response.status === 403 ? "account_banned" : "session_revoked");
+      const errorType = data.errorType || "unknown";
+      const currentPath = window.location.pathname;
 
-        console.log(` FORCE LOGOUT! Type: ${errorType}`);
+      switch (errorType) {
+        case "guest_user": {
+          //  For /user/me, we already handled this above
+          if (url.includes("/user/me")) {
+            return response;
+          }
 
-        // Clear storage
-        localStorage.clear();
-        sessionStorage.clear();
-
-        // Clear cookies (if accessible)
-        document.cookie.split(";").forEach((c) => {
-          document.cookie = c
-            .replace(/^ +/, "")
-            .replace(
-              /=.*/,
-              "=;expires=" + new Date().toUTCString() + ";path=/"
+          // For other endpoints, redirect to login
+          if (!window.location.pathname.includes("/auth/login")) {
+            window.location.replace(
+              `/auth/login?error=guest_user&redirect=${encodeURIComponent(currentPath)}`,
             );
-        });
+          }
+          return response;
+        }
 
-        // Redirect with appropriate error message
-        console.log(` Redirecting to: /auth/login?error=${errorType}`);
-        window.location.replace(`/auth/login?error=${errorType}`);
+        case "token_expired": {
+          if (!isRefreshing) {
+            isRefreshing = true;
 
-        // Return response to prevent further processing
-        return response;
-      }
+            try {
+              const refreshResponse = await originalFetch(
+                `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
+                {
+                  method: "POST",
+                  credentials: "include",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
 
-      //  If not force logout but still 401, try token refresh
-      if (response.status === 401 && !data.forceLogout) {
-        const isRefreshEndpoint = url.includes("/refresh-token");
+              if (!refreshResponse.ok) {
+                const errorData = await refreshResponse.json();
 
-        if (!isRefreshEndpoint) {
-          console.log("401 without forceLogout - Attempting token refresh...");
+                const refreshErrorType = errorData.errorType;
+                const shouldForceLogout = errorData.forceLogout;
 
-          try {
-            const refreshResult = await refreshToken({
-              credentials: "include",
-              throwOnError: false,
-            });
+                isRefreshing = false;
+                processQueue(new Error(errorData.message || "Refresh failed"));
 
-            console.log(" Token refreshed successfully:", refreshResult);
+                if (
+                  refreshErrorType === "session_expired" &&
+                  shouldForceLogout
+                ) {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                      .replace(/^ +/, "")
+                      .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/",
+                      );
+                  });
 
-            // Clone the original request and retry
-            const retryInit = { ...init };
-            const retryRequest =
-              input instanceof Request ? new Request(input, retryInit) : input;
+                  window.location.replace(
+                    `/auth/login?error=session_expired&message=${encodeURIComponent("Your session has expired. Please log in again.")}&redirect=${encodeURIComponent(currentPath)}`,
+                  );
+                  return response;
+                } else if (refreshErrorType === "account_banned") {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                      .replace(/^ +/, "")
+                      .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/",
+                      );
+                  });
 
-            console.log("🔄 Retrying original request...");
-            return await originalFetch(retryRequest, retryInit);
-          } catch (refreshError) {
-            console.error(" Failed to refresh token:", refreshError);
-            // Redirect to login if refresh fails
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.replace("/auth/login?error=session_expired");
+                  window.location.replace(
+                    `/auth/login?error=account_banned&message=${encodeURIComponent("Your account has been banned. Contact support.")}`,
+                  );
+                  return response;
+                } else if (refreshErrorType === "session_revoked") {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                      .replace(/^ +/, "")
+                      .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/",
+                      );
+                  });
+
+                  window.location.replace(
+                    `/auth/login?error=session_revoked&message=${encodeURIComponent("Your session has been revoked by an administrator.")}`,
+                  );
+                  return response;
+                } else if (shouldForceLogout) {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  document.cookie.split(";").forEach((c) => {
+                    document.cookie = c
+                      .replace(/^ +/, "")
+                      .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/",
+                      );
+                  });
+
+                  window.location.replace(
+                    `/auth/login?error=${refreshErrorType || "invalid_session"}&redirect=${encodeURIComponent(currentPath)}`,
+                  );
+                  return response;
+                } else {
+                  console.log("👤 Guest user");
+                  window.location.replace(
+                    `/auth/login?error=guest_user&redirect=${encodeURIComponent(currentPath)}`,
+                  );
+                  return response;
+                }
+              }
+
+              const refreshData = await refreshResponse.json();
+
+              isRefreshing = false;
+              processQueue();
+
+              return await originalFetch(originalUrl, originalInit);
+            } catch (refreshError) {
+              console.error(" Unexpected refresh error:", refreshError);
+              isRefreshing = false;
+              processQueue(refreshError);
+
+              localStorage.clear();
+              sessionStorage.clear();
+              document.cookie.split(";").forEach((c) => {
+                document.cookie = c
+                  .replace(/^ +/, "")
+                  .replace(
+                    /=.*/,
+                    "=;expires=" + new Date().toUTCString() + ";path=/",
+                  );
+              });
+
+              window.location.replace(
+                `/auth/login?error=network_error&redirect=${encodeURIComponent(currentPath)}`,
+              );
+              return response;
+            }
+          } else {
+            return new Promise((resolve, reject) => {
+              failedQueue.push({ resolve, reject });
+            })
+              .then(() => {
+                return originalFetch(originalUrl, originalInit);
+              })
+              .catch(() => {
+                return response;
+              });
           }
         }
-      }
-    } catch (e) {
-      // Not JSON response or parsing error
-      console.error(" Could not parse response as JSON:", e);
 
-      // If it's 401/403 but not JSON, probably auth issue
+        case "session_revoked": {
+          localStorage.clear();
+          sessionStorage.clear();
+          document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+              .replace(/^ +/, "")
+              .replace(
+                /=.*/,
+                "=;expires=" + new Date().toUTCString() + ";path=/",
+              );
+          });
+          window.location.replace("/auth/login?error=session_revoked");
+          return response;
+        }
+
+        case "account_banned": {
+          localStorage.clear();
+          sessionStorage.clear();
+          document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+              .replace(/^ +/, "")
+              .replace(
+                /=.*/,
+                "=;expires=" + new Date().toUTCString() + ";path=/",
+              );
+          });
+          window.location.replace("/auth/login?error=account_banned");
+          return response;
+        }
+
+        case "invalid_token":
+        case "user_not_found": {
+          localStorage.clear();
+          sessionStorage.clear();
+          document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+              .replace(/^ +/, "")
+              .replace(
+                /=.*/,
+                "=;expires=" + new Date().toUTCString() + ";path=/",
+              );
+          });
+          window.location.replace(
+            `/auth/login?error=session_expired&redirect=${encodeURIComponent(currentPath)}`,
+          );
+          return response;
+        }
+
+        case "insufficient_permissions": {
+          return response;
+        }
+
+        default: {
+          console.warn("CASE: default/unknown -", errorType);
+
+          if (data.forceLogout === true) {
+            localStorage.clear();
+            sessionStorage.clear();
+            document.cookie.split(";").forEach((c) => {
+              document.cookie = c
+                .replace(/^ +/, "")
+                .replace(
+                  /=.*/,
+                  "=;expires=" + new Date().toUTCString() + ";path=/",
+                );
+            });
+            window.location.replace(
+              `/auth/login?error=session_expired&redirect=${encodeURIComponent(currentPath)}`,
+            );
+          }
+          return response;
+        }
+      }
+    } catch (parseError) {
+      console.error(" Could not parse error response:", parseError);
+
       if (response.status === 401 || response.status === 403) {
-        console.log(" Non-JSON auth error, redirecting to login");
         localStorage.clear();
         sessionStorage.clear();
-        window.location.replace("/auth/login?error=session_expired");
+        const currentPath = window.location.pathname;
+        window.location.replace(
+          `/auth/login?error=session_expired&redirect=${encodeURIComponent(currentPath)}`,
+        );
       }
     }
   }
@@ -124,7 +398,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error: any) => {
-        // Don't retry on auth errors
         if (
           error?.status === 401 ||
           error?.status === 403 ||
@@ -139,6 +412,7 @@ const queryClient = new QueryClient({
     },
   },
 });
+
 const router = createRouter({ routeTree, context: { queryClient } });
 
 declare module "@tanstack/react-router" {
@@ -153,5 +427,5 @@ createRoot(document.getElementById("root")!).render(
       <RouterProvider router={router} />
       <Toaster />
     </StrictMode>
-  </QueryClientProvider>
+  </QueryClientProvider>,
 );

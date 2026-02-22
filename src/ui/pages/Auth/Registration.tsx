@@ -60,7 +60,7 @@ const Registration = () => {
         onError: (error: Error) => {
           toast.error(error.message || "Registration failed");
         },
-      }
+      },
     );
   };
 
@@ -312,19 +312,19 @@ const Registration = () => {
               {/* Terms Agreement Text */}
               <p className="text-xs text-center text-muted-foreground leading-relaxed">
                 By signing up, you agree to our{" "}
-                <a
-                  href="/terms"
+                <Link
+                  to="/legal/terms-of-use"
                   className="text-accent hover:text-accent/80 font-medium transition-colors underline"
                 >
                   Terms of Service
-                </a>{" "}
+                </Link>{" "}
                 and{" "}
-                <a
-                  href="/privacy"
+                <Link
+                  to="/legal/privacy-policy"
                   className="text-accent hover:text-accent/80 font-medium transition-colors underline"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </p>
 
               <div className="relative my-8">
