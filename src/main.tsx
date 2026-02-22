@@ -147,12 +147,8 @@ window.fetch = async (input, init) => {
       const errorType = data.errorType || "unknown";
       const currentPath = window.location.pathname;
 
-      console.log("🔍 HANDLING ERROR TYPE:", errorType);
-
       switch (errorType) {
         case "guest_user": {
-          console.log("👤 CASE: guest_user");
-
           //  For /user/me, we already handled this above
           if (url.includes("/user/me")) {
             return response;
@@ -160,7 +156,6 @@ window.fetch = async (input, init) => {
 
           // For other endpoints, redirect to login
           if (!window.location.pathname.includes("/auth/login")) {
-            console.log("👤 Non /user/me endpoint - redirecting to login");
             window.location.replace(
               `/auth/login?error=guest_user&redirect=${encodeURIComponent(currentPath)}`,
             );
@@ -274,8 +269,6 @@ window.fetch = async (input, init) => {
               isRefreshing = false;
               processQueue();
 
-              console.log("🔄 Retrying original request:", originalUrl);
-
               return await originalFetch(originalUrl, originalInit);
             } catch (refreshError) {
               console.error(" Unexpected refresh error:", refreshError);
@@ -299,8 +292,6 @@ window.fetch = async (input, init) => {
               return response;
             }
           } else {
-            console.log("⏳ Refresh in progress - queuing request");
-
             return new Promise((resolve, reject) => {
               failedQueue.push({ resolve, reject });
             })
